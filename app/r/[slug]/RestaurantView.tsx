@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { formatRupiah, initials, toTemplate, toWaNumber, type MenuItem, type Restaurant } from "@/lib/resto-types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { formatRupiah, initials, toTemplate, toWaNumber, type MenuItem, type Order, type Restaurant } from "@/lib/resto-types";
 import { getTheme, readableOn } from "@/lib/resto-themes";
+import { isQrisPayload, makeDynamicQris, qrisMerchantName } from "@/lib/qris";
 import { AlertIcon, CartIcon, ChairIcon, CloseIcon, LockIcon, MinusIcon, PinIcon, PlusIcon, UtensilsIcon } from "./icons";
 
 type Data = { restaurant: Restaurant; active: boolean; menu: MenuItem[] };
@@ -44,6 +45,10 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
   const [notice, setNotice] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<string | null>(null);
+  // Info pembayaran QRIS dinamis setelah order dibuat (null = belum/tidak pakai QRIS).
+  const [payInfo, setPayInfo] = useState<{ order: Order; qrUrl: string } | null>(null);
+  const [payPaid, setPayPaid] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     fetch(`/api/restaurants/${encodeURIComponent(slug)}`)
@@ -56,6 +61,28 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
   }, [slug]);
 
   const isMenu = mode === "menu";
+
+  // Polling status pembayaran setelah QRIS ditampilkan.
+  useEffect(() => {
+    if (!payInfo || payPaid) return;
+    const orderId = payInfo.order.id;
+    const tick = async () => {
+      try {
+        const res = await fetch(`/api/orders/${orderId}`);
+        const d: { order?: { payment_status?: string } } = await res.json();
+        if (res.ok && d.order?.payment_status === "paid") {
+          setPayPaid(true);
+          if (pollRef.current) clearInterval(pollRef.current);
+        }
+      } catch {
+        // Abaikan kegagalan sesekali; polling berikutnya mencoba lagi.
+      }
+    };
+    pollRef.current = setInterval(tick, 4000);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [payInfo, payPaid]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, MenuItem[]>();
@@ -97,6 +124,58 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
     );
   }
 
+  // Layar pembayaran QRIS dinamis (setelah order dibuat).
+  if (payInfo) {
+    const merchant = restaurant.qris_payload ? (qrisMerchantName(restaurant.qris_payload) ?? restaurant.name) : restaurant.name;
+    return (
+      <div className={t.root}>
+        <main className="mx-auto w-full max-w-md px-4 py-10">
+          <div className={`rounded-3xl p-6 text-center shadow-xl ${t.sheet}`}>
+            {!payPaid ? (
+              <>
+                <h1 className="text-xl font-bold">Pembayaran QRIS</h1>
+                <p className={`mt-1 text-sm ${t.muted}`}>{restaurant.name}{tableName ? ` · Meja ${tableName}` : ""}</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={payInfo.qrUrl} alt="QRIS dinamis" className="mx-auto mt-5 h-64 w-64 rounded-2xl border-4 border-white bg-white shadow" />
+                <p className="mt-4 text-3xl font-bold" style={t.accentText}>{formatRupiah(payInfo.order.total)}</p>
+                <p className={`mt-1 text-sm ${t.muted}`}>Merchant: {merchant}</p>
+                <div className={`mt-5 rounded-xl px-4 py-3 text-left text-sm ${t.notice}`}>
+                  <p className="font-semibold">Cara bayar:</p>
+                  <ol className="mt-1 list-decimal pl-5 leading-relaxed">
+                    <li>Buka aplikasi pembayaran apa saja</li>
+                    <li>Scan QR di atas — nominal sudah terkunci</li>
+                    <li>Periksa nama merchant, lalu bayar</li>
+                  </ol>
+                </div>
+                <p className={`mt-4 flex items-center justify-center gap-2 text-sm font-medium ${t.muted}`}>
+                  <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-amber-500" />
+                  Menunggu pembayaran & konfirmasi kasir…
+                </p>
+                <p className={`mt-1 text-xs ${t.muted}`}>Jangan tutup halaman ini.</p>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-700">✓</div>
+                <h1 className="text-xl font-bold">Pembayaran diterima!</h1>
+                <p className={`mt-2 text-sm ${t.muted}`}>
+                  Pesanan {formatRupiah(payInfo.order.total)}{tableName ? ` untuk Meja ${tableName}` : ""} diteruskan ke dapur.
+                  Silakan duduk dan tunggu hidangan Anda.
+                </p>
+              </>
+            )}
+            <button
+              onClick={() => { setPayInfo(null); setPayPaid(false); }}
+              className={`mt-6 w-full py-3 ${t.btn}`}
+              style={t.btnStyle}
+            >
+              {payPaid ? "Pesan Lagi" : "Kembali ke Menu"}
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   const lines = menu.filter((m) => cart[m.id] > 0).map((m) => ({ item: m, qty: cart[m.id] }));
   const total = lines.reduce((s, l) => s + Number(l.item.price) * l.qty, 0);
 
@@ -111,10 +190,6 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
 
   async function checkout(e: React.FormEvent) {
     e.preventDefault();
-    if (!wa) {
-      setNotice("Nomor WhatsApp restoran belum diatur.");
-      return;
-    }
     setSubmitting(true);
     setNotice("");
     try {
@@ -130,6 +205,22 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "Gagal membuat pesanan");
+      // Restoran punya QRIS: tampilkan QRIS dinamis dengan nominal terkunci.
+      if (restaurant.qris_payload && isQrisPayload(restaurant.qris_payload)) {
+        const dynamic = makeDynamicQris(restaurant.qris_payload, d.order.total);
+        const QRCode = (await import("qrcode")).default;
+        const qrUrl = await QRCode.toDataURL(dynamic, { width: 300, margin: 2 });
+        setPayInfo({ order: d.order as Order, qrUrl });
+        setPayPaid(false);
+        setCart({});
+        setSheetOpen(false);
+        window.scrollTo({ top: 0 });
+        return;
+      }
+      if (!wa) {
+        setNotice("Nomor WhatsApp restoran belum diatur.");
+        return;
+      }
       const summary = [
         `Halo ${restaurant.name}, saya ingin memesan${tableName ? ` (Meja ${tableName})` : ""}:`,
         ...lines.map((l) => `- ${l.item.name} x${l.qty} = ${formatRupiah(Number(l.item.price) * l.qty)}`),
