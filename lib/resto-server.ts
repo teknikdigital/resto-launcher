@@ -30,6 +30,7 @@ export const RESTAURANT_FIELDS = [
   "tiktok",
   "opening_hours",
   "about_text",
+  "qris_payload",
 ] as const;
 
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
@@ -63,6 +64,10 @@ export function parseRestaurantBody(
   }
   if (data.maps_url &&!/^https?:\/\//i.test(data.maps_url)) {
     return { error: "Link Google Maps harus diawali http:// atau https://" };
+  }
+  // QRIS statis restoran: harus terlihat seperti payload QRIS bila diisi.
+  if (data.qris_payload && !/^000201/.test(data.qris_payload)) {
+    return { error: "QRIS tidak valid: payload harus diawali 000201" };
   }
   // Foto sampul: URL penuh atau path proxy foto Google (/api/places/photo?...).
   if (data.cover_url && !/^(https?:\/\/|\/api\/places\/photo\?)/i.test(data.cover_url)) {
