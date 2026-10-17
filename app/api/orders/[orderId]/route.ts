@@ -2,6 +2,23 @@ import { NextResponse } from "next/server";
 import { caughtErrorResponse, supabaseErrorResponse, supabaseRest } from "@/lib/supabase";
 import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from "@/lib/resto-types";
 
+// GET publik: status pesanan (untuk polling pelanggan setelah bayar QRIS).
+// ID pesanan berupa UUID yang tidak bisa ditebak.
+export async function GET(_request: Request, ctx: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = await ctx.params;
+  try {
+    const res = await supabaseRest(
+      `orders?id=eq.${encodeURIComponent(orderId)}&select=id,status,payment_status,payment_method,total,table_id,created_at&limit=1`,
+    );
+    if (!res.ok) return supabaseErrorResponse(res);
+    const [order] = await res.json();
+    if (!order) return NextResponse.json({ error: "Order tidak ditemukan" }, { status: 404 });
+    return NextResponse.json({ order });
+  } catch (err) {
+    return caughtErrorResponse(err);
+  }
+}
+
 // PATCH: ubah status pesanan dan/atau status/metode pembayaran.
 export async function PATCH(request: Request, ctx: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await ctx.params;
