@@ -12,6 +12,7 @@ import {
   type RestaurantTemplate,
   type RestaurantWithSub,
 } from "@/lib/resto-types";
+import { isQrisPayload, qrisMerchantCity, qrisMerchantName } from "@/lib/qris";
 
 type Form = {
   slug: string;
@@ -29,6 +30,7 @@ type Form = {
   opening_hours: string;
   about_text: string;
   template: RestaurantTemplate;
+  qris_payload: string;
 };
 
 const EMPTY: Form = {
@@ -47,6 +49,7 @@ const EMPTY: Form = {
   opening_hours: "",
   about_text: "",
   template: "minimal",
+  qris_payload: "",
 };
 
 const PREVIEW: Record<RestaurantTemplate, string> = {
@@ -103,6 +106,7 @@ function AdminRestaurants() {
   const [copied, setCopied] = useState("");
   const [category, setCategory] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [qrisScanning, setQrisScanning] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -162,6 +166,7 @@ function AdminRestaurants() {
       opening_hours: r.opening_hours ?? "",
       about_text: r.about_text ?? "",
       template: toTemplate(r.template),
+      qris_payload: r.qris_payload ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -198,6 +203,36 @@ function AdminRestaurants() {
       setError(err instanceof Error ? err.message : "Gagal membuat deskripsi");
     } finally {
       setAiLoading(false);
+    }
+  }
+
+  // Baca QRIS dari foto yang di-upload (decode di browser, tidak dikirim ke mana-mana).
+  async function onQrisFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setQrisScanning(true);
+    setError("");
+    try {
+      const bitmap = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      const scale = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Browser tidak mendukung pembacaan gambar");
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const { default: jsQR } = await import("jsqr");
+      const code = jsQR(img.data, img.width, img.height);
+      if (!code?.data || !isQrisPayload(code.data)) {
+        throw new Error("QR di foto tidak terbaca sebagai QRIS. Pastikan foto QRIS-nya jelas dan tidak terpotong.");
+      }
+      set("qris_payload", code.data.trim());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal membaca QRIS dari foto");
+    } finally {
+      setQrisScanning(false);
     }
   }
 
@@ -301,6 +336,30 @@ function AdminRestaurants() {
           onChange={(e) => set("whatsapp", e.target.value)} />
         <input className={`${inputCls} sm:col-span-2`} type="url" placeholder="Link Google Maps (opsional)" value={form.maps_url}
           onChange={(e) => set("maps_url", e.target.value)} />
+        <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-4 sm:col-span-2">
+          <p className="text-sm font-medium text-zinc-700">QRIS statis restoran</p>
+          <p className="mt-0.5 text-xs text-zinc-500">
+            Upload foto QRIS milik restoran sekali saja. Sistem akan membuat nominal dinamis per pesanan dari QRIS ini.
+            Uang pelanggan tetap langsung masuk ke rekening restoran.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <label className="btn-secondary cursor-pointer">
+              {qrisScanning ? "Membaca QR..." : "Upload Foto QRIS"}
+              <input type="file" accept="image/*" className="hidden" onChange={onQrisFile} disabled={qrisScanning} />
+            </label>
+            {form.qris_payload && (
+              <button type="button" onClick={() => set("qris_payload", "")} className="btn-danger btn-sm">
+                Hapus QRIS
+              </button>
+            )}
+          </div>
+          {form.qris_payload && isQrisPayload(form.qris_payload) && (
+            <p className="mt-2 rounded-lg bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
+              ✓ QRIS terbaca: {qrisMerchantName(form.qris_payload) ?? "-"}
+              {qrisMerchantCity(form.qris_payload) ? ` · ${qrisMerchantCity(form.qris_payload)}` : ""}
+            </p>
+          )}
+        </div>
         <label className="flex items-center gap-3 text-sm font-medium text-zinc-700">
           Warna utama
           <input
