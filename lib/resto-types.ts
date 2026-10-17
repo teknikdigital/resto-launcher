@@ -44,6 +44,7 @@ export type Restaurant = {
   template: RestaurantTemplate | null;
   instagram: string | null;
   tiktok: string | null;
+  qris_payload: string | null;
   opening_hours: string | null;
   about_text: string | null;
   created_at: string;
