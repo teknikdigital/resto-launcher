@@ -18,6 +18,7 @@ export default function TablesAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState("");
+  const [qrMap, setQrMap] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     try {
@@ -79,6 +80,25 @@ export default function TablesAdminPage() {
   }
 
   const linkPath = (t: RestaurantTable) => `/r/${slug}/menu?table=${encodeURIComponent(t.name)}`;
+
+  // Buat gambar QR per meja (untuk dicetak & ditempel di meja).
+  async function makeQr(t: RestaurantTable) {
+    if (qrMap[t.id] || !slug) return;
+    try {
+      const { default: QRCode } = await import("qrcode");
+      const url = await QRCode.toDataURL(`${window.location.origin}${linkPath(t)}`, { width: 240, margin: 2 });
+      setQrMap((m) => ({ ...m, [t.id]: url }));
+    } catch {
+      setError("Gagal membuat QR meja");
+    }
+  }
+
+  useEffect(() => {
+    tables.forEach((t) => {
+      void makeQr(t);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tables, slug]);
 
   async function copy(t: RestaurantTable) {
     try {
@@ -155,13 +175,29 @@ export default function TablesAdminPage() {
                 </div>
               </div>
               {slug && (
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                  <Link href={linkPath(t)} target="_blank" className="break-all text-blue-600 hover:underline">
-                    {linkPath(t)}
-                  </Link>
-                  <button onClick={() => copy(t)} className="btn-secondary btn-sm shrink-0 shadow-none">
-                    {copied === t.id ? "Tersalin" : "Salin Link"}
-                  </button>
+                <div className="mt-3 flex flex-wrap items-center gap-4">
+                  {qrMap[t.id] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={qrMap[t.id]} alt={`QR Meja ${t.name}`} className="h-28 w-28 rounded-lg border border-zinc-200 bg-white" />
+                  ) : (
+                    <div className="skeleton h-28 w-28" />
+                  )}
+                  <div className="flex min-w-0 flex-1 flex-col gap-2 text-xs">
+                    <Link href={linkPath(t)} target="_blank" className="break-all text-blue-600 hover:underline">
+                      {linkPath(t)}
+                    </Link>
+                    <div className="flex flex-wrap gap-2">
+                      <button onClick={() => copy(t)} className="btn-secondary btn-sm shrink-0 shadow-none">
+                        {copied === t.id ? "Tersalin" : "Salin Link"}
+                      </button>
+                      {qrMap[t.id] && (
+                        <a href={qrMap[t.id]} download={`qr-meja-${t.name}.png`} className="btn-secondary btn-sm shrink-0 shadow-none">
+                          Unduh QR
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-zinc-500">Cetak & tempel di meja — pelanggan scan untuk pesan.</p>
+                  </div>
                 </div>
               )}
             </li>
