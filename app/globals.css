@@ -18,6 +18,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Font display serif untuk landing page marketing. */
+.font-display {
+  font-family: var(--font-display), ui-serif, Georgia, "Times New Roman", serif;
+}
+
 /* Animasi masuk viewport (landing publik); dipicu IntersectionObserver */
 .reveal {
   opacity: 0;
