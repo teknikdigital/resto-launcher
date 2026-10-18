@@ -1,5 +1,8 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faClipboardList } from "@fortawesome/free-solid-svg-icons";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -248,7 +251,7 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
         </div>
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faClipboardList} /></div>
           <p className="font-semibold text-zinc-800">Belum ada menu</p>
           <p className="mt-1 text-sm text-zinc-500">Tambah menu lewat formulir di atas atau unggah foto/PDF menu.</p>
         </div>
