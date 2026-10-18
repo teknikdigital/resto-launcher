@@ -1,5 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
+
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLightbulb } from "@fortawesome/free-solid-svg-icons";
+
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Restaurant } from "@/lib/resto-types";
@@ -9,7 +15,7 @@ const inputCls = "field";
 
 // Halaman profil: owner bisa edit tulisan & info restonya sendiri.
 // Logo/foto sampul: tempel URL gambar, atau kirim via WA ke tim kami.
-export default function OwnerProfilPage() {
+function OwnerProfilInner() {
   const { slug } = useParams<{ slug: string }>();
   return (
     <OwnerGate slug={slug}>
@@ -128,7 +134,7 @@ function ProfilForm({ restaurantId, slug }: { restaurantId: string; slug: string
           </div>
         </div>
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          💡 Belum punya link gambar? Kirim foto/logo via WhatsApp ke tim kami — kami yang pasangkan.
+          <FontAwesomeIcon icon={faLightbulb} className="mr-1 text-amber-600" /> Belum punya link gambar? Kirim foto/logo via WhatsApp ke tim kami — kami yang pasangkan.
         </p>
         {msg && <p className="text-sm font-medium">{msg}</p>}
         <button type="submit" disabled={saving} className="rounded-xl bg-[#1B5E3B] px-6 py-3 font-semibold text-white hover:bg-[#14492e] disabled:opacity-60">
@@ -136,5 +142,13 @@ function ProfilForm({ restaurantId, slug }: { restaurantId: string; slug: string
         </button>
       </form>
     </main>
+  );
+}
+
+export default function OwnerProfilPage() {
+  return (
+    <Suspense>
+      <OwnerProfilInner />
+    </Suspense>
   );
 }
