@@ -7,10 +7,12 @@ function Reveal({
   children,
   className = "",
   delay = 0,
+  from = "up",
 }: {
   children: React.ReactNode;
   className?: string;
   delay?: number;
+  from?: "up" | "left" | "right" | "zoom";
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -34,10 +36,11 @@ function Reveal({
     io.observe(el);
     return () => io.disconnect();
   }, []);
+  const dir = from === "up" ? "" : `reveal-${from}`;
   return (
     <div
       ref={ref}
-      className={`reveal ${visible ? "is-visible" : ""} ${className}`}
+      className={`reveal ${dir} ${visible ? "is-visible" : ""} ${className}`}
       style={{ "--reveal-delay": `${delay}ms` } as React.CSSProperties}
     >
       {children}
@@ -239,9 +242,15 @@ function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
 export default function MarketingPage() {
   const [modalPkg, setModalPkg] = useState<PackageId | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 24);
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      setProgress(max > 0 ? Math.min(1, h.scrollTop / max) : 0);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -252,6 +261,10 @@ export default function MarketingPage() {
   return (
     <div className="min-h-screen bg-[#FAF6EF] text-stone-900 antialiased">
       <div className="grain" aria-hidden="true" />
+      {/* Progress bar scroll */}
+      <div aria-hidden="true" className="fixed inset-x-0 top-0 z-[80] h-1 bg-transparent">
+        <div className="h-full bg-[#C9A227] transition-[width] duration-100" style={{ width: `${progress * 100}%` }} />
+      </div>
       {/* Navigasi */}
       <header
         className={`fixed inset-x-0 top-0 z-40 transition ${
@@ -284,7 +297,7 @@ export default function MarketingPage() {
         <div aria-hidden="true" className="pointer-events-none absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-[#E8D9BE]/60 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute top-40 -right-40 h-[520px] w-[520px] rounded-full bg-[#1B5E3B]/10 blur-3xl" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-          <Reveal>
+          <Reveal from="left">
             <p className="mb-4 inline-block rounded-full border border-[#1B5E3B]/25 bg-[#1B5E3B]/5 px-4 py-1.5 text-xs font-semibold tracking-wide text-[#1B5E3B] uppercase">
               Untuk restoran, kafe & warung Indonesia
             </p>
@@ -322,7 +335,7 @@ export default function MarketingPage() {
               ))}
             </dl>
           </Reveal>
-          <Reveal delay={150} className="relative">
+          <Reveal delay={150} from="right" className="relative">
             {/* Kolase foto ala tempelan majalah */}
             <div className="relative -rotate-2 rounded-[1.6rem] bg-white p-3 pb-10 shadow-2xl shadow-stone-900/20">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -372,7 +385,7 @@ export default function MarketingPage() {
       {/* Fitur lengkap */}
       <section id="fitur" className="py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal className="mx-auto mb-16 max-w-2xl text-center">
+          <Reveal className="mx-auto mb-16 max-w-2xl text-center" from="zoom">
             <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">01 · Fitur Lengkap</p>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
               Semua yang didapat restomu, <em className="text-[#1B5E3B]">lengkap dengan wujudnya</em>
@@ -382,7 +395,7 @@ export default function MarketingPage() {
 
           {/* 1 — Website resto */}
           <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
-            <Reveal>
+            <Reveal from="right">
               <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 1 · Untuk pemilik resto</p>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Website resto sendiri</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
@@ -394,7 +407,7 @@ export default function MarketingPage() {
                 <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> menu & info bisa diubah kapan saja tanpa perlu programmer.</span></li>
               </ul>
             </Reveal>
-            <Reveal delay={120}>
+            <Reveal delay={120} from="left">
               <div className="rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
                 <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
@@ -434,7 +447,7 @@ export default function MarketingPage() {
 
           {/* 2 — Menu digital */}
           <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
-            <Reveal className="order-2 lg:order-1">
+            <Reveal className="order-2 lg:order-1" from="right">
               <div className="mx-auto w-64 rotate-2 rounded-[2.4rem] border-[10px] border-stone-900 bg-[#FAF6EF] p-4 shadow-2xl">
                 <p className="font-display text-base font-semibold">Warung Bu Tini</p>
                 <p className="text-[11px] text-stone-500">Meja 5 · Dine-in</p>
@@ -459,7 +472,7 @@ export default function MarketingPage() {
                 </div>
               </div>
             </Reveal>
-            <Reveal delay={120} className="order-1 lg:order-2">
+            <Reveal delay={120} className="order-1 lg:order-2" from="left">
               <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 2 · Untuk pelanggan</p>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Menu digital & pesan dari HP</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
@@ -475,7 +488,7 @@ export default function MarketingPage() {
 
           {/* 3 — QR meja */}
           <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
-            <Reveal>
+            <Reveal from="right">
               <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 3 · Untuk pelanggan</p>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">QR code tiap meja</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
@@ -487,7 +500,7 @@ export default function MarketingPage() {
                 <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> resto tetap jalan walau pelayan sedikit.</span></li>
               </ul>
             </Reveal>
-            <Reveal delay={120}>
+            <Reveal delay={120} from="left">
               <div className="mx-auto w-52 -rotate-3 rounded-2xl bg-[#1B5E3B] p-5 text-center text-white shadow-xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/lp/qr-meja.png" alt="Contoh QR meja" className="mx-auto h-36 w-36 rounded-lg bg-white p-1.5" />
@@ -499,7 +512,7 @@ export default function MarketingPage() {
 
           {/* 4 — QRIS */}
           <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
-            <Reveal className="order-2 lg:order-1">
+            <Reveal className="order-2 lg:order-1" from="right">
               <div className="mx-auto w-60 rotate-2 rounded-2xl border border-stone-200 bg-white p-5 text-center shadow-xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/lp/qr-bayar.png" alt="Contoh QRIS dinamis" className="mx-auto h-40 w-40" />
@@ -508,7 +521,7 @@ export default function MarketingPage() {
                 <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-[11px] font-medium text-green-700">Uang langsung ke rekening restomu</p>
               </div>
             </Reveal>
-            <Reveal delay={120} className="order-1 lg:order-2">
+            <Reveal delay={120} className="order-1 lg:order-2" from="left">
               <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 4 · Untuk pelanggan & kasir</p>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Bayar QRIS, nominal selalu pas</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
@@ -524,7 +537,7 @@ export default function MarketingPage() {
 
           {/* 5 — Kasir */}
           <div className="grid items-center gap-10 lg:grid-cols-2">
-            <Reveal>
+            <Reveal from="right">
               <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 5 · Untuk kamu (pemilik/kasir)</p>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Halaman kasir sesimpel itu</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
@@ -536,7 +549,7 @@ export default function MarketingPage() {
                 <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> nggak perlu beli mesin kasir mahal — cukup HP/laptop yang sudah ada.</span></li>
               </ul>
             </Reveal>
-            <Reveal delay={120}>
+            <Reveal delay={120} from="left">
               <div className="-rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
                 <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
@@ -572,14 +585,14 @@ export default function MarketingPage() {
       {/* Cara kerja */}
       <section id="cara-kerja" className="bg-[#1B5E3B] py-20 text-white sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal className="mx-auto mb-14 max-w-2xl text-center">
+          <Reveal from="zoom" className="mx-auto mb-14 max-w-2xl text-center">
             <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#C9A227] uppercase">02 · Cara Kerja</p>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Dari daftar sampai terima pesanan</h2>
             <p className="mt-3 text-white/70">Tiga langkah. Tanpa istilah teknis yang membingungkan.</p>
           </Reveal>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => (
-              <Reveal key={s.no} delay={i * 120}>
+              <Reveal key={s.no} delay={i * 140} from="up">
                 <div className="h-full rounded-2xl bg-white/8 p-7 ring-1 ring-white/15 backdrop-blur-sm">
                   <p className="font-display text-5xl font-semibold text-[#C9A227]">{s.no}</p>
                   <h3 className="mt-4 font-display text-xl font-semibold">{s.title}</h3>
@@ -601,7 +614,7 @@ export default function MarketingPage() {
           </Reveal>
           <div className="grid items-stretch gap-6 lg:grid-cols-3">
             {PACKAGES.map((p, i) => (
-              <Reveal key={p.id} delay={i * 100} className="h-full">
+              <Reveal key={p.id} delay={i * 100} from={i === 1 ? "zoom" : i === 0 ? "left" : "right"} className="h-full">
                 <div
                   className={`relative flex h-full flex-col rounded-3xl p-8 ${
                     p.highlight
@@ -657,13 +670,13 @@ export default function MarketingPage() {
       {/* FAQ */}
       <section id="faq" className="border-t border-stone-200/80 bg-white/60 py-20 sm:py-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <Reveal className="mb-10 text-center">
+          <Reveal from="zoom" className="mb-10 text-center">
             <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">04 · FAQ</p>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Pertanyaan yang sering ditanyakan</h2>
           </Reveal>
           <div className="space-y-3">
             {FAQS.map((f, i) => (
-              <Reveal key={f.q} delay={i * 60}>
+              <Reveal key={f.q} delay={i * 60} from={i % 2 === 0 ? "left" : "right"}>
                 <details className="group rounded-2xl border border-stone-200 bg-white px-6 py-4 shadow-sm">
                   <summary className="cursor-pointer list-none font-medium text-stone-900">
                     <span className="flex items-center justify-between gap-4">
@@ -682,7 +695,7 @@ export default function MarketingPage() {
       {/* CTA akhir */}
       <section className="py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal>
+          <Reveal from="zoom">
             <div className="relative overflow-hidden rounded-[2rem] bg-[#1B5E3B] px-6 py-16 text-center text-white sm:px-12">
               <div className="absolute inset-0 opacity-10" aria-hidden="true">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
