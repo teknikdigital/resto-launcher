@@ -33,6 +33,10 @@ export default function OwnerDashboard() {
               <p className="text-lg font-semibold">📋 Menu</p>
               <p className="mt-1 text-sm text-zinc-500">Tambah/edit menu & harga.</p>
             </Link>
+            <Link href={`/owner/${slug}/profil`} className="panel hover:border-emerald-300">
+              <p className="text-lg font-semibold">✏️ Profil Resto</p>
+              <p className="mt-1 text-sm text-zinc-500">Edit nama, deskripsi, alamat, jam buka, foto.</p>
+            </Link>
             <a href={`/r/${slug}`} target="_blank" rel="noreferrer" className="panel hover:border-emerald-300">
               <p className="text-lg font-semibold">🌐 Lihat Website</p>
               <p className="mt-1 font-mono text-sm text-zinc-500">/r/{slug} ↗</p>
