@@ -497,9 +497,8 @@ export default function MarketingPage() {
         }`}
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <a href="#beranda" className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#C9A227] font-display text-lg font-bold text-stone-900">R</span>
-            <span className={`font-display text-xl font-semibold tracking-tight ${scrolled ? "text-stone-900" : "text-white"}`}>RestoLauncher</span>
+          <a href="#beranda" className="flex items-center">
+            <img src="/logo.png" alt="RestoLauncher" className="h-9 w-auto rounded-lg" />
           </a>
           <nav className={`hidden items-center gap-7 text-sm font-medium md:flex ${scrolled ? "text-stone-600" : "text-white/80"}`}>
             <a href="#fitur" className={scrolled ? "hover:text-stone-900" : "hover:text-white"}>Fitur</a>
