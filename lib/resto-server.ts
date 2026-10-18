@@ -32,6 +32,7 @@ export const RESTAURANT_FIELDS = [
   "about_text",
   "qris_payload",
   "package",
+  "owner_pin",
 ] as const;
 
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
@@ -74,6 +75,11 @@ export function parseRestaurantBody(
   if ("package" in data) {
     if (!data.package) delete data.package;
     else if (!["basic", "plus", "premium"].includes(data.package)) return { error: "Paket tidak valid" };
+  }
+  // PIN owner: 4-8 digit angka.
+  if ("owner_pin" in data) {
+    if (!data.owner_pin) delete data.owner_pin;
+    else if (!/^[0-9]{4,8}$/.test(data.owner_pin)) return { error: "PIN owner harus 4-8 digit angka" };
   }
   // Foto sampul: URL penuh atau path proxy foto Google (/api/places/photo?...).
   if (data.cover_url && !/^(https?:\/\/|\/api\/places\/photo\?)/i.test(data.cover_url)) {
