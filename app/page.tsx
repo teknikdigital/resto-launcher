@@ -162,37 +162,90 @@ const PACKAGES = [
     highlight: false,
   },
 ] as const;
-/* Rincian manfaat + hitung-hitungan per paket (modal "Lihat Manfaat"). */
-const BENEFITS: Record<PackageId, { points: [string, string][]; calc: string; recommend: string }> = {
+/* Rincian manfaat + hitung-hitungan per paket (modal "Lihat Manfaat").
+   Tiap fitur dijawab dua hal: Manfaat (apa yang didapat) & Untungnya (dampak ke uang). */
+type BenefitItem = { feature: string; manfaat: string; untung: string };
+const BENEFITS: Record<
+  PackageId,
+  { intro: string; items: BenefitItem[]; calc: string; recommend: string }
+> = {
   basic: {
-    points: [
-      ["Website profil sendiri", "Resto kelihatan profesional di Google — pelanggan baru berani coba."],
-      ["QR tiap meja", "Pelanggan pesan sendiri dari HP, pelayan fokus antar makanan. Ganti harga tanpa cetak ulang menu."],
-      ["QRIS dinamis", "Nominal dikunci sistem — nggak ada salah transfer, uang langsung ke rekeningmu."],
-      ["Kasir simpel", "Tandai pesanan lunas langsung dari HP — cukup untuk operasional warung sehari-hari."],
-      ["3 pilihan tema", "Pilih tampilan yang paling cocok dengan karakter warungmu."],
+    intro: "",
+    items: [
+      {
+        feature: "Website profil sendiri",
+        manfaat: "Restomu punya alamat resmi di internet. Pelanggan yang nemu di Google jadi yakin restorannya beneran — berani coba, bukan cuma lihat-lihat.",
+        untung: "Satu pelanggan baru per minggu yang belanja Rp30.000 = Rp120.000/bulan. Itu sudah 2x lipat biaya langganan.",
+      },
+      {
+        feature: "QR di tiap meja",
+        manfaat: "Pelanggan pesan sendiri dari HP. Pelayan nggak perlu bolak-balik catat pesanan — fokus antar makanan.",
+        untung: "Meja muter lebih cepat di jam ramai. Satu meja ekstra per hari (Rp40.000) = Rp1,2 juta/bulan potensi omzet.",
+      },
+      {
+        feature: "QRIS dinamis per pesanan",
+        manfaat: "Nominal dikunci sistem — pelanggan tinggal scan, nol salah ketik nominal atau salah transfer.",
+        untung: "Nggak ada lagi selisih kas atau uang nyangkut. Tiap rupiah masuk pas dan langsung ke rekeningmu.",
+      },
+      {
+        feature: "Kasir simpel (tandai lunas)",
+        manfaat: "Semua pesanan tercatat di HP — nggak ada nota hilang atau lupa nagih.",
+        untung: "Satu pesanan yang 'lupa ditagih' per minggu (Rp25.000) = Rp100.000/bulan kebocoran yang ketutup.",
+      },
+      {
+        feature: "Menu digital + 3 pilihan tema",
+        manfaat: "Ganti harga/menu kapan saja dari HP, langsung tampil. Nggak perlu cetak ulang buku menu.",
+        untung: "Hemat biaya cetak Rp200–500rb/tahun, dan harga bisa dinaikkan kapan pun tanpa jeda.",
+      },
     ],
     calc: "Rp50.000/bulan = Rp1.700/hari. Bandingkan komisi aplikasi delivery ±20%: dari satu order Rp25.000, komisinya Rp5.000. Sepuluh order delivery = Rp50.000 — setara sebulan Basic.",
     recommend: "Paling cocok untuk warung, resto kecil, dan kuliner rumahan yang mau naik kelas tanpa modal besar.",
   },
   plus: {
-    points: [
-      ["Semua manfaat Basic", "Website, QR meja, QRIS dinamis, dan pemesanan web/WhatsApp — semua ikut."],
-      ["Halaman kasir", "Semua pesanan tercatat otomatis. Kasir cukup ketuk \"lunas\" — nggak ada nota hilang."],
-      ["Rekap transaksi harian", "Omzet harian kelihatan tanpa hitung manual di buku."],
-      ["Subdomain sendiri", "Alamat nama-resto.restolauncher.com — lebih dipercaya pelanggan daripada sekadar link medsos."],
-      ["6 pilihan tema", "Ganti tampilan website sesukamu — cocokkan dengan karakter restoran."],
+    intro: "Termasuk semua manfaat Basic, ditambah:",
+    items: [
+      {
+        feature: "Halaman kasir digital",
+        manfaat: "Semua pesanan tercatat otomatis dan rapi. Kasir cukup ketuk 'lunas' 2 detik — nol nota hilang, nol antrean catat manual.",
+        untung: "Kasir 2x lebih cepat di jam ramai → meja lebih cepat kosong → omzet jam sibuk naik tanpa tambah karyawan.",
+      },
+      {
+        feature: "Rekap transaksi harian",
+        manfaat: "Omzet harian, menu terlaris, dan jam tersibuk kelihatan langsung — tanpa hitung manual di buku.",
+        untung: "Tahu menu paling laris → stok & promo difokuskan ke situ. Modal nggak mati di menu yang nggak laku.",
+      },
+      {
+        feature: "Subdomain sendiri",
+        manfaat: "Alamat resmi nama-resto.restolauncher.com — jauh lebih dipercaya pelanggan daripada sekadar link bio medsos.",
+        untung: "Link gampang disebar di Google Maps & Instagram → pelanggan baru lebih gampang nemu dan convert.",
+      },
+      {
+        feature: "6 pilihan tema",
+        manfaat: "Ganti suasana website mengikuti momen (promo, Lebaran, grand opening) tanpa bayar desainer.",
+        untung: "Tiap tampilan baru = bahan promosi baru = alasan buat pelanggan balik lagi.",
+      },
     ],
     calc: "Rp99.000/bulan = Rp3.300/hari. Satu meja yang terlayani lebih cepat tiap hari (mis. Rp30.000) = Rp900.000/bulan omzet tambahan — 9x lipat biayanya.",
     recommend: "Paling cocok untuk resto menengah, cafe, dan dine-in yang pelayannya mulai kewalahan.",
   },
   premium: {
-    points: [
-      ["Semua manfaat Plus", "Kasir digital, rekap harian, QR meja, QRIS dinamis — semua ikut."],
-      ["Domain sendiri", "nama-resto.com milikmu sepenuhnya — brand paling meyakinkan di mata pelanggan."],
-      ["Setup & migrasi dibantu", "Terima beres: website, domain, QRIS, dan QR meja disiapkan tim kami."],
-      ["Prioritas dukungan", "Ada kendala? Antrian bantuanmu didahulukan."],
-      ["Bebas semua 7 tema", "Akses seluruh tema desain, ganti kapan saja mengikuti perkembangan brand."],
+    intro: "Termasuk semua manfaat Plus, ditambah:",
+    items: [
+      {
+        feature: "Domain sendiri (.com milikmu)",
+        manfaat: "nama-resto.com — brand paling meyakinkan di mata pelanggan, dan aset digital milikmu sepenuhnya.",
+        untung: "Pelanggan corporate, katering, dan event lebih percaya → order besar lebih mudah masuk.",
+      },
+      {
+        feature: "Setup terima beres",
+        manfaat: "Website, domain, QRIS, dan QR meja semuanya disiapkan tim kami — kamu fokus jualan saja.",
+        untung: "Hemat Rp5–20 juta dibanding sewa developer, dan resto bisa jalan dalam hitungan hari, bukan bulan.",
+      },
+      {
+        feature: "Prioritas dukungan + maintenance",
+        manfaat: "Ada kendala? Antrean bantuanmu didahulukan. Website selalu hidup, aman, dan diperbarui.",
+        untung: "Jam operasional nggak terganggu masalah teknis → omzet aman, tanpa perlu gaji karyawan IT.",
+      },
     ],
     calc: "Rp500.000 sekali bayar + Rp49.000/bulan. Tahun pertama Rp1.088.000 = Rp2.980/hari. Bandingkan bikin web ke developer: Rp5–20 juta di tahun pertama. Hemat 5–15x lipat.",
     recommend: "Paling cocok untuk resto mapan dan brand F&B yang mau tampil serius jangka panjang.",
@@ -274,14 +327,19 @@ function BenefitModal({ pkg, onClose, onChoose }: { pkg: PackageId; onClose: () 
           {chosen.price}
           {chosen.per} · Cocok untuk <strong className="text-stone-800">{chosen.segment}</strong>
         </p>
-        <ul className="space-y-3.5">
-          {b.points.map(([title, desc]) => (
-            <li key={title} className="flex gap-3">
-              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1B5E3B]/10 text-sm font-bold text-[#1B5E3B]">✓</span>
-              <div>
-                <p className="text-sm font-semibold text-stone-800">{title}</p>
-                <p className="mt-0.5 text-sm leading-relaxed text-stone-600">{desc}</p>
-              </div>
+        {b.intro && <p className="mb-4 text-sm font-medium text-stone-600">{b.intro}</p>}
+        <ul className="space-y-3">
+          {b.items.map((it) => (
+            <li key={it.feature} className="rounded-2xl border border-stone-200/80 bg-white/70 p-4">
+              <p className="text-sm font-bold text-stone-900">✓ {it.feature}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
+                <span className="font-semibold text-[#1B5E3B]">Manfaat: </span>
+                {it.manfaat}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-stone-600">
+                <span className="font-semibold text-[#8a6d1c]">Untungnya: </span>
+                {it.untung}
+              </p>
             </li>
           ))}
         </ul>
