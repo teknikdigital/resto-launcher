@@ -80,3 +80,13 @@ Kasih 2 link ini ke owner (via WA):
 
 - Migrasi SQL baru: `supabase/migrations/0011_package.sql` di Supabase SQL Editor.
 - `npm install` bila ada dependensi baru (tidak ada di update ini).
+
+
+## Portal Owner (/owner) — 2026-10-18
+Tiap resto punya **PIN owner** (6 digit, kolom `restaurants.owner_pin`, migrasi 0012). Owner buka `/owner`, masukkan slug + PIN, lalu bisa kelola **meja (+QR)** dan **menu** restorannya sendiri. Kita (operator) tetap bisa semua via /admin.
+
+- Verifikasi: `POST /api/owner/verify {slug, pin}` → `{restaurant: {id, name, slug}}`.
+- Sesi PIN disimpan di sessionStorage (hilang saat tab ditutup).
+- Form admin resto: field PIN + tombol "Acak"; PIN otomatis dibuat saat resto baru dibuat (API).
+- Dashboard resto menampilkan PIN owner untuk dibagikan.
+- Yang BELUM bisa owner: ubah QRIS, tema, info resto, lihat rekap (Plus/Premium), kasir.
