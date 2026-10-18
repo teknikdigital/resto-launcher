@@ -102,6 +102,7 @@ const PACKAGES = [
     price: "Rp50.000",
     per: "/bulan",
     desc: "Buat warung & resto kecil yang mau tampil profesional di internet.",
+    segment: "Warung, resto kecil, kuliner rumahan",
     address: "restolauncher.com/r/nama-resto",
     features: [
       "Website profil + menu digital",
@@ -120,6 +121,7 @@ const PACKAGES = [
     price: "Rp99.000",
     per: "/bulan",
     desc: "Buat resto dine-in yang butuh kasir digital: kelola pesanan & rekap transaksi.",
+    segment: "Resto menengah, cafe, dine-in",
     address: "nama-resto.restolauncher.com",
     features: [
       "Website profil + menu digital",
@@ -141,6 +143,7 @@ const PACKAGES = [
     per: " sekali bayar",
     setup: "Termasuk setup + domain tahun pertama · + Rp49.000/bln maintenance",
     desc: "Buat brand yang serius: bayar sekali di depan, maintenance murah per bulan.",
+    segment: "Resto mapan, brand F&B serius",
     address: "nama-resto.com (milik Anda)",
     features: [
       "Website profil + menu digital",
@@ -158,6 +161,40 @@ const PACKAGES = [
     highlight: false,
   },
 ] as const;
+/* Rincian manfaat + hitung-hitungan per paket (modal "Lihat Manfaat"). */
+const BENEFITS: Record<PackageId, { points: [string, string][]; calc: string; recommend: string }> = {
+  basic: {
+    points: [
+      ["Website profil sendiri", "Resto kelihatan profesional di Google — pelanggan baru berani coba."],
+      ["QR tiap meja", "Pelanggan pesan sendiri dari HP, pelayan fokus antar makanan. Ganti harga tanpa cetak ulang menu."],
+      ["QRIS dinamis", "Nominal dikunci sistem — nggak ada salah transfer, uang langsung ke rekeningmu."],
+      ["Pesan via web & WhatsApp", "Tetap terima order dari pelanggan yang di rumah."],
+    ],
+    calc: "Rp50.000/bulan = Rp1.700/hari. Bandingkan komisi aplikasi delivery ±20%: dari satu order Rp25.000, komisinya Rp5.000. Sepuluh order delivery = Rp50.000 — setara sebulan Basic.",
+    recommend: "Paling cocok untuk warung, resto kecil, dan kuliner rumahan yang mau naik kelas tanpa modal besar.",
+  },
+  plus: {
+    points: [
+      ["Semua manfaat Basic", "Website, QR meja, QRIS dinamis, dan pemesanan web/WhatsApp — semua ikut."],
+      ["Halaman kasir", "Semua pesanan tercatat otomatis. Kasir cukup ketuk \"lunas\" — nggak ada nota hilang."],
+      ["Rekap transaksi harian", "Omzet harian kelihatan tanpa hitung manual di buku."],
+      ["Subdomain sendiri", "Alamat nama-resto.restolauncher.com — lebih dipercaya pelanggan daripada sekadar link medsos."],
+    ],
+    calc: "Rp99.000/bulan = Rp3.300/hari. Satu meja yang terlayani lebih cepat tiap hari (mis. Rp30.000) = Rp900.000/bulan omzet tambahan — 9x lipat biayanya.",
+    recommend: "Paling cocok untuk resto menengah, cafe, dan dine-in yang pelayannya mulai kewalahan.",
+  },
+  premium: {
+    points: [
+      ["Semua manfaat Plus", "Kasir digital, rekap harian, QR meja, QRIS dinamis — semua ikut."],
+      ["Domain sendiri", "nama-resto.com milikmu sepenuhnya — brand paling meyakinkan di mata pelanggan."],
+      ["Setup & migrasi dibantu", "Terima beres: website, domain, QRIS, dan QR meja disiapkan tim kami."],
+      ["Prioritas dukungan", "Ada kendala? Antrian bantuanmu didahulukan."],
+    ],
+    calc: "Rp500.000 sekali bayar + Rp49.000/bulan. Tahun pertama Rp1.088.000 = Rp2.980/hari. Bandingkan bikin web ke developer: Rp5–20 juta di tahun pertama. Hemat 5–15x lipat.",
+    recommend: "Paling cocok untuk resto mapan dan brand F&B yang mau tampil serius jangka panjang.",
+  },
+};
+
 
 type PackageId = (typeof PACKAGES)[number]["id"];
 
@@ -212,6 +249,56 @@ const FAQS = [
 ];
 
 const OWNER_WA = process.env.NEXT_PUBLIC_OWNER_WA ?? "";
+
+/* Modal rincian manfaat + hitung-hitungan per paket. */
+function BenefitModal({ pkg, onClose, onChoose }: { pkg: PackageId; onClose: () => void; onChoose: () => void }) {
+  const chosen = PACKAGES.find((p) => p.id === pkg)!;
+  const b = BENEFITS[pkg];
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4" onClick={onClose}>
+      <div
+        className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-[#FAF6EF] p-6 shadow-2xl sm:rounded-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-1 flex items-center justify-between">
+          <h2 className="font-display text-2xl font-semibold text-stone-900">Manfaat Paket {chosen.name}</h2>
+          <button onClick={onClose} className="rounded-full px-3 py-1 text-sm text-stone-500 hover:bg-stone-200/60">
+            Tutup
+          </button>
+        </div>
+        <p className="mb-5 text-sm text-stone-600">
+          {chosen.price}
+          {chosen.per} · Cocok untuk <strong className="text-stone-800">{chosen.segment}</strong>
+        </p>
+        <ul className="space-y-3.5">
+          {b.points.map(([title, desc]) => (
+            <li key={title} className="flex gap-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1B5E3B]/10 text-sm font-bold text-[#1B5E3B]">✓</span>
+              <div>
+                <p className="text-sm font-semibold text-stone-800">{title}</p>
+                <p className="mt-0.5 text-sm leading-relaxed text-stone-600">{desc}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-5 rounded-2xl border border-[#C9A227]/40 bg-[#C9A227]/10 p-4">
+          <p className="text-xs font-bold tracking-wide text-stone-700 uppercase">Hitung-hitungannya</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-stone-700">{b.calc}</p>
+        </div>
+        <div className="mt-4 rounded-2xl bg-[#1B5E3B] p-4">
+          <p className="text-xs font-bold tracking-wide text-[#C9A227] uppercase">Rekomendasi</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-white/90">{b.recommend}</p>
+        </div>
+        <button
+          onClick={onChoose}
+          className="mt-5 w-full rounded-xl bg-[#1B5E3B] py-3.5 font-semibold text-white transition hover:bg-[#14492e]"
+        >
+          Pilih Paket {chosen.name}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
   const [form, setForm] = useState({ restaurant_name: "", owner_name: "", phone: "", email: "", address: "", notes: "" });
@@ -313,6 +400,7 @@ function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
 
 export default function MarketingPage() {
   const [modalPkg, setModalPkg] = useState<PackageId | null>(null);
+  const [benefitPkg, setBenefitPkg] = useState<PackageId | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -760,6 +848,9 @@ export default function MarketingPage() {
                   )}
                   <h3 className="font-display text-xl font-semibold">{p.name}</h3>
                   <p className={`mt-1 text-sm ${p.highlight ? "text-white/70" : "text-stone-500"}`}>{p.desc}</p>
+                  <p className={`mt-2 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${p.highlight ? "bg-[#C9A227]/20 text-[#f3d97b]" : "bg-[#1B5E3B]/8 text-[#1B5E3B]"}`}>
+                    <span aria-hidden="true">◉</span> Cocok untuk: {p.segment}
+                  </p>
                   <p className="mt-5">
                     <span className="font-display text-4xl font-semibold">{p.price}</span>
                     <span className={`text-sm ${p.highlight ? "text-white/70" : "text-stone-500"}`}>{p.per}</span>
@@ -777,8 +868,18 @@ export default function MarketingPage() {
                     ))}
                   </ul>
                   <button
+                    onClick={() => setBenefitPkg(p.id)}
+                    className={`mt-5 w-full rounded-xl border py-2.5 text-sm font-semibold transition ${
+                      p.highlight
+                        ? "border-white/30 text-white hover:bg-white/10"
+                        : "border-stone-300 text-stone-700 hover:border-[#1B5E3B] hover:text-[#1B5E3B]"
+                    }`}
+                  >
+                    Lihat Manfaat & Hitung-hitungan
+                  </button>
+                  <button
                     onClick={() => setModalPkg(p.id)}
-                    className={`mt-8 w-full rounded-xl py-3.5 font-semibold transition ${
+                    className={`mt-3 w-full rounded-xl py-3.5 font-semibold transition ${
                       p.highlight
                         ? "bg-[#C9A227] text-stone-900 hover:bg-[#b8941f]"
                         : "bg-[#1B5E3B] text-white hover:bg-[#14492e]"
@@ -878,6 +979,16 @@ export default function MarketingPage() {
       </footer>
 
       {modalPkg && <OrderModal pkg={modalPkg} onClose={() => setModalPkg(null)} />}
+      {benefitPkg && (
+        <BenefitModal
+          pkg={benefitPkg}
+          onClose={() => setBenefitPkg(null)}
+          onChoose={() => {
+            setBenefitPkg(null);
+            setModalPkg(benefitPkg);
+          }}
+        />
+      )}
     </div>
   );
 }
