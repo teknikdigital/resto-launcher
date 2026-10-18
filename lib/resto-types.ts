@@ -48,6 +48,7 @@ export type Restaurant = {
   opening_hours: string | null;
   about_text: string | null;
   package: "basic" | "plus" | "premium" | null;
+  owner_pin: string | null;
   created_at: string;
 };
 
