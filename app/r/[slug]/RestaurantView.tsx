@@ -1,5 +1,8 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -155,7 +158,7 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
               </>
             ) : (
               <>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-700">✓</div>
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-2xl text-green-700"><FontAwesomeIcon icon={faCheck} /></div>
                 <h1 className="text-xl font-bold">Pembayaran diterima!</h1>
                 <p className={`mt-2 text-sm ${t.muted}`}>
                   Pesanan {formatRupiah(payInfo.order.total)}{tableName ? ` untuk Meja ${tableName}` : ""} diteruskan ke dapur.
