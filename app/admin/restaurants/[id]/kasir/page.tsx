@@ -1,5 +1,8 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUtensils, faCartShopping, faReceipt, faCheck } from "@fortawesome/free-solid-svg-icons";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -200,7 +203,7 @@ export default function KasirPage() {
               </div>
               {grouped.length === 0 && (
                 <div className="empty-state">
-                  <div className="empty-state-icon">🍽️</div>
+                  <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faUtensils} /></div>
                   <p className="font-semibold text-zinc-800">Belum ada menu tersedia</p>
                   <p className="mt-1 text-sm text-zinc-500">Tambahkan menu dulu agar bisa dipakai di kasir.</p>
                 </div>
@@ -234,7 +237,7 @@ export default function KasirPage() {
               <h2 className="mb-3 text-lg font-semibold">Keranjang</h2>
               {receipt ? (
                 <div>
-                  <p className="mb-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-medium text-green-700">Pesanan tersimpan &amp; lunas ✓</p>
+                  <p className="mb-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-medium text-green-700">Pesanan tersimpan &amp; lunas <FontAwesomeIcon icon={faCheck} className="ml-1" /></p>
                   <pre className="mb-3 whitespace-pre-wrap break-words rounded-lg bg-zinc-100 p-3 font-mono text-xs text-zinc-800">
                     {receiptText(receipt).replace(/\*/g, "")}
                   </pre>
@@ -264,7 +267,7 @@ export default function KasirPage() {
                 </div>
               ) : lines.length === 0 ? (
                 <div className="flex flex-col items-center py-8 text-center">
-                  <div className="empty-state-icon">🛒</div>
+                  <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faCartShopping} /></div>
                   <p className="text-sm text-zinc-500">Ketuk menu untuk menambah pesanan.</p>
                 </div>
               ) : (
@@ -315,7 +318,7 @@ export default function KasirPage() {
             <h2 className="mb-3 text-lg font-semibold">Pesanan Hari Ini</h2>
             {orders.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state-icon">🧾</div>
+                <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faReceipt} /></div>
                 <p className="font-semibold text-zinc-800">Belum ada pesanan hari ini</p>
               </div>
             ) : (
