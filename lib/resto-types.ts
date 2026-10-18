@@ -47,7 +47,16 @@ export type Restaurant = {
   qris_payload: string | null;
   opening_hours: string | null;
   about_text: string | null;
+  package: "basic" | "plus" | "premium" | null;
   created_at: string;
+};
+
+export const PACKAGES = ["basic", "plus", "premium"] as const;
+export type Package = (typeof PACKAGES)[number];
+export const PACKAGE_LABELS: Record<Package, string> = {
+  basic: "Basic",
+  plus: "Plus",
+  premium: "Premium",
 };
 
 export type RestaurantTable = {
