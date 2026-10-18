@@ -59,6 +59,17 @@ html {
   transform: none;
 }
 
+/* Varian arah animasi reveal (landing marketing): .reveal + salah satu. */
+.reveal-left {
+  transform: translateX(-72px);
+}
+.reveal-right {
+  transform: translateX(72px);
+}
+.reveal-zoom {
+  transform: scale(0.88);
+}
+
 /* Tema Amok: lencana mengambang & foto hero berputar sangat lambat */
 @keyframes amok-float {
   0%,
