@@ -1,10 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
+
+
 import { useParams } from "next/navigation";
 import { TablesManager } from "@/app/admin/restaurants/[id]/tables/page";
 import OwnerGate from "../../OwnerGate";
 
-export default function OwnerTablesPage() {
+function OwnerTablesInner() {
   const { slug } = useParams<{ slug: string }>();
   return (
     <OwnerGate slug={slug}>
@@ -14,5 +17,13 @@ export default function OwnerTablesPage() {
         </main>
       )}
     </OwnerGate>
+  );
+}
+
+export default function OwnerTablesPage() {
+  return (
+    <Suspense>
+      <OwnerTablesInner />
+    </Suspense>
   );
 }
