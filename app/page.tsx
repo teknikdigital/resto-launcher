@@ -273,14 +273,14 @@ export default function MarketingPage() {
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <a href="#beranda" className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1B5E3B] font-display text-lg font-bold text-white">R</span>
-            <span className="font-display text-xl font-semibold tracking-tight">RestoLauncher</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#C9A227] font-display text-lg font-bold text-stone-900">R</span>
+            <span className={`font-display text-xl font-semibold tracking-tight ${scrolled ? "text-stone-900" : "text-white"}`}>RestoLauncher</span>
           </a>
-          <nav className="hidden items-center gap-7 text-sm font-medium text-stone-600 md:flex">
-            <a href="#fitur" className="hover:text-stone-900">Fitur</a>
-            <a href="#cara-kerja" className="hover:text-stone-900">Cara Kerja</a>
-            <a href="#harga" className="hover:text-stone-900">Harga</a>
-            <a href="#faq" className="hover:text-stone-900">FAQ</a>
+          <nav className={`hidden items-center gap-7 text-sm font-medium md:flex ${scrolled ? "text-stone-600" : "text-white/80"}`}>
+            <a href="#fitur" className={scrolled ? "hover:text-stone-900" : "hover:text-white"}>Fitur</a>
+            <a href="#cara-kerja" className={scrolled ? "hover:text-stone-900" : "hover:text-white"}>Cara Kerja</a>
+            <a href="#harga" className={scrolled ? "hover:text-stone-900" : "hover:text-white"}>Harga</a>
+            <a href="#faq" className={scrolled ? "hover:text-stone-900" : "hover:text-white"}>FAQ</a>
           </nav>
           <button
             onClick={() => setModalPkg("plus")}
@@ -291,87 +291,140 @@ export default function MarketingPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section id="beranda" className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-24">
-        {/* Blob warna hangat samar di background */}
-        <div aria-hidden="true" className="pointer-events-none absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-[#E8D9BE]/60 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute top-40 -right-40 h-[520px] w-[520px] rounded-full bg-[#1B5E3B]/10 blur-3xl" />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-          <Reveal from="left">
-            <p className="mb-4 inline-block rounded-full border border-[#1B5E3B]/25 bg-[#1B5E3B]/5 px-4 py-1.5 text-xs font-semibold tracking-wide text-[#1B5E3B] uppercase">
+            {/* Hero */}
+      <section id="beranda" className="relative overflow-hidden bg-[#0E3A22]">
+        {/* Pola geometris samar ala template premium */}
+        <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.09]">
+          <defs>
+            <pattern id="lp-geo" width="260" height="260" patternUnits="userSpaceOnUse">
+              <path d="M0 260 L130 0 L260 260" fill="none" stroke="#ffffff" strokeWidth="1" />
+              <path d="M0 0 L260 0 L130 260" fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.45" />
+              <circle cx="130" cy="4" r="2.5" fill="#ffffff" opacity="0.7" />
+              <circle cx="4" cy="256" r="2.5" fill="#ffffff" opacity="0.7" />
+              <circle cx="256" cy="256" r="2.5" fill="#ffffff" opacity="0.7" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#lp-geo)" />
+        </svg>
+        {/* Glow hijau di tengah atas */}
+        <div aria-hidden="true" className="pointer-events-none absolute -top-48 left-1/2 h-[440px] w-[760px] -translate-x-1/2 rounded-full bg-[#1B5E3B]/70 blur-3xl" />
+
+        <div className="relative mx-auto max-w-4xl px-4 pt-28 pb-60 text-center sm:px-6 sm:pt-36 sm:pb-72">
+          <Reveal from="zoom">
+            <p className="mb-5 inline-block rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-[0.18em] text-white/90 uppercase">
               Untuk restoran, kafe & warung Indonesia
             </p>
-            <h1 className="font-display text-4xl leading-[1.08] font-semibold tracking-tight text-stone-900 sm:text-5xl lg:text-[3.4rem]">
-              Restoranmu punya website pemesanan sendiri — <em className="text-[#1B5E3B] not-italic underline decoration-[#C9A227] decoration-4 underline-offset-8">tanpa ribet</em>.
+          </Reveal>
+          <Reveal delay={100}>
+            <h1 className="font-display text-4xl leading-[1.06] font-semibold tracking-tight text-white sm:text-6xl">
+              Restoranmu punya website pemesanan sendiri — <em className="text-[#C9A227] not-italic">tanpa ribet</em>.
             </h1>
-            <p className="mt-5 max-w-lg text-lg leading-relaxed text-stone-600">
-              Menu digital QR, pelanggan pesan langsung dari meja, bayar QRIS dan uang masuk <strong className="text-stone-800">langsung ke rekening
-              restoran</strong>. Mulai dari Rp50.000/bulan.
+          </Reveal>
+          <Reveal delay={200}>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
+              Menu digital QR, pelanggan pesan langsung dari meja, bayar QRIS dan uang masuk{" "}
+              <strong className="text-white">langsung ke rekening restoran</strong>. Mulai dari Rp50.000/bulan.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+          </Reveal>
+          <Reveal delay={300}>
+            <div className="mt-9 flex flex-wrap justify-center gap-3">
               <a
                 href="#harga"
-                className="rounded-xl bg-[#1B5E3B] px-7 py-3.5 font-semibold text-white shadow-lg shadow-[#1B5E3B]/20 transition hover:bg-[#14492e]"
+                className="rounded-full bg-[#C9A227] px-8 py-3.5 font-bold text-stone-900 shadow-xl shadow-black/20 transition hover:bg-[#d9b545]"
               >
                 Lihat Paket Harga
               </a>
               <a
                 href="#cara-kerja"
-                className="rounded-xl border border-stone-300 bg-white/60 px-7 py-3.5 font-semibold text-stone-800 transition hover:border-stone-400"
+                className="rounded-full border border-white/40 px-8 py-3.5 font-semibold text-white transition hover:bg-white/10"
               >
                 Cara Kerja
               </a>
             </div>
-            <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-stone-200 pt-6">
-              {[
-                ["7", "Tema desain siap pakai"],
-                ["0%", "Potongan transaksi kami"],
-                ["Rp50rb", "Harga mulai per bulan"],
-              ].map(([v, l]) => (
-                <div key={l}>
-                  <dt className="font-display text-2xl font-semibold text-[#1B5E3B]">{v}</dt>
-                  <dd className="mt-1 text-xs leading-snug text-stone-500">{l}</dd>
-                </div>
-              ))}
-            </dl>
           </Reveal>
-          <Reveal delay={150} from="right" className="relative">
-            {/* Kolase foto ala tempelan majalah */}
-            <div className="relative -rotate-2 rounded-[1.6rem] bg-white p-3 pb-10 shadow-2xl shadow-stone-900/20">
+        </div>
+
+        {/* Lengkungan ke section terang */}
+        <svg aria-hidden="true" viewBox="0 0 1440 110" preserveAspectRatio="none" className="absolute bottom-0 left-0 block h-14 w-full sm:h-24">
+          <path d="M0,60 C360,110 1080,10 1440,60 L1440,110 L0,110 Z" fill="#FAF6EF" />
+        </svg>
+      </section>
+
+      {/* Mockup browser menumpang di atas lengkungan */}
+      <div className="relative overflow-x-clip bg-[#FAF6EF]">
+        <div className="relative z-10 mx-auto -mt-44 max-w-4xl px-4 sm:-mt-60 sm:px-6">
+          {/* Intipan kartu di kiri-kanan (desktop) */}
+          <div aria-hidden="true" className="absolute top-16 -left-28 hidden w-52 -rotate-6 opacity-95 lg:block">
+            <div className="rounded-2xl bg-[#1B5E3B] p-4 text-center text-white shadow-xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80"
-                alt="Suasana restoran"
-                className="aspect-[4/4.4] w-full rounded-[1.1rem] object-cover"
-                loading="eager"
-              />
-              <p className="mt-2.5 text-center font-display text-sm text-stone-500 italic">pelanggan scan → pesan → bayar, tanpa antre kasir</p>
-              {/* Selotip */}
-              <div aria-hidden="true" className="absolute -top-3 left-10 h-7 w-20 rotate-[-24deg] rounded-sm bg-[#E8D9BE]/80 shadow-sm" />
-              <div aria-hidden="true" className="absolute -top-3 right-10 h-7 w-20 rotate-[18deg] rounded-sm bg-[#E8D9BE]/80 shadow-sm" />
+              <img src="/lp/qr-meja.png" alt="" className="mx-auto h-24 w-24 rounded-lg bg-white p-1" />
+              <p className="mt-2 font-display text-lg font-semibold">Meja 5</p>
+              <p className="text-[11px] text-white/70">Scan untuk pesan</p>
             </div>
-            {/* Foto polaroid kedua */}
-            <div className="absolute -bottom-10 -left-6 w-36 rotate-6 rounded-xl bg-white p-2 pb-3 shadow-xl shadow-stone-900/20 sm:w-44">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=500&q=80"
-                alt="Hidangan"
-                className="aspect-square w-full rounded-lg object-cover"
-                loading="lazy"
-              />
-              <p className="mt-1.5 text-center text-[11px] font-medium text-stone-500">Meja 5 • Rp87.500</p>
+          </div>
+          <div aria-hidden="true" className="absolute top-28 -right-28 hidden w-52 rotate-6 opacity-95 lg:block">
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xl">
+              <p className="text-xs font-bold">Pesanan masuk</p>
+              <p className="mt-1 text-[11px] text-stone-500">Meja 5 · 3 item · Rp65.000</p>
+              <span className="mt-2 inline-block rounded-full bg-[#1B5E3B] px-3 py-1 text-[11px] font-bold text-white">Tandai Lunas</span>
             </div>
-            {/* Stiker */}
-            <div className="absolute -top-7 -right-3 flex h-28 w-28 rotate-12 items-center justify-center rounded-full bg-[#C9A227] text-center shadow-lg sm:-right-6">
-              <p className="px-3 text-[11px] leading-tight font-extrabold tracking-wide text-stone-900 uppercase">
-                Tanpa potongan transaksi
-              </p>
+          </div>
+          <Reveal delay={150} from="zoom">
+            <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xl shadow-stone-900/25">
+              <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-3">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                <span className="ml-2 rounded-md bg-white px-2.5 py-0.5 font-mono text-[11px] text-stone-500 shadow-sm">warungbutini.com</span>
+              </div>
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80"
+                  alt="Suasana restoran"
+                  className="h-56 w-full object-cover sm:h-72"
+                  loading="eager"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0E3A22]/90 via-[#0E3A22]/10 to-transparent" />
+                <div className="absolute bottom-4 left-5">
+                  <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C9A227] uppercase">Warung Bu Tini</p>
+                  <p className="mt-1 font-display text-2xl font-semibold text-white sm:text-3xl">Rasa rumahan, harga bersahabat.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2.5 p-4">
+                {[
+                  ["Nasi Goreng Spesial", "Rp25.000"],
+                  ["Ayam Bakar Madu", "Rp32.000"],
+                  ["Es Teh Manis", "Rp8.000"],
+                ].map(([n, p]) => (
+                  <div key={n} className="rounded-xl bg-stone-50 px-3 py-2.5">
+                    <p className="truncate text-xs font-semibold">{n}</p>
+                    <p className="mt-0.5 text-[11px] text-stone-500">{p}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </Reveal>
         </div>
-      </section>
 
-      {/* Strip berjalan */}
+        {/* Angka ringkas */}
+        <Reveal delay={100}>
+          <dl className="relative mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-4 px-4 text-center sm:px-6">
+            {[
+              ["7", "Tema desain siap pakai"],
+              ["0%", "Potongan transaksi kami"],
+              ["Rp50rb", "Harga mulai per bulan"],
+            ].map(([v, l]) => (
+              <div key={l}>
+                <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">{v}</dt>
+                <dd className="mt-1 text-xs leading-snug text-stone-500">{l}</dd>
+              </div>
+            ))}
+          </dl>
+        </Reveal>
+      </div>
+
+{/* Strip berjalan */}
       <section aria-hidden="true" className="relative z-10 -mx-2 -my-3 -rotate-1 scale-[1.02] overflow-hidden bg-[#1B5E3B] py-3.5 shadow-lg">
         <div className="lp-marquee-track flex w-max items-center gap-8 pr-8 whitespace-nowrap">
           {[...MARQUEE, ...MARQUEE].map((t, i) => (
