@@ -9,6 +9,10 @@ const inputCls = "field";
 
 export default function TablesAdminPage() {
   const { id } = useParams<{ id: string }>();
+  return <TablesManager restaurantId={id} />;
+}
+
+export function TablesManager({ restaurantId: id, backHref, backLabel }: { restaurantId: string; backHref?: string; backLabel?: string }) {
   const [slug, setSlug] = useState("");
   const [tables, setTables] = useState<RestaurantTable[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,8 +118,8 @@ export default function TablesAdminPage() {
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-10">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="page-title">Kelola Meja</h1>
-        <Link href="/admin/restaurants" className="back-link">
-          Kembali ke Restoran
+        <Link href={backHref ?? "/admin/restaurants"} className="back-link">
+          {backLabel ?? "Kembali ke Restoran"}
         </Link>
       </header>
 
