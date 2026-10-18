@@ -565,6 +565,12 @@ export default function MarketingPage() {
                 Cara Kerja
               </a>
             </div>
+            <p className="mt-4 text-sm text-white/60">
+              atau{" "}
+              <a href="#harga" className="font-semibold text-[#C9A227] underline underline-offset-4 transition hover:text-[#d9b545]">
+                lihat manfaat &amp; hitung-hitungannya →
+              </a>
+            </p>
           </Reveal>
         </div>
 
@@ -578,7 +584,7 @@ export default function MarketingPage() {
       <div className="relative overflow-x-clip bg-[#FAF6EF]">
         <div className="relative z-10 mx-auto -mt-44 max-w-4xl px-4 sm:-mt-60 sm:px-6">
           {/* Intipan kartu di kiri-kanan (desktop) */}
-          <div aria-hidden="true" className="absolute top-16 -left-28 hidden w-52 -rotate-6 opacity-95 lg:block">
+          <div aria-hidden="true" className="absolute top-16 -left-16 hidden w-52 -rotate-6 opacity-95 lg:block">
             <div className="rounded-2xl bg-[#1B5E3B] p-4 text-center text-white shadow-xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/lp/qr-meja.png" alt="" className="mx-auto h-24 w-24 rounded-lg bg-white p-1" />
@@ -586,7 +592,7 @@ export default function MarketingPage() {
               <p className="text-[11px] text-white/70">Scan untuk pesan</p>
             </div>
           </div>
-          <div aria-hidden="true" className="absolute top-28 -right-28 hidden w-52 rotate-6 opacity-95 lg:block">
+          <div aria-hidden="true" className="absolute top-28 -right-16 hidden w-52 rotate-6 opacity-95 lg:block">
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xl">
               <p className="text-xs font-bold">Pesanan masuk</p>
               <p className="mt-1 text-[11px] text-stone-500">Meja 5 · 3 item · Rp65.000</p>
@@ -633,7 +639,7 @@ export default function MarketingPage() {
 
         {/* Angka ringkas */}
         <Reveal delay={100}>
-          <dl className="relative mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-4 px-4 text-center sm:px-6">
+          <dl className="relative mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-4 px-4 pb-12 text-center sm:px-6">
             <div>
               <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">
                 <CountUp to={7} />
