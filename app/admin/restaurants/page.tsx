@@ -34,6 +34,7 @@ type Form = {
   template: RestaurantTemplate;
   qris_payload: string;
   package: Package;
+  owner_pin: string;
 };
 
 const EMPTY: Form = {
@@ -54,6 +55,7 @@ const EMPTY: Form = {
   template: "minimal",
   qris_payload: "",
   package: "basic",
+  owner_pin: "",
 };
 
 const PREVIEW: Record<RestaurantTemplate, string> = {
@@ -172,6 +174,7 @@ function AdminRestaurants() {
       template: toTemplate(r.template),
       qris_payload: r.qris_payload ?? "",
       package: (r.package as Package) ?? "basic",
+      owner_pin: r.owner_pin ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -321,6 +324,24 @@ function AdminRestaurants() {
               </option>
             ))}
           </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm text-zinc-600">
+          <span className="font-medium">PIN Owner:</span>
+          <input
+            className={`${inputCls} w-28 font-mono`}
+            placeholder="6 digit"
+            inputMode="numeric"
+            maxLength={8}
+            value={form.owner_pin}
+            onChange={(e) => set("owner_pin", e.target.value.replace(/\D/g, ""))}
+          />
+          <button
+            type="button"
+            onClick={() => set("owner_pin", String(Math.floor(100000 + Math.random() * 900000)))}
+            className="btn-secondary btn-sm"
+          >
+            Acak
+          </button>
         </label>
         <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-start">
           <textarea className={`${inputCls} sm:flex-1`} rows={3} placeholder="Deskripsi singkat (tampil di hero & halaman link IG)" value={form.description}
