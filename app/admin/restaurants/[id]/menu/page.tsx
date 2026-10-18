@@ -21,6 +21,10 @@ const inputCls = "field";
 
 export default function MenuAdminPage() {
   const { id } = useParams<{ id: string }>();
+  return <MenuManager restaurantId={id} />;
+}
+
+export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaurantId: string; backHref?: string; backLabel?: string }) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -160,8 +164,8 @@ export default function MenuAdminPage() {
     <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-10">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="page-title">Kelola Menu</h1>
-        <Link href="/admin/restaurants" className="back-link">
-          Kembali ke Restoran
+        <Link href={backHref ?? "/admin/restaurants"} className="back-link">
+          {backLabel ?? "Kembali ke Restoran"}
         </Link>
       </header>
 
