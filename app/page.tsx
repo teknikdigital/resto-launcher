@@ -133,9 +133,9 @@ const PACKAGES = [
   {
     id: "premium",
     name: "Premium",
-    price: "Rp599.000",
+    price: "Rp500.000",
     per: " sekali bayar",
-    setup: "Termasuk setup Rp350rb + domain Rp249rb · + Rp25.000/bln maintenance",
+    setup: "Termasuk setup + domain tahun pertama · + Rp25.000/bln maintenance",
     desc: "Buat brand yang serius: bayar sekali di depan, maintenance murah per bulan.",
     address: "nama-resto.com (milik Anda)",
     features: [
