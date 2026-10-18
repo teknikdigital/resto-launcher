@@ -105,6 +105,12 @@ export default function RestaurantDashboard() {
 
   const links = [
     { label: fullKasir ? "Kasir & manajemen" : "Kasir (tandai lunas)", desc: "Untuk HP/tablet kasir", href: `/admin/restaurants/${id}/kasir` },
+    ...(fullKasir
+      ? [
+          { label: "Kasir POS", desc: "Buat pesanan di konter", href: `/admin/restaurants/${id}/pos` },
+          { label: "Layar dapur", desc: "Untuk tablet dapur", href: `/admin/restaurants/${id}/dapur` },
+        ]
+      : []),
     { label: "Meja & QR", desc: "Tambah meja, unduh QR", href: `/admin/restaurants/${id}/tables` },
     { label: "Kelola menu", desc: "Tambah/edit menu & harga", href: `/admin/restaurants/${id}/menu` },
     ...(fullKasir
