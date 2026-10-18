@@ -1,10 +1,16 @@
 "use client";
 
+import { Suspense } from "react";
+
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChair, faClipboardList, faPenToSquare, faGlobe, faMobileScreen } from "@fortawesome/free-solid-svg-icons";
+
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import OwnerGate from "../OwnerGate";
 
-export default function OwnerDashboard() {
+function OwnerDashboardInner() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
 
@@ -26,23 +32,23 @@ export default function OwnerDashboard() {
           </header>
           <div className="grid gap-3 sm:grid-cols-2">
             <Link href={`/owner/${slug}/tables`} className="panel hover:border-emerald-300">
-              <p className="text-lg font-semibold">🪑 Meja & QR</p>
+              <p className="text-lg font-semibold"><FontAwesomeIcon icon={faChair} className="mr-2 text-[#1B5E3B]" />Meja & QR</p>
               <p className="mt-1 text-sm text-zinc-500">Tambah meja, unduh QR untuk dicetak & ditempel.</p>
             </Link>
             <Link href={`/owner/${slug}/menu`} className="panel hover:border-emerald-300">
-              <p className="text-lg font-semibold">📋 Menu</p>
+              <p className="text-lg font-semibold"><FontAwesomeIcon icon={faClipboardList} className="mr-2 text-[#1B5E3B]" />Menu</p>
               <p className="mt-1 text-sm text-zinc-500">Tambah/edit menu & harga.</p>
             </Link>
             <Link href={`/owner/${slug}/profil`} className="panel hover:border-emerald-300">
-              <p className="text-lg font-semibold">✏️ Profil Resto</p>
+              <p className="text-lg font-semibold"><FontAwesomeIcon icon={faPenToSquare} className="mr-2 text-[#1B5E3B]" />Profil Resto</p>
               <p className="mt-1 text-sm text-zinc-500">Edit nama, deskripsi, alamat, jam buka, foto.</p>
             </Link>
             <a href={`/r/${slug}`} target="_blank" rel="noreferrer" className="panel hover:border-emerald-300">
-              <p className="text-lg font-semibold">🌐 Lihat Website</p>
+              <p className="text-lg font-semibold"><FontAwesomeIcon icon={faGlobe} className="mr-2 text-[#1B5E3B]" />Lihat Website</p>
               <p className="mt-1 font-mono text-sm text-zinc-500">/r/{slug} ↗</p>
             </a>
             <a href={`/r/${slug}/menu`} target="_blank" rel="noreferrer" className="panel hover:border-emerald-300">
-              <p className="text-lg font-semibold">📱 Menu Pelanggan</p>
+              <p className="text-lg font-semibold"><FontAwesomeIcon icon={faMobileScreen} className="mr-2 text-[#1B5E3B]" />Menu Pelanggan</p>
               <p className="mt-1 text-sm text-zinc-500">Tampilan yang dibuka pelanggan via QR ↗</p>
             </a>
           </div>
@@ -52,5 +58,13 @@ export default function OwnerDashboard() {
         </main>
       )}
     </OwnerGate>
+  );
+}
+
+export default function OwnerDashboard() {
+  return (
+    <Suspense>
+      <OwnerDashboardInner />
+    </Suspense>
   );
 }
