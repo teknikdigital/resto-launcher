@@ -541,13 +541,13 @@ export default function MarketingPage() {
           </Reveal>
           <Reveal delay={100}>
             <h1 className="font-display text-4xl leading-[1.06] font-semibold tracking-tight text-white sm:text-6xl">
-              Restoranmu punya website pemesanan sendiri — <em className="text-[#C9A227] not-italic">tanpa ribet</em>.
+              Satu sistem untuk <em className="text-[#C9A227] not-italic">seluruh operasional</em> restoranmu.
             </h1>
           </Reveal>
           <Reveal delay={200}>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
-              Menu digital QR, pelanggan pesan langsung dari meja, bayar QRIS dan uang masuk{" "}
-              <strong className="text-white">langsung ke rekening restoran</strong>. Mulai dari Rp50.000/bulan.
+              Website profil, menu QR per meja, kasir POS, layar dapur, rekap harian — plus QRIS yang uangnya
+              masuk <strong className="text-white">langsung ke rekening restoran</strong>. Mulai dari Rp50.000/bulan.
             </p>
           </Reveal>
           <Reveal delay={300}>
