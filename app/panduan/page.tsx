@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLink, faReceipt, faStore, faMobileScreen, faScrewdriverWrench } from "@fortawesome/free-solid-svg-icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -38,7 +40,7 @@ export default function PanduanPage() {
 
         {/* Link penting */}
         <section className="mt-10 rounded-2xl border border-[#C9A227]/40 bg-[#C9A227]/10 p-6">
-          <h2 className="font-display text-xl font-semibold">🔗 Link penting — simpan!</h2>
+          <h2 className="font-display text-xl font-semibold"><FontAwesomeIcon icon={faLink} className="mr-2 text-[#1B5E3B]" />Link penting — simpan!</h2>
           <ul className="mt-3 space-y-2 text-[15px] text-stone-700">
             <li>
               <strong>Website resto:</strong> <span className="font-mono text-sm">restolauncher.com/r/nama-resto</span>
@@ -57,7 +59,7 @@ export default function PanduanPage() {
 
         {/* Untuk kasir */}
         <section className="mt-10">
-          <h2 className="font-display text-2xl font-semibold">🧾 Untuk Kasir — alur setiap pesanan</h2>
+          <h2 className="font-display text-2xl font-semibold"><FontAwesomeIcon icon={faReceipt} className="mr-2 text-[#1B5E3B]" />Untuk Kasir — alur setiap pesanan</h2>
           <ol className="mt-5 space-y-5">
             <Step no="1" title="Biarkan halaman kasir terbuka di HP/tablet">
               <p>Buka link kasir di awal shift. Pesanan baru otomatis muncul di daftar.</p>
@@ -82,7 +84,7 @@ export default function PanduanPage() {
 
         {/* Untuk owner */}
         <section className="mt-10">
-          <h2 className="font-display text-2xl font-semibold">👨‍🍳 Untuk Owner — kelola resto</h2>
+          <h2 className="font-display text-2xl font-semibold"><FontAwesomeIcon icon={faStore} className="mr-2 text-[#1B5E3B]" />Untuk Owner — kelola resto</h2>
           <ol className="mt-5 space-y-5">
             <Step no="1" title="Ganti menu / harga">
               <p>
@@ -110,7 +112,7 @@ export default function PanduanPage() {
 
         {/* Untuk ditempel di meja */}
         <section className="mt-10 rounded-2xl bg-[#1B5E3B] p-6 text-white sm:p-8">
-          <h2 className="font-display text-2xl font-semibold">📱 Untuk ditempel di meja — cara pesan</h2>
+          <h2 className="font-display text-2xl font-semibold"><FontAwesomeIcon icon={faMobileScreen} className="mr-2" />Untuk ditempel di meja — cara pesan</h2>
           <p className="mt-1 text-sm text-white/70">Cetak bagian ini, tempel di dekat QR tiap meja.</p>
           <ol className="mt-5 space-y-4">
             {[
@@ -134,7 +136,7 @@ export default function PanduanPage() {
 
         {/* Troubleshooting */}
         <section className="mt-10">
-          <h2 className="font-display text-2xl font-semibold">🔧 Kalau ada masalah</h2>
+          <h2 className="font-display text-2xl font-semibold"><FontAwesomeIcon icon={faScrewdriverWrench} className="mr-2 text-[#1B5E3B]" />Kalau ada masalah</h2>
           <ul className="mt-4 space-y-3 text-[15px]">
             {[
               ["QRIS tidak muncul setelah pesan", "Pastikan resto sudah mendaftarkan QRIS saat setup. Hubungi tim kami bila belum."],
