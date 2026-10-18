@@ -103,7 +103,14 @@ const PACKAGES = [
     per: "/bulan",
     desc: "Buat warung & resto kecil yang mau tampil profesional di internet.",
     address: "restolauncher.com/r/nama-resto",
-    features: ["Website profil + menu digital", "Pemesanan via web & WhatsApp", "Alamat web (slug) gratis", "1 pilihan tema desain"],
+    features: [
+      "Website profil + menu digital",
+      "QR code tiap meja + nomor meja otomatis",
+      "QRIS dinamis per pesanan",
+      "Pemesanan via web & WhatsApp",
+      "Alamat web (slug) gratis",
+      "1 pilihan tema desain",
+    ],
     cta: "Pilih Basic",
     highlight: false,
   },
@@ -112,14 +119,13 @@ const PACKAGES = [
     name: "Plus",
     price: "Rp99.000",
     per: "/bulan",
-    desc: "Buat resto dine-in: QR di tiap meja, bayar QRIS langsung di tempat.",
+    desc: "Buat resto dine-in yang butuh kasir digital: kelola pesanan & rekap transaksi.",
     address: "nama-resto.restolauncher.com",
     features: [
       "Semua fitur Basic",
       "Subdomain sendiri (gratis)",
-      "QR code tiap meja + nomor meja otomatis",
-      "QRIS dinamis per pesanan",
-      "Halaman kasir & status pesanan",
+      "Halaman kasir & manajemen pesanan",
+      "Rekap transaksi harian",
     ],
     cta: "Pilih Plus",
     highlight: true,
@@ -183,6 +189,10 @@ const FAQS = [
   {
     q: "Saya sudah punya QRIS, apakah bisa dipakai?",
     a: "Bisa dan justru disarankan. Cukup kirim foto QRIS statis resto Anda sekali saat setup, sistem kami akan membuatkan nominal dinamis per pesanan.",
+  },
+  {
+    q: "Apakah pesanan bisa diteruskan ke dapur?",
+    a: "Segera hadir. Pesanan yang sudah dibayar akan otomatis tampil di layar dapur, sehingga koki langsung tahu apa yang harus dimasak tanpa perantara.",
   },
 ];
 
@@ -838,7 +848,13 @@ export default function MarketingPage() {
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1B5E3B] font-display text-sm font-bold text-white">R</span>
             <span className="font-display font-semibold text-stone-800">RestoLauncher</span> — website & sistem pemesanan untuk restoran Indonesia.
           </p>
-          <p>© 2026 RestoLauncher</p>
+          <div className="flex items-center gap-4">
+            <a href="/privasi" className="hover:text-stone-800 hover:underline">Kebijakan Privasi</a>
+            <span aria-hidden="true" className="text-stone-300">|</span>
+            <a href="/syarat" className="hover:text-stone-800 hover:underline">Syarat & Ketentuan</a>
+            <span aria-hidden="true" className="text-stone-300">|</span>
+            <span>© 2026 RestoLauncher</span>
+          </div>
         </div>
       </footer>
 
