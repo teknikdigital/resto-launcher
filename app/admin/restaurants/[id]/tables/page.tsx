@@ -1,5 +1,8 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChair } from "@fortawesome/free-solid-svg-icons";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -150,7 +153,7 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
         </div>
       ) : tables.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🪑</div>
+          <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faChair} /></div>
           <p className="font-semibold text-zinc-800">Belum ada meja</p>
           <p className="mt-1 text-sm text-zinc-500">Tambahkan meja agar tiap meja punya link menu QR sendiri.</p>
         </div>
