@@ -284,9 +284,14 @@ function AdminRestaurants() {
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:py-10">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="page-title">Restoran</h1>
-        <Link href="/leads" className="back-link">
-          Leads
-        </Link>
+        <div className="flex gap-4">
+          <Link href="/admin/package-orders" className="back-link">
+            Pesanan Paket
+          </Link>
+          <Link href="/leads" className="back-link">
+            Leads
+          </Link>
+        </div>
       </header>
 
       <form onSubmit={submit} className="panel mb-8 grid gap-3 sm:grid-cols-2">
