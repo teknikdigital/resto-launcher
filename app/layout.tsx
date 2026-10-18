@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   title: "RestoLauncher — Website & Sistem Pemesanan untuk Restoran",
   description:
     "Menu digital QR, pemesanan langsung dari meja, dan pembayaran QRIS yang masuk langsung ke rekening restoran. Mulai dari Rp50.000/bulan.",
+  icons: { icon: "/favicon.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
