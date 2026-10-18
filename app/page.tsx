@@ -304,7 +304,7 @@ const FAQS = [
   },
   {
     q: "Apakah pesanan bisa diteruskan ke dapur?",
-    a: "Segera hadir. Pesanan yang sudah dibayar akan otomatis tampil di layar dapur, sehingga koki langsung tahu apa yang harus dimasak tanpa perantara.",
+    a: "Bisa. Pesanan yang sudah dibayar otomatis tampil di Layar Dapur (tablet) — koki melihat antrean masak real-time dan mengetuk \"Selesai Dimasak\" saat hidangan siap.",
   },
 ];
 
@@ -818,46 +818,93 @@ export default function MarketingPage() {
             </Reveal>
           </div>
 
-          {/* 5 — Kasir */}
+          {/* 5 — Kasir (2 mode) */}
           <div className="grid items-center gap-10 lg:grid-cols-2">
             <Reveal from="right">
               <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 5 · Untuk kamu (pemilik/kasir)</p>
-              <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Halaman kasir sesimpel itu</h3>
+              <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Kasir dua mode dalam satu layar</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
-                <strong className="text-stone-800">Fungsinya:</strong> semua pesanan yang masuk tampil di satu layar.
-                Begitu notifikasi pembayaran masuk di HP-mu, ketuk "Tandai Lunas" — pesanan diteruskan ke dapur.
+                <strong className="text-stone-800">Mode 1 — Konfirmasi pesanan online:</strong> pesanan dari QR meja
+                masuk ke halaman kasir. Begitu notifikasi pembayaran masuk di HP-mu, ketuk "Tandai Lunas".
+              </p>
+              <p className="mt-2 leading-relaxed text-stone-600">
+                <strong className="text-stone-800">Mode 2 — Kasir POS + layar dapur:</strong> pelanggan pesan di
+                konter? Kasir pilih menu, pilih pembayaran (tunai/QRIS), ketuk Bayar — tercatat lunas dan
+                otomatis terkirim ke <strong className="text-stone-800">layar dapur</strong> di tablet. Koki lihat
+                antrean, ketuk "Selesai Dimasak" saat hidangan siap.
               </p>
               <ul className="mt-3 space-y-2 text-sm text-stone-700">
-                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> semua pesanan tercatat rapi per hari — nggak ada nota hilang atau lupa catat.</span></li>
-                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> nggak perlu beli mesin kasir mahal — cukup HP/laptop yang sudah ada.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> semua pesanan — online maupun konter — tercatat rapi di satu tempat.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> dapur nggak perlu diteriaki — antrean masak tampil real-time di tablet.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> nggak perlu beli mesin kasir mahal — cukup HP/laptop/tablet yang sudah ada.</span></li>
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
-              <div className="-rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
-                <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                  <span className="ml-2 text-[11px] text-stone-400">Halaman Kasir</span>
-                </div>
-                <div className="space-y-2.5 p-4">
-                  {[
-                    ["Meja 5", "3 item · Rp65.000", false],
-                    ["Meja 2", "5 item · Rp112.500", false],
-                    ["Meja 8", "2 item · Rp47.000", true],
-                  ].map(([meja, desc, lunas]) => (
-                    <div key={meja as string} className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50/60 px-3 py-2.5">
-                      <div>
-                        <p className="text-xs font-bold">{meja}</p>
-                        <p className="text-[11px] text-stone-500">{desc}</p>
+              <div className="space-y-4">
+                <div className="-rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
+                  <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                    <span className="ml-2 text-[11px] text-stone-400">Mode 1 · Konfirmasi pesanan</span>
+                  </div>
+                  <div className="space-y-2.5 p-4">
+                    {[
+                      ["Meja 5", "3 item · Rp65.000", false],
+                      ["Meja 2", "5 item · Rp112.500", false],
+                      ["Meja 8", "2 item · Rp47.000", true],
+                    ].map(([meja, desc, lunas]) => (
+                      <div key={meja as string} className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50/60 px-3 py-2.5">
+                        <div>
+                          <p className="text-xs font-bold">{meja}</p>
+                          <p className="text-[11px] text-stone-500">{desc}</p>
+                        </div>
+                        {lunas ? (
+                          <span className="rounded-full bg-green-100 px-3 py-1 text-[11px] font-bold text-green-700">Lunas <FontAwesomeIcon icon={faCheck} className="ml-1" /></span>
+                        ) : (
+                          <span className="rounded-full bg-[#1B5E3B] px-3 py-1 text-[11px] font-bold text-white">Tandai Lunas</span>
+                        )}
                       </div>
-                      {lunas ? (
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-[11px] font-bold text-green-700">Lunas <FontAwesomeIcon icon={faCheck} className="ml-1" /></span>
-                      ) : (
-                        <span className="rounded-full bg-[#1B5E3B] px-3 py-1 text-[11px] font-bold text-white">Tandai Lunas</span>
-                      )}
+                    ))}
+                  </div>
+                </div>
+                <div className="rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
+                  <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                    <span className="ml-2 text-[11px] text-stone-400">Mode 2 · Kasir POS → Layar dapur</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 p-4">
+                    <div className="rounded-xl bg-stone-50/70 p-3">
+                      <p className="mb-2 text-[11px] font-bold text-stone-500 uppercase">Kasir POS</p>
+                      {[
+                        ["Nasi Goreng", "Rp15.000", "2"],
+                        ["Es Teh Manis", "Rp5.000", "1"],
+                      ].map(([nm, hg, q]) => (
+                        <div key={nm} className="mb-1.5 flex items-center justify-between text-[11px]">
+                          <span className="font-semibold">{q}× {nm}</span>
+                          <span className="text-stone-500">{hg}</span>
+                        </div>
+                      ))}
+                      <div className="mt-2 flex items-center justify-between border-t border-stone-200 pt-1.5 text-xs font-bold">
+                        <span>Total</span><span>Rp35.000</span>
+                      </div>
+                      <div className="mt-2 rounded-lg bg-[#1B5E3B] py-1.5 text-center text-[11px] font-bold text-white">Bayar · Tunai</div>
                     </div>
-                  ))}
+                    <div className="rounded-xl bg-zinc-900 p-3 text-white">
+                      <p className="mb-2 text-[11px] font-bold text-orange-300 uppercase">Layar dapur</p>
+                      <div className="rounded-lg border border-zinc-700 bg-zinc-800 p-2">
+                        <div className="mb-1 flex items-center justify-between">
+                          <p className="text-[11px] font-bold">Meja 5</p>
+                          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold">12 mnt</span>
+                        </div>
+                        <p className="text-[11px] text-zinc-300"><span className="font-bold text-amber-300">2×</span> Nasi Goreng</p>
+                        <p className="text-[11px] text-zinc-300"><span className="font-bold text-amber-300">1×</span> Es Teh Manis</p>
+                        <div className="mt-2 rounded-lg bg-green-600 py-1.5 text-center text-[11px] font-bold">Selesai Dimasak</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Reveal>
