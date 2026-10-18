@@ -31,6 +31,7 @@ export const RESTAURANT_FIELDS = [
   "opening_hours",
   "about_text",
   "qris_payload",
+  "package",
 ] as const;
 
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
@@ -68,6 +69,11 @@ export function parseRestaurantBody(
   // QRIS statis restoran: harus terlihat seperti payload QRIS bila diisi.
   if (data.qris_payload && !/^000201/.test(data.qris_payload)) {
     return { error: "QRIS tidak valid: payload harus diawali 000201" };
+  }
+  // Paket langganan: basic / plus / premium.
+  if ("package" in data) {
+    if (!data.package) delete data.package;
+    else if (!["basic", "plus", "premium"].includes(data.package)) return { error: "Paket tidak valid" };
   }
   // Foto sampul: URL penuh atau path proxy foto Google (/api/places/photo?...).
   if (data.cover_url && !/^(https?:\/\/|\/api\/places\/photo\?)/i.test(data.cover_url)) {
