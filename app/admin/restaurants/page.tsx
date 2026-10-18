@@ -9,6 +9,8 @@ import {
   TEMPLATE_DESCRIPTIONS,
   TEMPLATE_LABELS,
   toTemplate,
+  PACKAGE_LABELS,
+  type Package,
   type RestaurantTemplate,
   type RestaurantWithSub,
 } from "@/lib/resto-types";
@@ -31,6 +33,7 @@ type Form = {
   about_text: string;
   template: RestaurantTemplate;
   qris_payload: string;
+  package: Package;
 };
 
 const EMPTY: Form = {
@@ -50,6 +53,7 @@ const EMPTY: Form = {
   about_text: "",
   template: "minimal",
   qris_payload: "",
+  package: "basic",
 };
 
 const PREVIEW: Record<RestaurantTemplate, string> = {
@@ -167,6 +171,7 @@ function AdminRestaurants() {
       about_text: r.about_text ?? "",
       template: toTemplate(r.template),
       qris_payload: r.qris_payload ?? "",
+      package: (r.package as Package) ?? "basic",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -303,6 +308,20 @@ function AdminRestaurants() {
           }} />
         <input required className={inputCls} placeholder="Slug (contoh: warung-bu-tini)" value={form.slug}
           onChange={(e) => set("slug", e.target.value)} />
+        <label className="flex items-center gap-2 text-sm text-zinc-600 sm:col-span-2">
+          <span className="font-medium">Paket:</span>
+          <select
+            value={form.package}
+            onChange={(e) => set("package", e.target.value as Package)}
+            className={`${inputCls} w-auto`}
+          >
+            {(Object.keys(PACKAGE_LABELS) as Package[]).map((pk) => (
+              <option key={pk} value={pk}>
+                {PACKAGE_LABELS[pk]}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-start">
           <textarea className={`${inputCls} sm:flex-1`} rows={3} placeholder="Deskripsi singkat (tampil di hero & halaman link IG)" value={form.description}
             onChange={(e) => set("description", e.target.value)} />
@@ -439,7 +458,12 @@ function AdminRestaurants() {
                 return (
                   <tr key={r.id} className="align-top">
                     <td className="min-w-[260px]">
-                      <p className="font-semibold text-zinc-900">{r.name}</p>
+                      <p className="font-semibold text-zinc-900">
+                        {r.name}{" "}
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                          {PACKAGE_LABELS[(r.package as Package) ?? "basic"]}
+                        </span>
+                      </p>
                       <p className="mt-0.5 text-xs text-zinc-500">
                         Tema: <span className="font-medium text-zinc-700">{TEMPLATE_LABELS[toTemplate(r.template)]}</span>
                       </p>
@@ -485,6 +509,7 @@ function AdminRestaurants() {
                     </td>
                     <td className="min-w-[220px]">
                       <div className="flex flex-wrap gap-1.5">
+                        <Link href={`/admin/restaurants/${r.id}`} className="btn-success btn-sm">Dashboard</Link>
                         <button onClick={() => edit(r)} className="btn-secondary btn-sm">Edit</button>
                         <Link href={`/admin/restaurants/${r.id}/menu`} className="btn-secondary btn-sm">Menu</Link>
                         <Link href={`/admin/restaurants/${r.id}/orders`} className="btn-secondary btn-sm">Pesanan</Link>
