@@ -1,5 +1,8 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faStar, faCircleDot, faLocationDot } from "@fortawesome/free-solid-svg-icons";
+
 import { useEffect, useRef, useState } from "react";
 
 // Animasi fade-in + naik saat masuk viewport (sekali saja).
@@ -331,7 +334,7 @@ function BenefitModal({ pkg, onClose, onChoose }: { pkg: PackageId; onClose: () 
         <ul className="space-y-3">
           {b.items.map((it) => (
             <li key={it.feature} className="rounded-2xl border border-stone-200/80 bg-white/70 p-4">
-              <p className="text-sm font-bold text-stone-900">✓ {it.feature}</p>
+              <p className="text-sm font-bold text-stone-900"><FontAwesomeIcon icon={faCheck} className="mr-1.5 text-[#1B5E3B]" />{it.feature}</p>
               <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
                 <span className="font-semibold text-[#1B5E3B]">Manfaat: </span>
                 {it.manfaat}
@@ -432,7 +435,7 @@ function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
           </>
         ) : (
           <div className="py-6 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#1B5E3B]/10 text-3xl">✓</div>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#1B5E3B]/10 text-2xl text-[#1B5E3B]"><FontAwesomeIcon icon={faCheck} /></div>
             <h2 className="font-display text-2xl font-semibold text-stone-900">Pesanan diterima!</h2>
             <p className="mx-auto mt-2 max-w-sm text-sm text-stone-600">
               Terima kasih, {form.owner_name}. Tim kami akan menghubungi <strong>{form.phone}</strong> via WhatsApp untuk paket{" "}
@@ -657,7 +660,7 @@ export default function MarketingPage() {
         <div className="lp-marquee-track flex w-max items-center gap-8 pr-8 whitespace-nowrap">
           {[...MARQUEE, ...MARQUEE].map((t, i) => (
             <span key={i} className="flex items-center gap-8 text-sm font-semibold tracking-wide text-white uppercase">
-              {t} <span className="text-[#C9A227]">✦</span>
+              {t} <FontAwesomeIcon icon={faStar} className="text-[#C9A227] text-[10px]" />
             </span>
           ))}
         </div>
@@ -684,8 +687,8 @@ export default function MarketingPage() {
                 berisi profil, foto, jam buka, lokasi, dan menu — tampil rapi di HP maupun laptop.
               </p>
               <ul className="mt-3 space-y-2 text-sm text-stone-700">
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> pelanggan yang nemu di Google langsung percaya — resto kelihatan profesional, bukan sekadar akun medsos.</span></li>
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> menu & info bisa diubah kapan saja tanpa perlu programmer.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> pelanggan yang nemu di Google langsung percaya — resto kelihatan profesional, bukan sekadar akun medsos.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> menu & info bisa diubah kapan saja tanpa perlu programmer.</span></li>
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
@@ -761,8 +764,8 @@ export default function MarketingPage() {
                 lengkap dengan foto, harga, dan keranjang belanja. Nomor meja kebaca otomatis.
               </p>
               <ul className="mt-3 space-y-2 text-sm text-stone-700">
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> nggak perlu panggil pelayan buat pesan — pelayan fokus antar makanan.</span></li>
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> pesanan nggak nyasar ke meja lain karena nomor meja otomatis.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> nggak perlu panggil pelayan buat pesan — pelayan fokus antar makanan.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> pesanan nggak nyasar ke meja lain karena nomor meja otomatis.</span></li>
               </ul>
             </Reveal>
           </div>
@@ -777,8 +780,8 @@ export default function MarketingPage() {
                 pelanggan scan kapan saja — nggak perlu antre di kasir atau unduh aplikasi.
               </p>
               <ul className="mt-3 space-y-2 text-sm text-stone-700">
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> QR bisa diunduh & dicetak sendiri dari halaman admin — tambah meja baru tinggal cetak lagi.</span></li>
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> resto tetap jalan walau pelayan sedikit.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> QR bisa diunduh & dicetak sendiri dari halaman admin — tambah meja baru tinggal cetak lagi.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> resto tetap jalan walau pelayan sedikit.</span></li>
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
@@ -810,8 +813,8 @@ export default function MarketingPage() {
                 dikunci sesuai total belanja. Pelanggan scan pakai aplikasi pembayaran apa saja, lalu bayar.
               </p>
               <ul className="mt-3 space-y-2 text-sm text-stone-700">
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> nggak ada lagi salah transfer atau kurang bayar — nominalnya dikunci sistem.</span></li>
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> uang langsung masuk ke rekening restomu — kami nggak pernah pegang danamu.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> nggak ada lagi salah transfer atau kurang bayar — nominalnya dikunci sistem.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> uang langsung masuk ke rekening restomu — kami nggak pernah pegang danamu.</span></li>
               </ul>
             </Reveal>
           </div>
@@ -826,8 +829,8 @@ export default function MarketingPage() {
                 Begitu notifikasi pembayaran masuk di HP-mu, ketuk "Tandai Lunas" — pesanan diteruskan ke dapur.
               </p>
               <ul className="mt-3 space-y-2 text-sm text-stone-700">
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> semua pesanan tercatat rapi per hari — nggak ada nota hilang atau lupa catat.</span></li>
-                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> <span><strong>Manfaat:</strong> nggak perlu beli mesin kasir mahal — cukup HP/laptop yang sudah ada.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> semua pesanan tercatat rapi per hari — nggak ada nota hilang atau lupa catat.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> nggak perlu beli mesin kasir mahal — cukup HP/laptop yang sudah ada.</span></li>
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
@@ -850,7 +853,7 @@ export default function MarketingPage() {
                         <p className="text-[11px] text-stone-500">{desc}</p>
                       </div>
                       {lunas ? (
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-[11px] font-bold text-green-700">Lunas ✓</span>
+                        <span className="rounded-full bg-green-100 px-3 py-1 text-[11px] font-bold text-green-700">Lunas <FontAwesomeIcon icon={faCheck} className="ml-1" /></span>
                       ) : (
                         <span className="rounded-full bg-[#1B5E3B] px-3 py-1 text-[11px] font-bold text-white">Tandai Lunas</span>
                       )}
@@ -911,7 +914,7 @@ export default function MarketingPage() {
                   <h3 className="font-display text-xl font-semibold">{p.name}</h3>
                   <p className={`mt-1 text-sm ${p.highlight ? "text-white/70" : "text-stone-500"}`}>{p.desc}</p>
                   <p className={`mt-2 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${p.highlight ? "bg-[#C9A227]/20 text-[#f3d97b]" : "bg-[#1B5E3B]/8 text-[#1B5E3B]"}`}>
-                    <span aria-hidden="true">◉</span> Cocok untuk: {p.segment}
+                    <FontAwesomeIcon icon={faCircleDot} className="mr-1 text-[10px]" /> Cocok untuk: {p.segment}
                   </p>
                   <p className="mt-5">
                     <span className="font-display text-4xl font-semibold">{p.price}</span>
@@ -924,7 +927,7 @@ export default function MarketingPage() {
                   <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                     {p.features.map((f) => (
                       <li key={f} className="flex gap-2.5">
-                        <span className={p.highlight ? "text-[#C9A227]" : "text-[#1B5E3B]"}>✓</span>
+                        <FontAwesomeIcon icon={faCheck} className={p.highlight ? "text-[#C9A227]" : "text-[#1B5E3B]"} />
                         <span className={p.highlight ? "text-white/90" : "text-stone-700"}>{f}</span>
                       </li>
                     ))}
@@ -1008,7 +1011,7 @@ export default function MarketingPage() {
                   Isi form pemesanan, kami hubungi via WhatsApp, dan website restoranmu bisa aktif dalam hitungan hari.
                 </p>
                 <p className="mx-auto mt-4 inline-flex max-w-xl items-center gap-2 rounded-full border border-[#C9A227]/50 bg-[#C9A227]/15 px-5 py-2.5 text-sm font-medium text-[#f3d97b]">
-                  <span aria-hidden="true">📍</span>
+                  <FontAwesomeIcon icon={faLocationDot} />
                   Khusus area Bandung: bisa diskusi one-to-one untuk custom website sebelum deal.
                 </p>
                 <button
