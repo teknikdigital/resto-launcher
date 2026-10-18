@@ -1,5 +1,8 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faReceipt } from "@fortawesome/free-solid-svg-icons";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -61,7 +64,7 @@ export default function OrdersAdminPage() {
         </div>
       ) : orders.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🧾</div>
+          <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faReceipt} /></div>
           <p className="font-semibold text-zinc-800">Belum ada pesanan</p>
           <p className="mt-1 text-sm text-zinc-500">Pesanan dari menu QR dan kasir akan tampil di sini.</p>
         </div>
