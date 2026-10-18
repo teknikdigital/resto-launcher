@@ -1,5 +1,8 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faWandMagicSparkles, faCheck, faUtensils } from "@fortawesome/free-solid-svg-icons";
+
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -351,7 +354,7 @@ function AdminRestaurants() {
               onChange={(e) => setCategory(e.target.value)} />
             <button type="button" onClick={generateDescription} disabled={aiLoading || !form.name.trim()}
               className="btn-ai">
-              {aiLoading ? "Membuat..." : "✨ Buatkan Deskripsi AI"}
+              {aiLoading ? "Membuat..." : <><FontAwesomeIcon icon={faWandMagicSparkles} className="mr-1.5" />Buatkan Deskripsi AI</>}
             </button>
           </div>
         </div>
@@ -400,7 +403,7 @@ function AdminRestaurants() {
           </div>
           {form.qris_payload && isQrisPayload(form.qris_payload) && (
             <p className="mt-2 rounded-lg bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
-              ✓ QRIS terbaca: {qrisMerchantName(form.qris_payload) ?? "-"}
+              <FontAwesomeIcon icon={faCheck} className="mr-1 text-[#1B5E3B]" /> QRIS terbaca: {qrisMerchantName(form.qris_payload) ?? "-"}
               {qrisMerchantCity(form.qris_payload) ? ` · ${qrisMerchantCity(form.qris_payload)}` : ""}
             </p>
           )}
@@ -458,7 +461,7 @@ function AdminRestaurants() {
         <TableSkeleton />
       ) : list.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🍽️</div>
+          <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faUtensils} /></div>
           <p className="font-semibold text-zinc-800">Belum ada restoran</p>
           <p className="mt-1 text-sm text-zinc-500">Tambahkan restoran pertama lewat formulir di atas.</p>
         </div>
