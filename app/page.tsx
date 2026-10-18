@@ -973,6 +973,8 @@ export default function MarketingPage() {
             <span className="font-display font-semibold text-stone-800">RestoLauncher</span> — website & sistem pemesanan untuk restoran Indonesia.
           </p>
           <div className="flex items-center gap-4">
+            <a href="/panduan" className="hover:text-stone-800 hover:underline">Panduan Penggunaan</a>
+            <span aria-hidden="true" className="text-stone-300">|</span>
             <a href="/privasi" className="hover:text-stone-800 hover:underline">Kebijakan Privasi</a>
             <span aria-hidden="true" className="text-stone-300">|</span>
             <a href="/syarat" className="hover:text-stone-800 hover:underline">Syarat & Ketentuan</a>
