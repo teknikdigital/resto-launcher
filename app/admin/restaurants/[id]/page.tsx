@@ -1,5 +1,8 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -160,7 +163,7 @@ export default function RestaurantDashboard() {
                     c.done ? "bg-emerald-500 text-white" : "bg-zinc-200 text-zinc-500"
                   }`}
                 >
-                  {c.done ? "✓" : "·"}
+                  {c.done ? <FontAwesomeIcon icon={faCheck} className="text-[#1B5E3B]" /> : "·"}
                 </span>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-zinc-800">{c.label}</p>
