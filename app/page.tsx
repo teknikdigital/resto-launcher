@@ -92,28 +92,28 @@ type PackageId = (typeof PACKAGES)[number]["id"];
 
 const FEATURES = [
   {
-    title: "Website profil & menu digital",
-    text: "Halaman resto yang rapi: foto, jam buka, lokasi, dan menu yang bisa diubah kapan saja tanpa perlu programmer.",
+    title: "Resto kelihatan profesional",
+    text: "Pelanggan yang nemu restomu di Google langsung percaya: ada website resmi dengan foto, jam buka, dan lokasi yang jelas. Bukan cuma akun media sosial.",
   },
   {
-    title: "QR code tiap meja",
-    text: "Tempel QR di meja — pelanggan scan, langsung pesan dari HP. Nomor meja terbaca otomatis, tidak perlu tanya-tanya.",
+    title: "Pesan tanpa panggil pelayan",
+    text: "Pelanggan scan QR di meja, pilih menu, dan pesan langsung dari HP. Pelayanmu fokus antar makanan, bukan bolak-balik catat pesanan.",
   },
   {
-    title: "QRIS dinamis per pesanan",
-    text: "Nominal pembayaran terkunci sesuai total pesanan. Uang masuk langsung ke rekening restoran, bukan lewat kami.",
+    title: "Nggak ada salah transfer",
+    text: "Nominal bayar dikunci otomatis sesuai total pesanan — pelanggan tinggal scan dan bayar. Uangnya langsung masuk ke rekening restomu, bukan lewat kami.",
   },
   {
-    title: "Halaman kasir",
-    text: "Lihat pesanan masuk per hari, tandai lunas begitu pembayaran diterima, dan teruskan ke dapur.",
+    title: "Nggak ada nota hilang",
+    text: "Semua pesanan tercatat rapi per hari di halaman kasir. Tinggal tandai lunas begitu pembayaran masuk, teruskan ke dapur.",
   },
   {
-    title: "Tanpa aplikasi tambahan",
-    text: "Semua jalan di browser HP pelanggan. Tidak perlu install apa-apa, tidak perlu belajar alat baru.",
+    title: "Pelanggan nggak perlu install",
+    text: "Semua jalan di browser HP — scan, pesan, bayar. Nggak ada yang perlu di-download, nggak ada yang perlu dipelajari.",
   },
   {
-    title: "Pilihan tema desain",
-    text: "Tujuh tema siap pakai — dari minimalis bersih sampai premium gelap — bisa diganti kapan saja.",
+    title: "Ganti tampilan kapan saja",
+    text: "Tujuh tema siap pakai, dari yang bersih minimalis sampai yang premium. Bosan? Ganti tema tanpa bayar lagi.",
   },
 ];
 
@@ -121,17 +121,22 @@ const STEPS = [
   {
     no: "1",
     title: "Pilih paket & isi form",
-    text: "Tentukan paket yang cocok, isi nama resto dan kontak Anda. Tidak perlu kartu kredit untuk mulai bertanya.",
+    text: "Cukup 2 menit: pilih paket yang cocok, isi nama resto dan nomor WhatsApp. Tanpa kartu kredit, tanpa komitmen apa-apa. Kami yang menghubungi Anda.",
   },
   {
     no: "2",
-    title: "Kami aktifkan websitenya",
-    text: "Website, menu digital, dan QR meja disiapkan. Untuk pembayaran QRIS, cukup kirim foto QRIS resto Anda sekali saja.",
+    title: "Kami siapkan semuanya",
+    text: "Dalam 1–3 hari kerja websitemu aktif: halaman profil resto, menu digital, dan QR code untuk tiap meja. Untuk pembayaran, cukup kirim foto QRIS restomu sekali saja — sisanya kami yang atur.",
   },
   {
     no: "3",
-    title: "Tempel QR, terima pesanan",
-    text: "Cetak QR meja, tempel, dan pelanggan bisa langsung pesan + bayar. Pesanan masuk ke halaman kasir Anda.",
+    title: "Tempel QR di tiap meja",
+    text: "Cetak QR yang kami kirim dan tempel di meja — atau kami yang cetakkan. Sejak saat itu restomu siap terima pesanan digital. Nggak perlu beli alat baru.",
+  },
+  {
+    no: "4",
+    title: "Pesanan masuk otomatis",
+    text: "Pelanggan scan → pilih menu → bayar QRIS dengan nominal yang sudah terkunci. Kamu pantau semuanya dari halaman kasir, tandai lunas, teruskan ke dapur. Uang langsung masuk ke rekening restomu.",
   },
 ];
 
@@ -416,15 +421,146 @@ export default function MarketingPage() {
         </div>
       </section>
 
+      {/* Contoh produk */}
+      <section id="contoh" className="border-t border-stone-200/80 bg-white/60 py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal className="mx-auto mb-16 max-w-2xl text-center">
+            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">02 · Contoh Produk</p>
+            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+              Ini yang didapat restomu, <em className="text-[#1B5E3B]">bukan sekadar janji</em>
+            </h2>
+            <p className="mt-3 text-stone-600">Tampilan asli sistemnya — yang dilihat pelanggan dan yang kamu kelola tiap hari.</p>
+          </Reveal>
+
+          {/* 1 — Menu digital */}
+          <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
+            <Reveal>
+              <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Untuk pelanggan</p>
+              <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Menu digital yang kebuka dari scan QR</h3>
+              <p className="mt-3 leading-relaxed text-stone-600">
+                Pelanggan duduk, scan QR di meja, dan menu langsung tampil di HP-nya — lengkap dengan foto, harga, dan tombol tambah.
+                Nomor mejanya kebaca otomatis, jadi pesanan nggak akan nyasar ke meja lain.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-stone-700">
+                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> Foto & harga selalu up-to-date — ubah dari admin kapan saja</li>
+                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> Keranjang belanja dengan total otomatis</li>
+              </ul>
+            </Reveal>
+            <Reveal delay={120}>
+              <div className="mx-auto w-64 rotate-2 rounded-[2.4rem] border-[10px] border-stone-900 bg-[#FAF6EF] p-4 shadow-2xl">
+                <p className="font-display text-base font-semibold">Warung Bu Tini</p>
+                <p className="text-[11px] text-stone-500">Meja 5 · Dine-in</p>
+                <div className="mt-3 space-y-2">
+                  {[
+                    ["Nasi Goreng Spesial", "Rp25.000"],
+                    ["Ayam Bakar Madu", "Rp32.000"],
+                    ["Es Teh Manis", "Rp8.000"],
+                  ].map(([n, p]) => (
+                    <div key={n} className="flex items-center justify-between rounded-xl bg-white p-2.5 shadow-sm">
+                      <div>
+                        <p className="text-xs font-semibold">{n}</p>
+                        <p className="text-[11px] text-stone-500">{p}</p>
+                      </div>
+                      <span className="rounded-full bg-[#1B5E3B] px-2.5 py-1 text-[11px] font-bold text-white">+</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 flex items-center justify-between rounded-xl bg-[#1B5E3B] px-3 py-2.5 text-white">
+                  <span className="text-xs font-medium">3 item</span>
+                  <span className="text-sm font-bold">Rp65.000</span>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* 2 — QR meja & QRIS */}
+          <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
+            <Reveal className="order-2 lg:order-1">
+              <div className="flex flex-wrap items-start justify-center gap-6">
+                <div className="w-48 -rotate-3 rounded-2xl bg-[#1B5E3B] p-4 text-center text-white shadow-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/lp/qr-meja.png" alt="Contoh QR meja" className="mx-auto h-32 w-32 rounded-lg bg-white p-1.5" />
+                  <p className="mt-2 font-display text-lg font-semibold">Meja 5</p>
+                  <p className="text-[11px] text-white/70">Scan untuk lihat menu & pesan</p>
+                </div>
+                <div className="w-52 rotate-2 rounded-2xl border border-stone-200 bg-white p-4 text-center shadow-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/lp/qr-bayar.png" alt="Contoh QRIS dinamis" className="mx-auto h-36 w-36" />
+                  <p className="mt-2 font-display text-xl font-bold">Rp87.500</p>
+                  <p className="text-[11px] text-stone-500">Nominal terkunci · WARUNG BU TINI</p>
+                </div>
+              </div>
+            </Reveal>
+            <Reveal delay={120} className="order-1 lg:order-2">
+              <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Untuk pelanggan & kasir</p>
+              <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Satu meja satu QR, bayar nominal pas</h3>
+              <p className="mt-3 leading-relaxed text-stone-600">
+                Tiap meja dapat QR-nya sendiri — pelanggan nggak perlu antre atau panggil pelayan. Saat bayar, QRIS yang muncul
+                nominalnya sudah dikunci sesuai total pesanan, jadi nggak ada lagi drama salah transfer atau kurang bayar.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-stone-700">
+                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> QR meja bisa diunduh & dicetak dari halaman admin</li>
+                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> Uang bayar langsung masuk ke rekening restomu</li>
+              </ul>
+            </Reveal>
+          </div>
+
+          {/* 3 — Kasir */}
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <Reveal>
+              <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Untuk kamu (pemilik)</p>
+              <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Halaman kasir sesimpel itu</h3>
+              <p className="mt-3 leading-relaxed text-stone-600">
+                Semua pesanan yang masuk tampil di satu layar. Begitu notifikasi pembayaran masuk di HP-mu, tinggal ketuk
+                "Tandai Lunas" — pesanan otomatis diteruskan ke dapur. Tanpa mesin kasir mahal, tanpa training rumit.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-stone-700">
+                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> Rekap pesanan harian otomatis tercatat</li>
+                <li className="flex gap-2"><span className="text-[#1B5E3B]">✓</span> Bisa dipakai sambil terima pesanan manual juga</li>
+              </ul>
+            </Reveal>
+            <Reveal delay={120}>
+              <div className="-rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
+                <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                  <span className="ml-2 text-[11px] text-stone-400">Halaman Kasir</span>
+                </div>
+                <div className="space-y-2.5 p-4">
+                  {[
+                    ["Meja 5", "3 item · Rp65.000", false],
+                    ["Meja 2", "5 item · Rp112.500", false],
+                    ["Meja 8", "2 item · Rp47.000", true],
+                  ].map(([meja, desc, lunas]) => (
+                    <div key={meja as string} className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50/60 px-3 py-2.5">
+                      <div>
+                        <p className="text-xs font-bold">{meja}</p>
+                        <p className="text-[11px] text-stone-500">{desc}</p>
+                      </div>
+                      {lunas ? (
+                        <span className="rounded-full bg-green-100 px-3 py-1 text-[11px] font-bold text-green-700">Lunas ✓</span>
+                      ) : (
+                        <span className="rounded-full bg-[#1B5E3B] px-3 py-1 text-[11px] font-bold text-white">Tandai Lunas</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       {/* Cara kerja */}
       <section id="cara-kerja" className="bg-[#1B5E3B] py-20 text-white sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="mx-auto mb-14 max-w-2xl text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#C9A227] uppercase">02 · Cara Kerja</p>
+            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#C9A227] uppercase">03 · Cara Kerja</p>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Dari daftar sampai terima pesanan</h2>
             <p className="mt-3 text-white/70">Tiga langkah. Tanpa istilah teknis yang membingungkan.</p>
           </Reveal>
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => (
               <Reveal key={s.no} delay={i * 120}>
                 <div className="h-full rounded-2xl bg-white/8 p-7 ring-1 ring-white/15 backdrop-blur-sm">
@@ -442,7 +578,7 @@ export default function MarketingPage() {
       <section id="harga" className="py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="mx-auto mb-14 max-w-2xl text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">03 · Harga</p>
+            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">04 · Harga</p>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Pilih paket sesuai kebutuhan restoranmu</h2>
             <p className="mt-3 text-stone-600">Bulanan, tanpa kontrak tahunan. Upgrade atau downgrade kapan saja.</p>
           </Reveal>
@@ -505,7 +641,7 @@ export default function MarketingPage() {
       <section id="faq" className="border-t border-stone-200/80 bg-white/60 py-20 sm:py-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <Reveal className="mb-10 text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">04 · FAQ</p>
+            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">05 · FAQ</p>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Pertanyaan yang sering ditanyakan</h2>
           </Reveal>
           <div className="space-y-3">
