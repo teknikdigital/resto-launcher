@@ -48,6 +48,53 @@ function Reveal({
   );
 }
 
+/* Angka yang count-up saat masuk viewport (ala section statistik template). */
+function CountUp({
+  to,
+  prefix = "",
+  suffix = "",
+  duration = 1600,
+}: {
+  to: number;
+  prefix?: string;
+  suffix?: string;
+  duration?: number;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [val, setVal] = useState(0);
+  const started = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !started.current) {
+          started.current = true;
+          const t0 = performance.now();
+          const tick = (t: number) => {
+            const p = Math.min(1, (t - t0) / duration);
+            const eased = 1 - Math.pow(2, -10 * p); // easeOutExpo
+            setVal(Math.round(to * (p === 1 ? 1 : eased)));
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [to, duration]);
+  return (
+    <span ref={ref}>
+      {prefix}
+      {val.toLocaleString("id-ID")}
+      {suffix}
+    </span>
+  );
+}
+
 const PACKAGES = [
   {
     id: "basic",
@@ -410,16 +457,22 @@ export default function MarketingPage() {
         {/* Angka ringkas */}
         <Reveal delay={100}>
           <dl className="relative mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-4 px-4 text-center sm:px-6">
-            {[
-              ["7", "Tema desain siap pakai"],
-              ["0%", "Potongan transaksi kami"],
-              ["Rp50rb", "Harga mulai per bulan"],
-            ].map(([v, l]) => (
-              <div key={l}>
-                <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">{v}</dt>
-                <dd className="mt-1 text-xs leading-snug text-stone-500">{l}</dd>
-              </div>
-            ))}
+            <div>
+              <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">
+                <CountUp to={7} />
+              </dt>
+              <dd className="mt-1 text-xs leading-snug text-stone-500">Tema desain siap pakai</dd>
+            </div>
+            <div>
+              <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">0%</dt>
+              <dd className="mt-1 text-xs leading-snug text-stone-500">Potongan transaksi kami</dd>
+            </div>
+            <div>
+              <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">
+                <CountUp to={50} prefix="Rp" suffix="rb" />
+              </dt>
+              <dd className="mt-1 text-xs leading-snug text-stone-500">Harga mulai per bulan</dd>
+            </div>
           </dl>
         </Reveal>
       </div>
@@ -636,7 +689,7 @@ export default function MarketingPage() {
       </section>
 
       {/* Cara kerja */}
-      <section id="cara-kerja" className="bg-[#1B5E3B] py-20 text-white sm:py-28">
+      <section id="cara-kerja" className="bg-[#1B5E3B] pt-20 pb-44 text-white sm:pt-28 sm:pb-60">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal from="zoom" className="mx-auto mb-14 max-w-2xl text-center">
             <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#C9A227] uppercase">02 · Cara Kerja</p>
@@ -657,13 +710,13 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* Harga */}
-      <section id="harga" className="py-20 sm:py-28">
+      {/* Harga — kartu menumpang di batas section gelap/terang ala template */}
+      <section id="harga" className="relative z-10 -mt-32 scroll-mt-24 pb-20 sm:-mt-44 sm:pb-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal className="mx-auto mb-14 max-w-2xl text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">03 · Harga</p>
-            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Pilih paket sesuai kebutuhan restoranmu</h2>
-            <p className="mt-3 text-stone-600">Bulanan, tanpa kontrak tahunan. Upgrade atau downgrade kapan saja.</p>
+          <Reveal className="mx-auto mb-12 max-w-2xl text-center">
+            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#C9A227] uppercase">03 · Harga</p>
+            <h2 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Pilih paket sesuai kebutuhan restoranmu</h2>
+            <p className="mt-3 text-white/70">Bulanan, tanpa kontrak tahunan. Upgrade atau downgrade kapan saja.</p>
           </Reveal>
           <div className="grid items-stretch gap-6 lg:grid-cols-3">
             {PACKAGES.map((p, i) => (
