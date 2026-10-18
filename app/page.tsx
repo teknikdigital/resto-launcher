@@ -834,6 +834,10 @@ export default function MarketingPage() {
                 <p className="mx-auto mt-3 max-w-xl text-white/75">
                   Isi form pemesanan, kami hubungi via WhatsApp, dan website restoranmu bisa aktif dalam hitungan hari.
                 </p>
+                <p className="mx-auto mt-4 inline-flex max-w-xl items-center gap-2 rounded-full border border-[#C9A227]/50 bg-[#C9A227]/15 px-5 py-2.5 text-sm font-medium text-[#f3d97b]">
+                  <span aria-hidden="true">📍</span>
+                  Khusus area Bandung: bisa diskusi one-to-one untuk custom website sebelum deal.
+                </p>
                 <button
                   onClick={() => setModalPkg("plus")}
                   className="mt-8 rounded-xl bg-[#C9A227] px-8 py-4 font-semibold text-stone-900 transition hover:bg-[#b8941f]"
