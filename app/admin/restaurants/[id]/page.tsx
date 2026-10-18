@@ -127,6 +127,11 @@ export default function RestaurantDashboard() {
               buka website ↗
             </a>
           </p>
+          <p className="mt-2 inline-flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5 text-sm">
+            <span className="text-zinc-500">PIN Owner:</span>
+            <span className="font-mono font-bold tracking-widest">{resto.owner_pin ?? "—"}</span>
+            <span className="text-xs text-zinc-400">| Portal: <span className="font-mono">/owner</span></span>
+          </p>
         </div>
         <Link href="/admin/restaurants" className="back-link">← Daftar restoran</Link>
       </header>
