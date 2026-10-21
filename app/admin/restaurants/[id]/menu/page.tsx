@@ -6,7 +6,7 @@ import { faClipboardList } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { formatRupiah, type MenuItem } from "@/lib/resto-types";
+import { formatRupiah, type MenuItem, type VariantGroup, type MenuAddon } from "@/lib/resto-types";
 
 type Form = {
   category: string;
@@ -32,6 +32,8 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [form, setForm] = useState<Form>(EMPTY);
+  const [variantGroups, setVariantGroups] = useState<VariantGroup[]>([]);
+  const [addonRows, setAddonRows] = useState<MenuAddon[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -118,10 +120,26 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    // Buang grup varian / opsi / add-on yang kosong sebelum dikirim.
+    const variants = variantGroups
+      .map((g) => ({
+        label: g.label.trim(),
+        options: g.options
+          .filter((o) => o.name.trim())
+          .map((o) => ({ name: o.name.trim(), price_delta: Math.max(0, Number(o.price_delta) || 0) })),
+      }))
+      .filter((g) => g.label && g.options.length > 0);
+    if (variantGroups.some((g) => g.options.length > 0 && g.options.some((o) => !o.name.trim()))) {
+      setError("Ada opsi varian yang namanya kosong — isi atau kosongkan seluruh barisnya.");
+      return;
+    }
+    const addons = addonRows
+      .filter((a) => a.name.trim())
+      .map((a) => ({ name: a.name.trim(), price: Math.max(0, Number(a.price) || 0) }));
     const res = await fetch(editingId ? `/api/menu/${editingId}` : `/api/restaurants/${id}/menu`, {
       method: editingId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, price: Number(form.price), sort_order: Number(form.sort_order) }),
+      body: JSON.stringify({ ...form, price: Number(form.price), sort_order: Number(form.sort_order), variants, addons }),
     });
     const d = await res.json();
     if (!res.ok) {
@@ -130,6 +148,8 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
     }
     setEditingId(null);
     setForm(EMPTY);
+    setVariantGroups([]);
+    setAddonRows([]);
     await load();
   }
 
@@ -160,6 +180,8 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
       image_url: m.image_url ?? "",
       sort_order: String(m.sort_order ?? 0),
     });
+    setVariantGroups(Array.isArray(m.variants) ? m.variants : []);
+    setAddonRows(Array.isArray(m.addons) ? m.addons : []);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -230,12 +252,126 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
         <input type="number" className={inputCls} placeholder="Urutan" value={form.sort_order} onChange={(e) => set("sort_order", e.target.value)} />
         <input className={inputCls} placeholder="URL gambar" value={form.image_url} onChange={(e) => set("image_url", e.target.value)} />
         <input className={inputCls} placeholder="Deskripsi" value={form.description} onChange={(e) => set("description", e.target.value)} />
+
+        <div className="rounded-xl border border-zinc-200 p-3 sm:col-span-2">
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-sm font-semibold">Varian (pilihan wajib, mis. Ukuran / Level Pedas)</p>
+            <button
+              type="button"
+              className="btn-secondary btn-sm"
+              onClick={() => setVariantGroups((gs) => [...gs, { label: "", options: [{ name: "", price_delta: 0 }] }])}
+            >
+              + Grup Varian
+            </button>
+          </div>
+          <p className="mb-2 text-xs text-zinc-500">Harga dasar menu + tambahan harga opsi. Opsi pertama jadi pilihan bawaan.</p>
+          {variantGroups.map((g, gi) => (
+            <div key={gi} className="mb-3 rounded-lg bg-zinc-50 p-3">
+              <div className="mb-2 flex items-center gap-2">
+                <input
+                  className={inputCls}
+                  placeholder="Nama grup (Ukuran)"
+                  value={g.label}
+                  onChange={(e) => setVariantGroups((gs) => gs.map((x, i) => (i === gi ? { ...x, label: e.target.value } : x)))}
+                />
+                <button
+                  type="button"
+                  className="btn-danger btn-sm shrink-0"
+                  onClick={() => setVariantGroups((gs) => gs.filter((_, i) => i !== gi))}
+                >
+                  Hapus Grup
+                </button>
+              </div>
+              {g.options.map((o, oi) => (
+                <div key={oi} className="mb-1.5 flex items-center gap-2">
+                  <input
+                    className={inputCls}
+                    placeholder="Nama opsi (Besar)"
+                    value={o.name}
+                    onChange={(e) =>
+                      setVariantGroups((gs) =>
+                        gs.map((x, i) => (i === gi ? { ...x, options: x.options.map((y, j) => (j === oi ? { ...y, name: e.target.value } : y)) } : x)),
+                      )
+                    }
+                  />
+                  <input
+                    className={`${inputCls} !w-32`}
+                    type="number"
+                    min={0}
+                    placeholder="+ Harga"
+                    value={o.price_delta === 0 ? "" : String(o.price_delta)}
+                    onChange={(e) =>
+                      setVariantGroups((gs) =>
+                        gs.map((x, i) => (i === gi ? { ...x, options: x.options.map((y, j) => (j === oi ? { ...y, price_delta: Number(e.target.value) || 0 } : y)) } : x)),
+                      )
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="btn-secondary btn-sm shrink-0"
+                    onClick={() =>
+                      setVariantGroups((gs) => gs.map((x, i) => (i === gi ? { ...x, options: x.options.filter((_, j) => j !== oi) } : x)))
+                    }
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="btn-secondary btn-sm mt-1"
+                onClick={() =>
+                  setVariantGroups((gs) => gs.map((x, i) => (i === gi ? { ...x, options: [...x.options, { name: "", price_delta: 0 }] } : x)))
+                }
+              >
+                + Opsi
+              </button>
+            </div>
+          ))}
+
+          <div className="mt-4 mb-1 flex items-center justify-between">
+            <p className="text-sm font-semibold">Add-on (tambahan berbayar, boleh pilih banyak)</p>
+            <button
+              type="button"
+              className="btn-secondary btn-sm"
+              onClick={() => setAddonRows((as) => [...as, { name: "", price: 0 }])}
+            >
+              + Add-on
+            </button>
+          </div>
+          {addonRows.map((a, ai) => (
+            <div key={ai} className="mb-1.5 flex items-center gap-2">
+              <input
+                className={inputCls}
+                placeholder="Nama add-on (Ekstra Telur)"
+                value={a.name}
+                onChange={(e) => setAddonRows((as) => as.map((x, i) => (i === ai ? { ...x, name: e.target.value } : x)))}
+              />
+              <input
+                className={`${inputCls} !w-32`}
+                type="number"
+                min={0}
+                placeholder="Harga"
+                value={a.price === 0 ? "" : String(a.price)}
+                onChange={(e) => setAddonRows((as) => as.map((x, i) => (i === ai ? { ...x, price: Number(e.target.value) || 0 } : x)))}
+              />
+              <button
+                type="button"
+                className="btn-secondary btn-sm shrink-0"
+                onClick={() => setAddonRows((as) => as.filter((_, i) => i !== ai))}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+
         <div className="flex gap-2 sm:col-span-2">
           <button className="btn-primary">
             {editingId ? "Simpan perubahan" : "Tambah"}
           </button>
           {editingId && (
-            <button type="button" onClick={() => { setEditingId(null); setForm(EMPTY); }} className="btn-secondary">
+            <button type="button" onClick={() => { setEditingId(null); setForm(EMPTY); setVariantGroups([]); setAddonRows([]); }} className="btn-secondary">
               Batal
             </button>
           )}
@@ -263,15 +399,25 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
                 <th>Kategori</th>
                 <th>Nama</th>
                 <th>Harga</th>
-                <th>Tersedia</th>
+                <th>Tersedia / Habis</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {items.map((m) => (
-                <tr key={m.id}>
+                <tr key={m.id} className={m.is_available ? "" : "opacity-60"}>
                   <td className="text-zinc-500">{m.category ?? "-"}</td>
-                  <td className="font-medium text-zinc-900">{m.name}</td>
+                  <td className="font-medium text-zinc-900">
+                    {m.name}
+                    {!m.is_available && <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">Habis</span>}
+                    {(m.variants?.length || m.addons?.length) ? (
+                      <span className="ml-2 rounded-full bg-[#C9A227]/15 px-2 py-0.5 text-[11px] font-semibold text-[#8a6d1c]">
+                        {m.variants?.length ? `${m.variants.length} grup varian` : ""}
+                        {m.variants?.length && m.addons?.length ? " · " : ""}
+                        {m.addons?.length ? `${m.addons.length} add-on` : ""}
+                      </span>
+                    ) : null}
+                  </td>
                   <td className="whitespace-nowrap">{formatRupiah(Number(m.price))}</td>
                   <td>
                     <input className="h-4 w-4 cursor-pointer accent-blue-600" type="checkbox" checked={m.is_available} onChange={() => toggle(m)} aria-label="Tersedia" />
