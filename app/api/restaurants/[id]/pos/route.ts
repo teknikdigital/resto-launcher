@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { caughtErrorResponse, supabaseErrorResponse, supabaseRest } from "@/lib/supabase";
-import { buildOrderLines, fetchTables } from "@/lib/resto-server";
+import { buildOrderLines, fetchTables, nextQueueNo } from "@/lib/resto-server";
 import { ORDER_TYPES, PAYMENT_METHODS, type OrderType, type PaymentMethod } from "@/lib/resto-types";
 
 // POST: pesanan dari kasir (langsung lunas). Total dihitung ulang dari DB.
@@ -18,6 +18,11 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
   }
   const name = typeof body?.customer_name === "string" ? body.customer_name.trim() : "";
   const phone = typeof body?.customer_phone === "string" ? body.customer_phone.trim() : "";
+  // Diskon nominal (Rp) & uang tunai yang diterima (untuk kembalian).
+  const discountRaw = Number(body?.discount);
+  const discount = Number.isFinite(discountRaw) ? Math.max(0, Math.round(discountRaw)) : 0;
+  const cashRaw = Number(body?.cash_received);
+  const cashReceived = Number.isFinite(cashRaw) && cashRaw > 0 ? Math.round(cashRaw) : null;
 
   try {
     let tableId: string | null = null;
@@ -30,7 +35,11 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
 
     const built = await buildOrderLines(id, body?.items);
     if ("error" in built) return NextResponse.json({ error: built.error }, { status: built.status });
+    if (discount > built.total) {
+      return NextResponse.json({ error: "Diskon melebihi total pesanan" }, { status: 400 });
+    }
 
+    const queueNo = await nextQueueNo(id);
     const res = await supabaseRest("orders", {
       method: "POST",
       prefer: "return=representation",
@@ -39,8 +48,11 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
         customer_name: name || "Pelanggan kasir",
         customer_phone: phone || "-",
         items: built.lines,
-        total: built.total,
+        total: built.total - discount,
+        discount,
+        cash_received: method === "cash" ? cashReceived : null,
         status: "dikonfirmasi",
+        queue_no: queueNo,
         table_id: tableId,
         order_type: orderType,
         payment_method: method,
