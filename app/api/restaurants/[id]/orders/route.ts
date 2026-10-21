@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { caughtErrorResponse, supabaseErrorResponse, supabaseRest } from "@/lib/supabase";
-import { buildOrderLines, fetchTables } from "@/lib/resto-server";
+import { buildOrderLines, fetchTables, nextQueueNo } from "@/lib/resto-server";
 
 // GET: daftar pesanan. ?since=<ISO> hanya mengambil pesanan sejak waktu tersebut.
 export async function GET(request: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -42,6 +42,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
       tableId = table?.id ?? null;
     }
 
+    const queueNo = await nextQueueNo(id);
     const res = await supabaseRest("orders", {
       method: "POST",
       prefer: "return=representation",
@@ -52,6 +53,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
         items: built.lines,
         total: built.total,
         status: "baru",
+        queue_no: queueNo,
         table_id: tableId,
         order_type: tableId ? "dine_in" : "takeaway",
         payment_status: "unpaid",
