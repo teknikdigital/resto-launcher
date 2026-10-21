@@ -373,6 +373,18 @@ const FAQS = [
 
 const OWNER_WA = process.env.NEXT_PUBLIC_OWNER_WA ?? "";
 
+// Link pembayaran Mayar per paket & periode (diisi lewat .env.local bila sudah dibuat).
+// Kosong = tombol bayar tidak tampil; alur manual via WA tetap berjalan.
+const MAYAR_LINKS: Record<string, string> = {
+  basic_monthly: process.env.NEXT_PUBLIC_MAYAR_BASIC_MONTHLY ?? "",
+  basic_yearly: process.env.NEXT_PUBLIC_MAYAR_BASIC_YEARLY ?? "",
+  plus_monthly: process.env.NEXT_PUBLIC_MAYAR_PLUS_MONTHLY ?? "",
+  plus_yearly: process.env.NEXT_PUBLIC_MAYAR_PLUS_YEARLY ?? "",
+  premium_setup: process.env.NEXT_PUBLIC_MAYAR_PREMIUM_SETUP ?? "",
+  premium_monthly: process.env.NEXT_PUBLIC_MAYAR_PREMIUM_MONTHLY ?? "",
+  premium_yearly: process.env.NEXT_PUBLIC_MAYAR_PREMIUM_YEARLY ?? "",
+};
+
 /* Modal rincian manfaat + hitung-hitungan per paket. */
 function BenefitModal({ pkg, onClose, onChoose }: { pkg: PackageId; onClose: () => void; onChoose: () => void }) {
   const chosen = PACKAGES.find((p) => p.id === pkg)!;
@@ -430,10 +442,21 @@ function BenefitModal({ pkg, onClose, onChoose }: { pkg: PackageId; onClose: () 
 
 function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
   const [form, setForm] = useState({ restaurant_name: "", owner_name: "", phone: "", email: "", address: "", notes: "" });
+  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const chosen = PACKAGES.find((p) => p.id === pkg)!;
+
+  // Baris harga mengikuti periode yang dipilih.
+  const priceLine =
+    pkg === "premium"
+      ? period === "yearly"
+        ? "Rp500.000 sekali bayar (setup + domain tahun pertama) + maintenance Rp490.000/tahun — hemat 2 bulan."
+        : "Rp500.000 sekali bayar (setup + domain tahun pertama) + maintenance Rp49.000/bulan."
+      : period === "yearly"
+        ? `${chosen.yearly}${chosen.yearlyLabel} — bayar 10 bulan, pakai 12 (hemat 2 bulan).`
+        : `${chosen.price}${chosen.per}`;
 
   function set<K extends keyof typeof form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -447,7 +470,7 @@ function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
       const res = await fetch("/api/package-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ package: pkg, ...form }),
+        body: JSON.stringify({ package: pkg, billing_period: period, ...form }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d.error ?? "Gagal mengirim pesanan");
@@ -459,8 +482,11 @@ function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
     }
   }
 
+  const periodLabel = period === "yearly" ? "Tahunan" : "Bulanan";
+  const payLink = MAYAR_LINKS[`${pkg}_${period}`] ?? "";
+  const setupLink = pkg === "premium" ? MAYAR_LINKS["premium_setup"] : "";
   const waText = encodeURIComponent(
-    `Halo RestoLauncher! Saya tertarik paket ${chosen.name} (${chosen.price}${chosen.per}).\nResto: ${form.restaurant_name}\nNama: ${form.owner_name}\nNo. WA: ${form.phone}`,
+    `Halo RestoLauncher! Saya tertarik paket ${chosen.name} (${periodLabel}).\nResto: ${form.restaurant_name}\nNama: ${form.owner_name}\nNo. WA: ${form.phone}`,
   );
 
   return (
@@ -477,12 +503,34 @@ function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
                 Tutup
               </button>
             </div>
-            <p className="mb-5 text-sm text-stone-600">
-              {chosen.price}
-              {chosen.per}
-              {" — "}
-              {chosen.address}. Isi form di bawah, kami hubungi via WhatsApp.
+            <p className="mb-4 text-sm text-stone-600">
+              {priceLine} {chosen.address}. Isi form di bawah, kami hubungi via WhatsApp.
             </p>
+            <div className="mb-5 grid grid-cols-2 gap-2">
+              {(["monthly", "yearly"] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPeriod(p)}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                    period === p
+                      ? "border-[#1B5E3B] bg-[#1B5E3B] text-white"
+                      : "border-stone-300 bg-white text-stone-600 hover:border-[#1B5E3B]"
+                  }`}
+                >
+                  {p === "monthly" ? "Bulanan" : "Tahunan"}
+                  <span className={`block text-xs font-medium ${period === p ? "text-white/75" : "text-stone-400"}`}>
+                    {p === "monthly"
+                      ? pkg === "premium"
+                        ? "maintenance Rp49rb/bln"
+                        : `${chosen.price}${chosen.per}`
+                      : pkg === "premium"
+                        ? "maintenance Rp490rb/thn"
+                        : `${chosen.yearly}${chosen.yearlyLabel} · hemat 2 bln`}
+                  </span>
+                </button>
+              ))}
+            </div>
             <form onSubmit={submit} className="space-y-3">
               <input required className="field" placeholder="Nama restoran / kafe" value={form.restaurant_name} onChange={(e) => set("restaurant_name", e.target.value)} />
               <input required className="field" placeholder="Nama pemilik" value={form.owner_name} onChange={(e) => set("owner_name", e.target.value)} />
@@ -502,8 +550,42 @@ function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
             <h2 className="font-display text-2xl font-semibold text-stone-900">Pesanan diterima!</h2>
             <p className="mx-auto mt-2 max-w-sm text-sm text-stone-600">
               Terima kasih, {form.owner_name}. Tim kami akan menghubungi <strong>{form.phone}</strong> via WhatsApp untuk paket{" "}
-              <strong>{chosen.name}</strong>.
+              <strong>{chosen.name} ({periodLabel})</strong>.
             </p>
+            {(setupLink || payLink) && (
+              <div className="mx-auto mt-5 max-w-sm space-y-2">
+                <p className="text-sm font-semibold text-stone-800">Mau langsung aktif? Bayar sekarang:</p>
+                {setupLink && (
+                  <a
+                    href={setupLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full rounded-xl bg-[#C9A227] px-6 py-3 font-semibold text-stone-900 transition hover:brightness-105"
+                  >
+                    Bayar Setup Premium — Rp500.000
+                  </a>
+                )}
+                {payLink && (
+                  <a
+                    href={payLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full rounded-xl bg-[#1B5E3B] px-6 py-3 font-semibold text-white transition hover:bg-[#14492e]"
+                  >
+                    {pkg === "premium"
+                      ? period === "yearly"
+                        ? "Bayar Maintenance Tahunan — Rp490.000"
+                        : "Bayar Maintenance Bulanan — Rp49.000"
+                      : period === "yearly"
+                        ? `Bayar Tahunan — ${chosen.yearly}`
+                        : `Bayar Bulanan — ${chosen.price}`}
+                  </a>
+                )}
+                <p className="text-xs text-stone-500">
+                  Setelah pembayaran terkonfirmasi, restomu kami siapkan maks. 1×24 jam. Langganan berikutnya ditagih otomatis oleh Mayar.
+                </p>
+              </div>
+            )}
             {OWNER_WA && (
               <a
                 href={`https://wa.me/${OWNER_WA}?text=${waText}`}
