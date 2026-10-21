@@ -107,6 +107,7 @@ const PACKAGES = [
     yearly: "Rp500.000",
     yearlyWas: "Rp600.000",
     yearlyLabel: "/tahun",
+    devCost: "Rp5–10 juta",
     desc: "Buat warung & resto kecil yang mau tampil profesional di internet.",
     segment: "Warung, resto kecil, kuliner rumahan",
     address: "restolauncher.com/r/nama-resto",
@@ -130,6 +131,7 @@ const PACKAGES = [
     yearly: "Rp990.000",
     yearlyWas: "Rp1.188.000",
     yearlyLabel: "/tahun",
+    devCost: "Rp10–20 juta",
     desc: "Buat resto dine-in yang butuh kasir digital: kelola pesanan & rekap transaksi.",
     segment: "Resto menengah, cafe, dine-in",
     address: "nama-resto.restolauncher.com",
@@ -154,6 +156,7 @@ const PACKAGES = [
     yearly: "Rp490.000",
     yearlyWas: "Rp588.000",
     yearlyLabel: " maintenance/tahun",
+    devCost: "Rp15–30 juta",
     setup: "Termasuk setup + domain tahun pertama · + Rp49.000/bln maintenance",
     desc: "Buat brand yang serius: bayar sekali di depan, maintenance murah per bulan.",
     segment: "Resto mapan, brand F&B serius",
@@ -259,7 +262,7 @@ const BENEFITS: Record<
         untung: "Jam operasional nggak terganggu masalah teknis → omzet aman, tanpa perlu gaji karyawan IT.",
       },
     ],
-    calc: "Rp500.000 sekali bayar + Rp49.000/bulan. Tahun pertama Rp1.088.000 = Rp2.980/hari. Bandingkan bikin web ke developer: Rp5–20 juta di tahun pertama. Hemat 5–15x lipat.",
+    calc: "Rp500.000 sekali bayar + Rp49.000/bulan. Tahun pertama Rp1.088.000 = Rp2.980/hari. Bandingkan bikin website + sistem seperti ini ke developer: Rp15–30 juta di tahun pertama — hemat belasan kali lipat.",
     recommend: "Paling cocok untuk resto mapan dan brand F&B yang mau tampil serius jangka panjang.",
   },
 };
@@ -1037,6 +1040,9 @@ export default function MarketingPage() {
                     atau <span className="line-through opacity-60">{p.yearlyWas}</span>{" "}
                     <span className={`font-bold ${p.highlight ? "text-[#f3d97b]" : "text-[#1B5E3B]"}`}>{p.yearly}</span>
                     {p.yearlyLabel} · hemat 2 bulan
+                  </p>
+                  <p className={`mt-1.5 text-xs ${p.highlight ? "text-white/60" : "text-stone-400"}`}>
+                    Bikin sendiri ke developer: ±{p.devCost} sekali bayar — belum hosting &amp; maintenance.
                   </p>
                   <p className={`mt-3 rounded-lg px-3 py-2 font-mono text-xs break-all ${p.highlight ? "bg-white/10 text-white/90" : "bg-stone-100 text-stone-600"}`}>
                     {p.address}
