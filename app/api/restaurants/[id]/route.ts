@@ -28,7 +28,12 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     );
     if (!menuRes.ok) return supabaseErrorResponse(menuRes);
     const menu: MenuItem[] = await menuRes.json();
-    return NextResponse.json({ restaurant, active: true, menu });
+    // Item yang sedang habis tetap ditampilkan (label "Habis"), tidak bisa dipesan.
+    const soldOutRes = await supabaseRest(
+      `menu_items?restaurant_id=eq.${restaurant.id}&is_available=eq.false&select=id,category,name,price,image_url&order=sort_order.asc,name.asc`,
+    );
+    const soldOut = soldOutRes.ok ? await soldOutRes.json() : [];
+    return NextResponse.json({ restaurant, active: true, menu, sold_out: soldOut });
   } catch (err) {
     return caughtErrorResponse(err);
   }
