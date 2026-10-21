@@ -25,11 +25,11 @@ const SAMPLE_MENU: Pick<MenuItem, "id" | "name" | "price" | "description">[] = [
   { id: "s6", name: "Kopi Susu Gula Aren", price: 28000, description: "Espresso, susu segar, gula aren" },
 ];
 const NAV_LINKS = [
-  { id: "hours", label: "Hours & Locations" },
-  { id: "menu", label: "Menus" },
+  { id: "hours", label: "Jam & Lokasi" },
+  { id: "menu", label: "Menu" },
   { id: "catering", label: "Catering" },
-  { id: "about", label: "About" },
-  { id: "shop", label: "Shop" },
+  { id: "about", label: "Tentang Kami" },
+  { id: "shop", label: "Kontak" },
 ] as const;
 
 const MUSTARD = "#f5c518";
@@ -110,13 +110,13 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
     "relative py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-800 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#f5c518] after:transition-all after:duration-300 hover:after:w-full";
   const orderBtn =
     "inline-flex items-center justify-center px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-950 transition duration-300 hover:-translate-y-0.5 hover:bg-zinc-950 hover:text-[#f5c518] hover:shadow-lg active:scale-95";
-  const heading = "text-3xl font-bold uppercase tracking-wide text-zinc-950 sm:text-4xl";
-  const script = { fontFamily: "'Segoe Script','Brush Script MT','Snell Roundhand','Apple Chancery',cursive" };
+  const heading = "font-display text-3xl font-bold text-zinc-950 sm:text-4xl";
+  const script = { fontFamily: "'Fraunces','Playfair Display',Georgia,serif" };
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900">
+    <div className="min-h-screen bg-[#FFFBF0] text-zinc-900 [background-image:radial-gradient(rgba(190,150,30,0.07)_1px,transparent_1.4px)] [background-size:22px_22px]">
       {/* Header tengah */}
-      <header className="bg-white px-5 pb-4 pt-8 text-center">
+      <header className="border-b-2 border-[#F0DFAE] bg-[#FFF3D6]/70 px-5 pb-5 pt-8 text-center">
         <a href="#top" className="inline-flex flex-col items-center transition duration-300 hover:opacity-80">
           {r.logo_url && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -138,7 +138,7 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
             ))}
           </ul>
           <Link href={orderHref} className={orderBtn} style={{ backgroundColor: MUSTARD }}>
-            Order Online
+            Pesan Online
           </Link>
           <button
             type="button"
@@ -165,7 +165,7 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
 
       {/* Hero + carousel dots */}
       <section id="top" className="scroll-mt-4">
-        <div className="relative h-[55vh] min-h-72 w-full overflow-hidden bg-zinc-100 sm:h-[70vh]">
+        <div className="relative mx-auto mt-4 h-[55vh] min-h-72 w-full max-w-6xl overflow-hidden bg-zinc-100 shadow-[0_18px_44px_rgba(120,85,5,0.20)] sm:h-[70vh] sm:rounded-[2rem]">
           {slides.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -196,7 +196,7 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
       <section id="menu" className="scroll-mt-4 px-5 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
           <Reveal className="mb-12 text-center">
-            <h2 className={heading}>Menus</h2>
+            <h2 className={heading}>Menu</h2>
             <span className="mx-auto mt-4 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
           </Reveal>
           <ul className="grid gap-x-14 gap-y-7 md:grid-cols-2">
@@ -224,7 +224,7 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
       {/* Catering */}
       <section id="catering" className="scroll-mt-4 px-5 pb-16 sm:pb-20">
         <Reveal className="mx-auto max-w-5xl">
-          <div className="flex flex-col items-center gap-6 px-6 py-12 text-center sm:px-14 md:flex-row md:text-left" style={{ backgroundColor: MUSTARD }}>
+          <div className="flex flex-col items-center gap-6 rounded-[2rem] px-6 py-12 text-center shadow-[0_16px_36px_rgba(150,110,10,0.28)] sm:px-14 md:flex-row md:text-left" style={{ backgroundColor: MUSTARD }}>
             <span className="shrink-0 text-zinc-950"><CateringIcon className="h-14 w-14" /></span>
             <div className="flex-1">
               <h2 className="text-2xl font-bold uppercase tracking-wide text-zinc-950 sm:text-3xl">Catering</h2>
@@ -242,15 +242,15 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
       </section>
 
       {/* About */}
-      <section id="about" className="scroll-mt-4 bg-zinc-50 px-5 py-16 sm:py-24">
+      <section id="about" className="scroll-mt-4 bg-[#FFF3D6]/80 px-5 py-16 sm:py-24">
         <div className="mx-auto grid max-w-5xl items-center gap-12 md:grid-cols-2">
           <Reveal>
-            <h2 className={`${heading} mb-4`}>About</h2>
+            <h2 className={`${heading} mb-4`}>Tentang Kami</h2>
             <span className="mb-6 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
             <p className="whitespace-pre-line text-lg leading-relaxed text-zinc-700">{about}</p>
           </Reveal>
           <Reveal delay={120}>
-            <div className="group overflow-hidden">
+            <div className="group overflow-hidden rounded-[2rem] shadow-[0_16px_36px_rgba(120,85,5,0.18)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={aboutPhoto} alt={`Suasana ${r.name}`} loading="lazy" className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105" />
             </div>
@@ -262,12 +262,12 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
       <section id="hours" className="scroll-mt-4 px-5 py-16 sm:py-24">
         <div className="mx-auto max-w-4xl">
           <Reveal className="mb-12 text-center">
-            <h2 className={heading}>Hours &amp; Locations</h2>
+            <h2 className={heading}>Jam &amp; Lokasi</h2>
             <span className="mx-auto mt-4 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
           </Reveal>
           <div className="grid gap-6 md:grid-cols-2">
             <Reveal>
-              <div className="h-full border border-zinc-200 p-7 transition duration-300 hover:border-[#f5c518] hover:shadow-lg">
+              <div className="h-full rounded-3xl border border-[#EBD9A0] bg-[#FFFDF6] p-7 shadow-sm transition duration-300 hover:border-[#f5c518] hover:shadow-lg">
                 <h3 className="mb-4 flex items-center gap-3 text-sm font-bold uppercase tracking-[0.18em] text-zinc-950">
                   <ClockIcon className="h-5 w-5" />
                   Jam Buka
@@ -280,7 +280,7 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
               </div>
             </Reveal>
             <Reveal delay={100}>
-              <div className="flex h-full flex-col border border-zinc-200 p-7 transition duration-300 hover:border-[#f5c518] hover:shadow-lg">
+              <div className="flex h-full flex-col rounded-3xl border border-[#EBD9A0] bg-[#FFFDF6] p-7 shadow-sm transition duration-300 hover:border-[#f5c518] hover:shadow-lg">
                 <h3 className="mb-4 flex items-center gap-3 text-sm font-bold uppercase tracking-[0.18em] text-zinc-950">
                   <PinIcon className="h-5 w-5" />
                   Alamat
@@ -305,7 +305,7 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
       </section>
 
       {/* Footer terang */}
-      <footer id="shop" className="scroll-mt-4 border-t border-zinc-200 bg-white px-5 py-12 text-center">
+      <footer id="shop" className="scroll-mt-4 border-t-2 border-[#F0DFAE] bg-[#FFF3D6]/60 px-5 py-12 text-center">
         <Reveal>
           <p className="text-4xl italic text-zinc-950" style={script}>{r.name}</p>
           {r.address && <p className="mt-2 text-sm text-zinc-500">{r.address}</p>}
@@ -318,7 +318,7 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="flex h-11 w-11 items-center justify-center border border-zinc-300 text-zinc-800 transition duration-300 hover:-translate-y-1 hover:border-[#f5c518] hover:bg-[#f5c518]"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-[#E3C565] bg-[#FFFDF6] text-zinc-800 transition duration-300 hover:-translate-y-1 hover:border-[#f5c518] hover:bg-[#f5c518]"
                 >
                   {s.icon}
                 </a>
