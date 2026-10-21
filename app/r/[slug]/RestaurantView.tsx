@@ -26,6 +26,46 @@ type CartLine = {
 
 const hasOptions = (m: MenuItem) => (m.variants?.length ?? 0) > 0 || (m.addons?.length ?? 0) > 0;
 
+// Gambar menu dengan cadangan ubin huruf bila URL mati (tautan foto resto sering kedaluwarsa).
+function ItemImg({ src, name, className, color, gray }: { src: string | null; name: string; className: string; color: string; gray?: boolean }) {
+  const [err, setErr] = useState(false);
+  const g = gray ? " grayscale" : "";
+  if (src && !err) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt={name} onError={() => setErr(true)} className={`${className}${g}`} />;
+  }
+  return (
+    <div
+      aria-hidden="true"
+      className={`${className}${g} flex items-center justify-center text-3xl font-bold`}
+      style={{ background: `linear-gradient(135deg, ${color}, ${color}88)`, color: readableOn(color) }}
+    >
+      {initials(name)}
+    </div>
+  );
+}
+
+// Spanduk promo: kartu mendatar berbingkai putus-putus warna resto + lencana PROMO + foto kecil di kanan; foto mati disembunyikan.
+function PromoBanner({ color, title, text, img, muted }: { color: string; title: string | null; text: string | null; img: string | null; muted: string }) {
+  const [err, setErr] = useState(false);
+  const on = readableOn(color);
+  return (
+    <div className="mb-6 flex overflow-hidden rounded-3xl border-2 border-dashed shadow-sm" style={{ borderColor: `${color}59`, backgroundColor: `${color}10` }}>
+      <div className="min-w-0 flex-1 p-4">
+        <span className="inline-block rounded-full px-2 py-0.5 text-[10px] font-bold tracking-[0.18em]" style={{ backgroundColor: color, color: on }}>
+          PROMO
+        </span>
+        {title && <p className="font-display mt-2 text-lg font-bold leading-snug">{title}</p>}
+        {text && <p className={`mt-0.5 text-sm ${muted}`}>{text}</p>}
+      </div>
+      {img && !err && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={img} alt={title ?? "Promo"} onError={() => setErr(true)} className="w-28 shrink-0 object-cover sm:w-36" />
+      )}
+    </div>
+  );
+}
+
 export function PageStatus({ children, loading }: { children?: React.ReactNode; loading?: boolean }) {
   if (loading) {
     return (
@@ -362,18 +402,7 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
 
       <main className="mx-auto w-full max-w-2xl px-4 pt-6">
         {(restaurant.promo_title || restaurant.promo_text || restaurant.promo_image_url) && (
-          <div className="mb-6 overflow-hidden rounded-3xl border shadow-sm" style={{ borderColor: `${color}40` }}>
-            {restaurant.promo_image_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={restaurant.promo_image_url} alt={restaurant.promo_title ?? "Promo"} className="h-40 w-full object-cover" />
-            )}
-            {(restaurant.promo_title || restaurant.promo_text) && (
-              <div className="p-4" style={{ backgroundColor: `${color}14` }}>
-                {restaurant.promo_title && <p className="font-serif text-lg font-bold">{restaurant.promo_title}</p>}
-                {restaurant.promo_text && <p className={`mt-0.5 text-sm ${t.muted}`}>{restaurant.promo_text}</p>}
-              </div>
-            )}
-          </div>
+          <PromoBanner color={color} title={restaurant.promo_title} text={restaurant.promo_text} img={restaurant.promo_image_url} muted={t.muted} />
         )}
         {!isMenu && <h2 className={t.eyebrow}>Menu Pilihan</h2>}
         {grouped.length === 0 && (
@@ -395,18 +424,7 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
                 const optioned = hasOptions(m);
                 return (
                   <li key={m.id} className={t.card}>
-                    {m.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.image_url} alt={m.name} className={t.img} />
-                    ) : (
-                      <div
-                        aria-hidden="true"
-                        className={`${t.img} flex items-center justify-center text-3xl font-bold`}
-                        style={{ background: `linear-gradient(135deg, ${color}, ${color}88)`, color: readableOn(color) }}
-                      >
-                        {initials(m.name)}
-                      </div>
-                    )}
+                    <ItemImg src={m.image_url} name={m.name} className={t.img} color={color} />
                     <div className="flex min-w-0 flex-1 flex-col">
                       <p className={`break-words ${t.name}`}>{m.name}</p>
                       {m.description && <p className={t.itemDesc}>{m.description}</p>}
@@ -452,18 +470,7 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
             <ul className={t.list}>
               {data.sold_out!.map((m) => (
                 <li key={m.id} className={`${t.card} opacity-60`}>
-                  {m.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={m.image_url} alt={m.name} className={`${t.img} grayscale`} />
-                  ) : (
-                    <div
-                      aria-hidden="true"
-                      className={`${t.img} flex items-center justify-center text-3xl font-bold grayscale`}
-                      style={{ background: `linear-gradient(135deg, ${color}, ${color}88)`, color: readableOn(color) }}
-                    >
-                      {initials(m.name)}
-                    </div>
-                  )}
+                  <ItemImg src={m.image_url} name={m.name} className={t.img} color={color} gray />
                   <div className="flex min-w-0 flex-1 flex-col">
                     <p className={`break-words ${t.name}`}>{m.name}</p>
                     <div className="mt-auto flex items-center justify-between pt-2">
