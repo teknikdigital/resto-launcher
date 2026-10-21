@@ -91,7 +91,10 @@ const PREVIEW_COUNT = 6;
 // mode "menu": halaman ringkas khusus QR (header kecil + menu penuh).
 export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
   const { slug } = useParams<{ slug: string }>();
-  const tableName = useSearchParams().get("table")?.trim() || "";
+  const searchParams = useSearchParams();
+  const tableName = searchParams.get("table")?.trim() || "";
+  // Pratinjau tema: ?tema=<template> hanya mengubah tampilan, tidak menyimpan apa pun.
+  const temaParam = searchParams.get("tema");
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
   const [lines, setLines] = useState<CartLine[]>([]);
@@ -165,7 +168,7 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
 
   const { restaurant, active, menu } = data;
   const color = restaurant.primary_color ?? "#16a34a";
-  const template = toTemplate(restaurant.template);
+  const template = temaParam ? toTemplate(temaParam) : toTemplate(restaurant.template);
   const t = getTheme(template, color);
   const wa = toWaNumber(restaurant.whatsapp);
 
