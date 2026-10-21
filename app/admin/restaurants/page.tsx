@@ -500,6 +500,27 @@ function AdminRestaurants() {
             ))}
           </div>
         </fieldset>
+        {editingId && form.slug && (
+          <div className="sm:col-span-2">
+            <p className="mb-2 text-sm font-medium text-zinc-700">
+              Pratinjau tema terpilih{" "}
+              <a href={`/r/${form.slug}/menu?tema=${form.template}`} target="_blank" rel="noreferrer" className="font-normal text-[#1B5E3B] underline-offset-2 hover:underline">
+                (buka layar penuh ↗)
+              </a>
+            </p>
+            <div className="flex justify-center rounded-[2rem] border-2 border-dashed border-[#D9C48F] bg-[#F6ECD2]/50 px-3 py-5">
+              <div className="w-full max-w-[360px] overflow-hidden rounded-[2rem] border-[8px] border-stone-900 bg-white shadow-xl">
+                <iframe
+                  key={form.template}
+                  src={`/r/${form.slug}/menu?tema=${form.template}`}
+                  title="Pratinjau tema"
+                  className="block h-[480px] w-full border-0"
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-zinc-500">Pratinjau halaman menu dengan data restoran ini. Tema baru berlaku setelah perubahan disimpan.</p>
+          </div>
+        )}
         <div className="flex gap-2 sm:col-span-2">
           <button disabled={saving} className="btn-primary">
             {saving ? "Menyimpan..." : editingId ? "Simpan perubahan" : "Tambah"}
