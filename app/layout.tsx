@@ -24,6 +24,8 @@ export const metadata: Metadata = {
   description:
     "Menu digital QR, pemesanan langsung dari meja, dan pembayaran QRIS yang masuk langsung ke rekening restoran. Mulai dari Rp50.000/bulan.",
   icons: { icon: "/favicon.png" },
+  themeColor: "#1B5E3B",
+  appleWebApp: { capable: true, title: "RestoLauncher" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
