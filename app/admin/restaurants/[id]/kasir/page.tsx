@@ -230,6 +230,9 @@ function KasirInner({ id }: { id: string }) {
 
   // Kelompok tiket: Baru (belum bayar) -> Diproses (lunas/dimasak) -> Selesai.
   const visible = orders.filter((o) => o.status !== "batal");
+  const omzetLunas = visible
+    .filter((o) => o.payment_status === "paid")
+    .reduce((s, o) => s + Number(o.total), 0);
   const colBaru = visible
     .filter((o) => o.status === "baru" && o.payment_status !== "paid")
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
@@ -242,8 +245,33 @@ function KasirInner({ id }: { id: string }) {
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8">
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="page-title min-w-0 break-words">Kasir{restaurant ? ` — ${restaurant.name}` : ""}</h1>
+      <header className="panel mb-6 flex flex-wrap items-center gap-x-4 gap-y-3 !py-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#1B5E3B] font-display text-xl font-bold text-white shadow-sm">
+          {restaurant ? restaurant.name.trim().charAt(0).toUpperCase() : "K"}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-display text-2xl font-bold text-stone-900">
+            Kasir{restaurant ? ` — ${restaurant.name}` : ""}
+          </h1>
+          <p className="text-xs text-stone-500">
+            {new Date(now).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} ·{" "}
+            {new Date(now).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-xl bg-[#F3ECDC] px-3 py-1.5 text-center">
+            <span className="block text-[10px] font-semibold tracking-wide text-stone-500 uppercase">Pesanan hari ini</span>
+            <span className="font-display text-base font-bold text-stone-900">{visible.length}</span>
+          </span>
+          <span className="rounded-xl bg-[#F3ECDC] px-3 py-1.5 text-center">
+            <span className="block text-[10px] font-semibold tracking-wide text-stone-500 uppercase">Omzet lunas</span>
+            <span className="font-display text-base font-bold text-[#1B5E3B]">{formatRupiah(omzetLunas)}</span>
+          </span>
+          <span className={`rounded-xl px-3 py-1.5 text-center ${colBaru.length > 0 ? "bg-amber-100" : "bg-[#F3ECDC]"}`}>
+            <span className="block text-[10px] font-semibold tracking-wide text-stone-500 uppercase">Menunggu bayar</span>
+            <span className={`font-display text-base font-bold ${colBaru.length > 0 ? "text-amber-700" : "text-stone-900"}`}>{colBaru.length}</span>
+          </span>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => {
@@ -307,20 +335,30 @@ function KasirInner({ id }: { id: string }) {
                   {grouped.map(([cat, items]) => (
                     <div key={cat} className="mb-5">
                       <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-stone-500">{cat}</h2>
-                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                         {items.map((m) => {
                           const qty = cart[m.id] ?? 0;
                           return (
                             <button
                               key={m.id}
                               onClick={() => setQty(m.id, qty + 1)}
-                              className={`relative min-w-0 rounded-xl border bg-white p-3 text-left text-sm shadow-sm transition hover:shadow-md active:scale-[0.98] ${qty > 0 ? "border-[#1B5E3B] bg-emerald-50 ring-1 ring-[#1B5E3B]" : "border-stone-200 hover:border-stone-300"}`}
+                              className={`relative min-w-0 overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition hover:shadow-md active:scale-[0.98] ${qty > 0 ? "border-[#1B5E3B] ring-2 ring-[#1B5E3B]" : "border-[#E7DCC8] hover:border-[#C9A227]"}`}
                             >
-                              <p className={`font-medium leading-snug text-stone-900 ${qty > 0 ? "pr-7" : ""}`}>{m.name}</p>
-                              <p className="mt-1 font-semibold text-stone-500">{formatRupiah(Number(m.price))}</p>
-                              {qty > 0 && (
-                                <span className="absolute right-2 top-2 min-w-6 rounded-full bg-[#1B5E3B] px-1.5 py-0.5 text-center text-xs font-bold text-white">{qty}</span>
-                              )}
+                              <span className="relative block">
+                                <KasirMenuPhoto item={m} />
+                                {qty > 0 && (
+                                  <span className="absolute right-2 top-2 min-w-6 rounded-full bg-[#C9A227] px-1.5 py-0.5 text-center text-xs font-extrabold text-stone-900 shadow">
+                                    {qty}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="block p-2.5">
+                                <span className="block truncate text-[13px] font-semibold leading-snug text-stone-900">{m.name}</span>
+                                <span className="mt-0.5 flex items-center justify-between">
+                                  <span className="text-[13px] font-bold text-[#1B5E3B]">{formatRupiah(Number(m.price))}</span>
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1B5E3B] text-sm font-bold text-white">+</span>
+                                </span>
+                              </span>
                             </button>
                           );
                         })}
@@ -502,6 +540,24 @@ function KasirInner({ id }: { id: string }) {
         </>
       )}
     </main>
+  );
+}
+
+// Foto menu di pemilih kasir; tanpa foto/rusak -> ubin huruf serif seperti di POS.
+function KasirMenuPhoto({ item }: { item: MenuItem }) {
+  const [err, setErr] = useState(false);
+  if (!item.image_url || err) {
+    const words = item.name.trim().split(/\s+/);
+    const letters = ((words[0]?.[0] ?? "") + (words[1]?.[0] ?? "")).toUpperCase();
+    return (
+      <span className="flex h-24 w-full items-center justify-center bg-[#F3ECDC] font-display text-3xl font-bold text-[#1B5E3B]">
+        {letters || "•"}
+      </span>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={item.image_url} alt="" loading="lazy" onError={() => setErr(true)} className="h-24 w-full object-cover" />
   );
 }
 
