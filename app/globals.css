@@ -199,3 +199,11 @@ body {
     display: none;
   }
 }
+
+/* Tepi bawah tiket struk di papan kasir: gerigi sobekan kertas (#FFFDF6 = warna tiket). */
+.ticket-edge {
+  height: 8px;
+  background:
+    linear-gradient(-45deg, transparent 10px, #fffdf6 0) 0 0 / 16px 16px repeat-x,
+    linear-gradient(45deg, transparent 10px, #fffdf6 0) 8px 0 / 16px 16px repeat-x;
+}
