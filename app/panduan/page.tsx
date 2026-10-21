@@ -54,58 +54,101 @@ export default function PanduanPage() {
                 <strong>Bookmark di HP kasir</strong> (buka link → menu browser → "Tambahkan ke Layar Utama").
               </span>
             </li>
+            <li>
+              <strong>Portal Pemilik:</strong> <span className="text-stone-500">link + PIN 6 digit dibagikan saat setup</span>
+              <br />
+              <span className="text-stone-500">Untuk pemilik: ubah menu & harga, atur meja, profil, dan banner promo sendiri.</span>
+            </li>
           </ul>
         </section>
 
         {/* Untuk kasir */}
         <section className="mt-10">
           <h2 className="font-display text-2xl font-semibold"><FontAwesomeIcon icon={faReceipt} className="mr-2 text-[#1B5E3B]" />Untuk Kasir — alur setiap pesanan</h2>
+          <p className="mt-2 text-[15px] leading-relaxed text-stone-600">
+            Halaman kasir berbentuk <strong>papan 3 kolom</strong>: <strong>Baru</strong> (pesanan masuk, belum bayar),{" "}
+            <strong>Diproses</strong> (sudah bayar, sedang dibuat), dan <strong>Selesai</strong>. Setiap pesanan tampil
+            sebagai kartu berisi nomor antrean, meja, rincian menu, dan total.
+          </p>
           <ol className="mt-5 space-y-5">
-            <Step no="1" title="Biarkan halaman kasir terbuka di HP/tablet">
-              <p>Buka link kasir di awal shift. Pesanan baru otomatis muncul di daftar.</p>
-            </Step>
-            <Step no="2" title="Dengarkan notifikasi pembayaran">
+            <Step no="1" title="Biarkan papan kasir terbuka di HP/tablet">
               <p>
-                Saat pelanggan bayar QRIS, notifikasi masuk ke <strong>aplikasi QRIS/merchant di HP-mu</strong> seperti
-                biasa (mis. GoPay Merchant, BCA Merchant). Pastikan notifikasinya aktif dan volume cukup.
+                Buka link kasir di awal shift, masukkan PIN kasir bila diminta, lalu ketuk tombol{" "}
+                <strong>Bunyi</strong> sekali agar pesanan baru berbunyi. Pesanan online dan pesanan dari QR meja
+                otomatis muncul di papan.
               </p>
             </Step>
-            <Step no="3" title='Ketuk "Tandai Lunas"'>
+            <Step no="2" title="Pesanan masuk di kolom Baru">
               <p>
-                Cocokkan nominal & meja dengan notifikasi, lalu ketuk <strong>Tandai Lunas</strong> pada pesanan
-                tersebut. Status pelanggan otomatis berubah jadi "Lunas".
+                Kartu di kolom <strong>Baru</strong> berlabel <strong>BELUM BAYAR</strong>. Pelanggan yang membayar
+                dengan QRIS juga muncul di sini — QRIS kami tanpa webhook, jadi pembayaran dicek dari notifikasi{" "}
+                <strong>aplikasi QRIS/merchant di HP kasir</strong> (mis. GoPay Merchant, BCA Merchant) seperti biasa.
               </p>
             </Step>
-            <Step no="4" title="Teruskan ke dapur">
-              <p>Sampaikan pesanan yang sudah lunas ke dapur untuk dimasak.</p>
+            <Step no="3" title='Ketuk "Tandai Sudah Bayar"'>
+              <p>
+                Cocokkan nominal & meja dengan notifikasi pembayaran (atau terima uang tunainya), lalu ketuk{" "}
+                <strong>Tandai Sudah Bayar</strong> pada kartu pesanan. Pesanan pindah ke kolom{" "}
+                <strong>Diproses</strong> dan status di HP pelanggan otomatis berubah jadi terkonfirmasi — dapur boleh
+                mulai memasak.
+              </p>
+            </Step>
+            <Step no="4" title='Ketuk "Selesai" bila sudah disajikan'>
+              <p>
+                Setelah pesanan diserahkan ke pelanggan, ketuk <strong>Selesai</strong> — kartu pindah ke kolom{" "}
+                <strong>Selesai</strong>. Untuk pelanggan yang makan dulu dan bayar belakangan, ketuk{" "}
+                <strong>Proses Dulu</strong> di kolom Baru agar dapur bisa mulai; pembayaran ditandai belakangan dari
+                kolom Diproses.
+              </p>
+            </Step>
+            <Step no="5" title="Pesanan manual & struk">
+              <p>
+                Pelanggan yang memesan langsung di kasir: ketuk <strong>+ Pesanan Baru</strong>, pilih menu, lalu
+                selesaikan pembayaran — pesanan langsung masuk kolom Diproses. Struk bisa dicetak dari tautan{" "}
+                <strong>Cetak struk</strong> di tiap kartu, atau dikirim ke WhatsApp pelanggan dari panel pesanan baru.
+              </p>
             </Step>
           </ol>
+          <p className="mt-4 rounded-xl border border-stone-200 bg-white p-4 text-[15px] text-stone-600">
+            Paket <strong>Plus & Premium</strong> juga memiliki POS bergambar (dengan diskon, kembalian otomatis, dan
+            shift kasir) serta layar dapur tersendiri — papan kasir di atas tetap bisa dipakai sebagai cadangan.
+          </p>
         </section>
 
         {/* Untuk owner */}
         <section className="mt-10">
           <h2 className="font-display text-2xl font-semibold"><FontAwesomeIcon icon={faStore} className="mr-2 text-[#1B5E3B]" />Untuk Owner — kelola resto</h2>
+          <p className="mt-2 text-[15px] leading-relaxed text-stone-600">
+            Semua pengelolaan harian dilakukan sendiri dari <strong>Portal Pemilik</strong> — tanpa email dan password,
+            cukup link portal dan PIN 6 digit yang dibagikan saat setup.
+          </p>
           <ol className="mt-5 space-y-5">
-            <Step no="1" title="Ganti menu / harga">
+            <Step no="1" title="Ganti menu, harga, dan tanda habis">
               <p>
-                Hubungi tim RestoLauncher via WhatsApp — kirim daftar perubahan, kami update-kan. (Kelola mandiri
-                segera hadir.)
+                Buka Portal Pemilik → <strong>Menu</strong>. Tambah menu baru, ubah harga, atur varian & tambahan, atau
+                tandai menu yang habis — perubahan langsung tampil di menu pelanggan.
               </p>
             </Step>
-            <Step no="2" title="Tambah meja baru">
+            <Step no="2" title="Atur meja & QR">
               <p>
-                Hubungi tim kami — QR meja baru akan dibuatkan dan dikirim file-nya untuk dicetak. Tempel satu QR di
-                tiap meja baru.
+                Dari menu <strong>Meja & QR</strong>: tambah meja baru dan unduh QR-nya untuk dicetak, lalu tempel di
+                meja tersebut.
               </p>
             </Step>
-            <Step no="3" title="Lihat rekap transaksi (Plus/Premium)">
+            <Step no="3" title="Profil resto & banner promo">
               <p>
-                Buka halaman <strong>Rekap Order</strong> untuk melihat riwayat pesanan dan rekap harian — tanpa hitung
-                manual.
+                Dari menu <strong>Profil Resto</strong>: ubah nama, deskripsi, alamat, jam buka, foto, dan banner promo
+                yang tampil di bagian atas menu pelanggan.
               </p>
             </Step>
-            <Step no="4" title="Ganti QRIS">
-              <p>Kirim foto QRIS baru via WhatsApp — kami pasangkan ke sistem restomu.</p>
+            <Step no="4" title="Lihat rekap transaksi (Plus/Premium)">
+              <p>
+                Buka halaman <strong>Rekap</strong> (link dibagikan saat setup) untuk omzet harian, rincian per metode
+                bayar, menu terlaris, dan unduh CSV — tanpa hitung manual.
+              </p>
+            </Step>
+            <Step no="5" title="Ganti QRIS atau tema">
+              <p>Kirim foto QRIS baru atau permintaan ganti tema via WhatsApp — tim kami yang memasangkan ke sistem restomu.</p>
             </Step>
           </ol>
         </section>
@@ -140,9 +183,10 @@ export default function PanduanPage() {
           <ul className="mt-4 space-y-3 text-[15px]">
             {[
               ["QRIS tidak muncul setelah pesan", "Pastikan resto sudah mendaftarkan QRIS saat setup. Hubungi tim kami bila belum."],
-              ["Pesanan tidak masuk ke halaman kasir", "Cek koneksi internet HP kasir, lalu muat ulang halamannya."],
+              ["Pesanan tidak masuk ke papan kasir", "Papan tersegar otomatis tiap beberapa detik. Cek koneksi internet HP kasir, lalu muat ulang halamannya bila perlu."],
+              ["Bunyi pesanan baru tidak terdengar", "Ketuk tombol Bunyi di halaman kasir sekali di awal shift (browser mewajibkan satu ketukan), dan pastikan volume HP menyala."],
               ["QR meja tidak bisa di-scan", "Pastikan QR tidak rusak/kotor dan pencahayaan cukup. Minta cetak ulang ke tim kami bila perlu."],
-              ["Lupa link halaman kasir", "Hubungi tim RestoLauncher via WhatsApp — kami kirim ulang link-nya."],
+              ["Lupa link atau PIN", "Hubungi tim RestoLauncher via WhatsApp — kami kirim ulang link dan PIN-nya."],
             ].map(([t, d]) => (
               <li key={t} className="rounded-xl border border-stone-200 bg-white p-4">
                 <p className="font-semibold text-stone-800">{t}</p>
