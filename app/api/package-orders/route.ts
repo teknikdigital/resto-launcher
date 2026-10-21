@@ -17,12 +17,14 @@ export async function POST(request: Request) {
   if (!restaurant_name || !owner_name || !phone) {
     return NextResponse.json({ error: "Nama restoran, nama pemilik, dan nomor WA wajib diisi" }, { status: 400 });
   }
+  const billing_period = str(body?.billing_period) === "yearly" ? "yearly" : "monthly";
   try {
     const res = await supabaseRest("package_orders", {
       method: "POST",
       prefer: "return=representation",
       body: JSON.stringify({
         package: pkg,
+        billing_period,
         restaurant_name,
         owner_name,
         phone,
