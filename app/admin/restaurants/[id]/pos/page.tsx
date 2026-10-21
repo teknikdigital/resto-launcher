@@ -31,6 +31,27 @@ type CartLine = {
 
 const hasOptions = (m: MenuItem) => (m.variants?.length ?? 0) > 0 || (m.addons?.length ?? 0) > 0;
 
+// Gambar kecil menu di kartu POS; bila tidak ada foto / foto gagal dimuat,
+// tampilkan ubin huruf awal berwarna agar kartu tetap mudah dipindai.
+function MenuThumb({ m }: { m: MenuItem }) {
+  const [err, setErr] = useState(false);
+  const TINTS = ["bg-[#1B5E3B]/10 text-[#1B5E3B]", "bg-[#C9A227]/15 text-[#8a6d1c]", "bg-[#B4552D]/10 text-[#B4552D]", "bg-[#38618C]/10 text-[#38618C]"];
+  let hash = 0;
+  for (const ch of m.name ?? "?") hash += ch.charCodeAt(0);
+  const tint = TINTS[hash % TINTS.length];
+  if (m.image_url && !err) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={m.image_url} alt={m.name} onError={() => setErr(true)} className="h-14 w-14 shrink-0 rounded-xl object-cover" loading="lazy" />
+    );
+  }
+  return (
+    <span className={`font-display flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-xl font-bold ${tint}`}>
+      {(m.name ?? "?").trim().charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
 // Kasir POS: buat pesanan langsung di konter (dine-in / takeaway),
 // pilih menu → varian/add-on → diskon → bayar (kembalian otomatis) → dapur.
 export default function PosPage() {
@@ -180,10 +201,11 @@ function PosInner({ id }: { id: string }) {
               <button
                 key={m.id}
                 onClick={() => tapItem(m)}
-                className={`panel flex items-center justify-between text-left ${inCart > 0 ? "border-[#1B5E3B]" : ""}`}
+                className={`panel flex items-center gap-3 text-left ${inCart > 0 ? "border-[#1B5E3B]" : ""}`}
               >
-                <div>
-                  <p className="font-semibold">{m.name}</p>
+                <MenuThumb m={m} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{m.name}</p>
                   <p className="text-sm text-zinc-500">
                     {rupiah(Number(m.price))}
                     {hasOptions(m) && <span className="ml-2 rounded-full bg-[#C9A227]/15 px-2 py-0.5 text-[11px] font-semibold text-[#8a6d1c]">ada pilihan</span>}
