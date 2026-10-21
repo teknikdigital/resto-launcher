@@ -1,11 +1,13 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUtensils, faCartShopping, faReceipt, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faUtensils, faCartShopping, faReceipt, faCheck, faVolumeHigh, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { beepUnlocked, playNewOrderBeep, unlockBeep } from "@/lib/beep";
+import StaffGate from "@/app/admin/StaffGate";
 import {
   ORDER_TYPE_LABELS,
   PAYMENT_METHODS,
@@ -30,6 +32,14 @@ function startOfToday(): string {
 
 export default function KasirPage() {
   const { id } = useParams<{ id: string }>();
+  return (
+    <StaffGate restaurantId={id} role="kasir">
+      <KasirInner id={id} />
+    </StaffGate>
+  );
+}
+
+function KasirInner({ id }: { id: string }) {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [tables, setTables] = useState<RestaurantTable[]>([]);
@@ -45,6 +55,8 @@ export default function KasirPage() {
   const [custPhone, setCustPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [receipt, setReceipt] = useState<Order | null>(null);
+  const [soundOn, setSoundOn] = useState(false);
+  const knownOrderIds = useRef<Set<string> | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -61,7 +73,16 @@ export default function KasirPage() {
       setRestaurant(rRes.ok ? ((r.restaurants as Restaurant[]).find((x) => x.id === id) ?? null) : null);
       setMenu((m.items as MenuItem[]).filter((i) => i.is_available));
       setTables(t.tables);
-      setOrders(o.orders);
+      // Bunyi bila ada pesanan online baru (belum lunas) yang belum pernah terlihat.
+      const fresh: Order[] = o.orders ?? [];
+      if (knownOrderIds.current) {
+        const hasNew = fresh.some(
+          (x) => !knownOrderIds.current!.has(x.id) && x.payment_status !== "paid",
+        );
+        if (hasNew) playNewOrderBeep();
+      }
+      knownOrderIds.current = new Set(fresh.map((x) => x.id));
+      setOrders(fresh);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal memuat data kasir");
     } finally {
@@ -72,6 +93,9 @@ export default function KasirPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
+    // Segarkan daftar pesanan berkala agar pesanan online baru cepat terlihat & berbunyi.
+    const iv = setInterval(load, 20000);
+    return () => clearInterval(iv);
   }, [load]);
 
   const grouped = useMemo(() => {
@@ -146,10 +170,12 @@ export default function KasirPage() {
     return [
       `*Struk ${restaurant?.name ?? "Pesanan"}*`,
       `${new Date(o.created_at).toLocaleString("id-ID")}`,
+      o.queue_no ? `No. Antrean: #${o.queue_no}` : "",
       o.order_type ? `${ORDER_TYPE_LABELS[o.order_type]}${tn ? ` - Meja ${tn}` : ""}` : "",
       "",
       ...o.items.map((l) => `${l.name} x${l.qty} = ${formatRupiah(l.price * l.qty)}`),
       "",
+      ...(Number(o.discount) > 0 ? [`Diskon: -${formatRupiah(Number(o.discount))}`] : []),
       `*Total: ${formatRupiah(Number(o.total))}*`,
       `Bayar: ${o.payment_method ? PAYMENT_METHOD_LABELS[o.payment_method] : "-"} (${o.payment_status === "paid" ? "Lunas" : "Belum lunas"})`,
       "",
@@ -165,9 +191,23 @@ export default function KasirPage() {
     <main className="mx-auto w-full max-w-6xl px-4 py-8">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="page-title min-w-0 break-words">Kasir{restaurant ? ` — ${restaurant.name}` : ""}</h1>
-        <Link href="/admin/restaurants" className="back-link">
-          Kembali ke Restoran
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              unlockBeep();
+              setSoundOn(beepUnlocked());
+              if (beepUnlocked()) playNewOrderBeep();
+            }}
+            className={`btn-secondary btn-sm ${soundOn ? "!border-green-600 !text-green-700" : ""}`}
+            title={soundOn ? "Bunyi pesanan baru aktif" : "Aktifkan bunyi pesanan baru"}
+          >
+            <FontAwesomeIcon icon={soundOn ? faVolumeHigh : faVolumeXmark} className="mr-1.5" />
+            {soundOn ? "Bunyi Aktif" : "Bunyi Mati"}
+          </button>
+          <Link href="/admin/restaurants" className="back-link">
+            Kembali ke Restoran
+          </Link>
+        </div>
       </header>
       {error && <p className="alert-error">{error}</p>}
       {loading ? (
@@ -323,15 +363,17 @@ export default function KasirPage() {
               </div>
             ) : (
               <div className="table-wrap">
-                <table className="data-table min-w-[640px]">
+                <table className="data-table min-w-[720px]">
                   <thead>
                     <tr>
                       <th>Jam</th>
+                      <th>Antrean</th>
                       <th>Tipe</th>
                       <th>Pesanan</th>
                       <th>Total</th>
                       <th>Status</th>
                       <th>Bayar</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -342,12 +384,19 @@ export default function KasirPage() {
                           <td className="whitespace-nowrap">
                             {new Date(o.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                           </td>
+                          <td className="whitespace-nowrap font-bold">{o.queue_no ? `#${o.queue_no}` : "—"}</td>
                           <td>
                             {o.order_type ? ORDER_TYPE_LABELS[o.order_type] : "-"}
                             {tn ? ` · Meja ${tn}` : ""}
                           </td>
-                          <td>{o.items.map((l) => `${l.name} x${l.qty}`).join(", ")}</td>
-                          <td className="whitespace-nowrap font-semibold text-zinc-900">{formatRupiah(Number(o.total))}</td>
+                          <td>
+                            {o.items.map((l) => `${l.name} x${l.qty}`).join(", ")}
+                            {o.status_note && <p className="mt-0.5 text-xs text-zinc-500">Catatan: {o.status_note}</p>}
+                          </td>
+                          <td className="whitespace-nowrap font-semibold text-zinc-900">
+                            {formatRupiah(Number(o.total))}
+                            {Number(o.discount) > 0 && <p className="text-xs font-normal text-green-700">diskon −{formatRupiah(Number(o.discount))}</p>}
+                          </td>
                           <td>{o.status}</td>
                           <td>
                             {o.payment_status === "paid" ? (
@@ -359,6 +408,11 @@ export default function KasirPage() {
                                 Tandai Lunas
                               </button>
                             )}
+                          </td>
+                          <td className="whitespace-nowrap">
+                            <Link href={`/admin/restaurants/${id}/struk/${o.id}`} target="_blank" className="btn-secondary btn-sm">
+                              Struk
+                            </Link>
                           </td>
                         </tr>
                       );
