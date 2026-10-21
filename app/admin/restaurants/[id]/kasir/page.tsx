@@ -217,7 +217,7 @@ function KasirInner({ id }: { id: string }) {
 
   const receiptWa = receipt ? toWaNumber(custPhone || receipt.customer_phone) : null;
 
-  // Papan 3 kolom: Baru (belum bayar) -> Diproses (lunas/dimasak) -> Selesai.
+  // Kelompok tiket: Baru (belum bayar) -> Diproses (lunas/dimasak) -> Selesai.
   const visible = orders.filter((o) => o.status !== "batal");
   const colBaru = visible
     .filter((o) => o.status === "baru" && o.payment_status !== "paid")
@@ -257,9 +257,9 @@ function KasirInner({ id }: { id: string }) {
       </header>
       {error && <p className="alert-error">{error}</p>}
       {loading ? (
-        <div className="grid gap-4 lg:grid-cols-3" aria-busy="true" aria-label="Memuat">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="skeleton h-72" />
+        <div className="grid gap-5 sm:grid-cols-2" aria-busy="true" aria-label="Memuat">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton h-56" />
           ))}
         </div>
       ) : (
@@ -401,125 +401,108 @@ function KasirInner({ id }: { id: string }) {
             </div>
           )}
 
-          <section>
-            <div className="grid items-start gap-4 lg:grid-cols-3">
-              <BoardColumn
-                title="Baru"
-                count={colBaru.length}
-                wrapCls="border-amber-200 bg-amber-50/70"
-                dotCls="bg-amber-500"
-                badgeCls="bg-amber-500 text-white"
-                emptyText="Belum ada pesanan baru"
-              >
-                {colBaru.map((o) => (
-                  <OrderCard key={o.id} o={o} restoId={id} tableName={tableName(o.table_id)} now={now} bandCls="from-amber-500 to-amber-400">
+          <div className="space-y-10">
+            <TicketSection
+              title="Baru — menunggu bayar"
+              count={colBaru.length}
+              badgeCls="bg-[#D97706]"
+              emptyText="Belum ada pesanan baru — pesanan QRIS & online mendarat di sini sebagai tiket."
+            >
+              {colBaru.map((o) => (
+                <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now}>
+                  <div className="flex gap-2">
+                    <button onClick={() => tandaiSudahBayar(o)} className="flex-1 rounded-xl bg-[#1B5E3B] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14492e] active:scale-[0.98]">
+                      Tandai Sudah Bayar
+                    </button>
+                    <button onClick={() => prosesDulu(o)} className="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50" title="Proses dulu, bayar belakangan">
+                      Proses Dulu
+                    </button>
+                  </div>
+                  <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
+                </TicketCard>
+              ))}
+            </TicketSection>
+
+            <TicketSection
+              title="Sedang diproses"
+              count={colProses.length}
+              badgeCls="bg-[#1B5E3B]"
+              emptyText="Belum ada yang sedang diproses."
+            >
+              {colProses.map((o) => (
+                <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now}>
+                  {o.payment_status === "paid" ? (
+                    <button onClick={() => selesaikan(o)} className="w-full rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
+                      Selesai
+                    </button>
+                  ) : (
                     <div className="flex gap-2">
-                      <button onClick={() => tandaiSudahBayar(o)} className="flex-1 rounded-xl bg-[#1B5E3B] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14492e] active:scale-[0.98]">
+                      <button onClick={() => tandaiBayarSaja(o)} className="flex-1 rounded-xl border border-emerald-300 bg-emerald-100 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-200 active:scale-[0.98]">
                         Tandai Sudah Bayar
                       </button>
-                      <button onClick={() => prosesDulu(o)} className="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50" title="Proses dulu, bayar belakangan">
-                        Proses Dulu
-                      </button>
-                    </div>
-                    <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
-                  </OrderCard>
-                ))}
-              </BoardColumn>
-
-              <BoardColumn
-                title="Diproses"
-                count={colProses.length}
-                wrapCls="border-emerald-200 bg-emerald-50/60"
-                dotCls="bg-[#1B5E3B]"
-                badgeCls="bg-[#1B5E3B] text-white"
-                emptyText="Belum ada yang diproses"
-              >
-                {colProses.map((o) => (
-                  <OrderCard key={o.id} o={o} restoId={id} tableName={tableName(o.table_id)} now={now} bandCls="from-[#1B5E3B] to-[#2A7A4C]">
-                    {o.payment_status === "paid" ? (
-                      <button onClick={() => selesaikan(o)} className="w-full rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
+                      <button onClick={() => selesaikan(o)} className="flex-1 rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
                         Selesai
                       </button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button onClick={() => tandaiBayarSaja(o)} className="flex-1 rounded-xl border border-emerald-300 bg-emerald-100 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-200 active:scale-[0.98]">
-                          Tandai Sudah Bayar
-                        </button>
-                        <button onClick={() => selesaikan(o)} className="flex-1 rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
-                          Selesai
-                        </button>
-                      </div>
-                    )}
-                    <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
-                  </OrderCard>
-                ))}
-              </BoardColumn>
-
-              <BoardColumn
-                title="Selesai"
-                count={colSelesai.length}
-                wrapCls="border-stone-200 bg-stone-100/70"
-                dotCls="bg-stone-400"
-                badgeCls="bg-stone-400 text-white"
-                emptyText="Belum ada pesanan selesai hari ini"
-                scroll
-              >
-                {colSelesai.map((o) => (
-                  <OrderCard key={o.id} o={o} restoId={id} tableName={tableName(o.table_id)} now={now} bandCls="from-stone-400 to-stone-300" dim>
-                    <div className="flex items-center justify-between text-xs">
-                      <Link href={`/admin/restaurants/${id}/struk/${o.id}`} target="_blank" className="font-medium text-stone-500 underline-offset-2 hover:underline">
-                        Cetak struk
-                      </Link>
-                      {o.payment_status !== "paid" && (
-                        <button onClick={() => tandaiBayarSaja(o)} className="font-semibold text-emerald-700 underline-offset-2 hover:underline">
-                          Tandai Sudah Bayar
-                        </button>
-                      )}
                     </div>
-                  </OrderCard>
-                ))}
-              </BoardColumn>
-            </div>
-          </section>
+                  )}
+                  <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
+                </TicketCard>
+              ))}
+            </TicketSection>
+
+            <TicketSection
+              title="Selesai hari ini"
+              count={colSelesai.length}
+              badgeCls="bg-stone-400"
+              emptyText="Belum ada pesanan selesai hari ini."
+            >
+              {colSelesai.map((o) => (
+                <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now} dim>
+                  <div className="flex items-center justify-between text-xs">
+                    <Link href={`/admin/restaurants/${id}/struk/${o.id}`} target="_blank" className="font-medium text-stone-500 underline-offset-2 hover:underline">
+                      Cetak struk
+                    </Link>
+                    {o.payment_status !== "paid" && (
+                      <button onClick={() => tandaiBayarSaja(o)} className="font-semibold text-emerald-700 underline-offset-2 hover:underline">
+                        Tandai Sudah Bayar
+                      </button>
+                    )}
+                  </div>
+                </TicketCard>
+              ))}
+            </TicketSection>
+          </div>
         </>
       )}
     </main>
   );
 }
 
-function BoardColumn({
+function TicketSection({
   title,
   count,
-  wrapCls,
-  dotCls,
   badgeCls,
   emptyText,
-  scroll,
   children,
 }: {
   title: string;
   count: number;
-  wrapCls: string;
-  dotCls: string;
   badgeCls: string;
   emptyText: string;
-  scroll?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <section className={`rounded-3xl border p-3 ${wrapCls}`}>
-      <header className="mb-3 flex items-center gap-2 px-1">
-        <span className={`h-2.5 w-2.5 rounded-full ${dotCls}`} />
-        <h2 className="font-display text-lg font-bold text-stone-800">{title}</h2>
-        <span className={`min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs font-bold ${badgeCls}`}>{count}</span>
+    <section>
+      <header className="mb-4 flex items-center gap-3">
+        <h2 className="font-display text-xl font-bold text-stone-800">{title}</h2>
+        <span className={`min-w-6 rounded-full px-2 py-0.5 text-center text-xs font-bold text-white ${badgeCls}`}>{count}</span>
+        <span className="flex-1 border-t-2 border-dashed border-[#D9C48F]" />
       </header>
-      <div className={`space-y-3 ${scroll ? "lg:max-h-[760px] lg:overflow-y-auto lg:pr-1" : ""}`}>
-        {count === 0 ? (
-          <p className="rounded-2xl border-2 border-dashed border-stone-300/70 px-3 py-10 text-center text-sm text-stone-500">{emptyText}</p>
-        ) : (
-          children
-        )}
-      </div>
+      {count === 0 ? (
+        <p className="rounded-2xl border-2 border-dashed border-[#E3D3AC] bg-[#FFFDF6]/60 px-4 py-8 text-center text-sm text-stone-500">{emptyText}</p>
+      ) : (
+        <div className="grid items-start gap-5 sm:grid-cols-2">{children}</div>
+      )}
     </section>
   );
 }
@@ -537,69 +520,78 @@ function CardLinks({ o, restoId, onCancel }: { o: Order; restoId: string; onCanc
   );
 }
 
-function OrderCard({
+// Satu pesanan = satu tiket struk: nomor antrean besar, cap status bayar miring,
+// rincian bergaris titik-titik ala nota, dan tepi bawah bergerigi seperti sobekan.
+function TicketCard({
   o,
   tableName,
   now,
-  bandCls,
   dim,
   children,
 }: {
   o: Order;
-  restoId: string;
   tableName: string | undefined;
   now: number;
-  bandCls: string;
   dim?: boolean;
   children: React.ReactNode;
 }) {
   const paid = o.payment_status === "paid";
   const itemCount = o.items.reduce((s, l) => s + l.qty, 0);
   const mins = ageMinutes(o.created_at, now);
-  const warn = !dim && mins >= 15 ? "ring-2 ring-red-400" : !dim && mins >= 10 ? "ring-2 ring-amber-400" : "";
+  const warn = !dim && mins >= 15 ? "ring-2 ring-red-300" : !dim && mins >= 10 ? "ring-2 ring-amber-300" : "";
   const place = tableName
     ? `Meja ${tableName}`
     : o.order_type
       ? ORDER_TYPE_LABELS[o.order_type]
       : "Pesanan";
   return (
-    <article className={`overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-sm ${warn} ${dim ? "opacity-80" : ""}`}>
-      <div className={`bg-gradient-to-r px-3.5 py-2.5 text-white ${bandCls}`}>
-        <div className="flex items-baseline justify-between gap-2 text-xs">
-          <span className="font-medium text-white/90">
-            {new Date(o.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} · {ageLabel(o.created_at, now)}
-          </span>
-          <span className="min-w-0 truncate font-semibold">{o.customer_name || "Pelanggan"}</span>
-        </div>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <span className="flex min-w-0 items-center gap-2">
-            <span className="truncate text-sm font-bold">{place}</span>
-            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${paid ? "bg-white/95 text-green-700" : "bg-white/95 text-red-600"}`}>
-              {paid ? `LUNAS${o.payment_method ? ` · ${PAYMENT_METHOD_LABELS[o.payment_method]}` : ""}` : "BELUM BAYAR"}
+    <article className={dim ? "opacity-75" : ""}>
+      <div className={`rounded-t-lg border border-b-0 border-[#E7DCC8] bg-[#FFFDF6] px-5 pt-4 shadow-[0_4px_16px_rgba(120,90,20,0.10)] ${warn}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-display text-[28px] leading-none font-bold text-stone-900">
+              {o.queue_no ? `#${String(o.queue_no).padStart(3, "0")}` : "—"}
+            </p>
+            <span className="mt-2 inline-block rounded-full border border-[#E7DCC8] bg-[#F3ECDC] px-2.5 py-0.5 text-xs font-bold text-stone-600">
+              {place}
             </span>
-          </span>
-          {o.queue_no ? <span className="font-display shrink-0 text-xl font-bold">#{String(o.queue_no).padStart(3, "0")}</span> : null}
+          </div>
+          <div className="text-right">
+            <p className="font-bold text-stone-900">{o.customer_name || "Pelanggan"}</p>
+            <p className="mt-0.5 font-mono text-xs text-stone-500">
+              {new Date(o.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} · {ageLabel(o.created_at, now)}
+            </p>
+            <span
+              className={`mt-2 inline-block rounded border-[2.5px] px-2 py-0.5 text-[11px] font-extrabold tracking-[0.12em] uppercase ${
+                paid
+                  ? "border-[#1B5E3B] text-[#1B5E3B] -rotate-[3deg]"
+                  : "border-[#C2410C] text-[#C2410C] -rotate-[4deg]"
+              }`}
+            >
+              {paid ? `Lunas${o.payment_method ? ` · ${PAYMENT_METHOD_LABELS[o.payment_method]}` : ""}` : "Belum Bayar"}
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="p-3.5">
-        <ul className="space-y-1.5">
+        <ul className="mt-4 space-y-1.5">
           {o.items.map((l, i) => (
-            <li key={i} className="flex items-baseline gap-2 text-sm">
+            <li key={i} className="flex items-baseline gap-1.5 text-sm">
               <span className="w-7 shrink-0 font-bold text-stone-700">{l.qty}×</span>
-              <span className="min-w-0 flex-1 break-words text-stone-800">{l.name}</span>
-              <span className="shrink-0 text-stone-500">{formatRupiah(l.price * l.qty)}</span>
+              <span className="truncate text-stone-800">{l.name}</span>
+              <span className="flex-1 -translate-y-1 border-b-2 border-dotted border-[#CBBFA4]" />
+              <span className="shrink-0 font-mono text-[13px] text-stone-600">{formatRupiah(l.price * l.qty)}</span>
             </li>
           ))}
         </ul>
-        <div className="mt-3 flex items-baseline justify-between border-t border-dashed border-stone-200 pt-2.5">
+        <div className="mt-3 flex items-baseline justify-between border-t-2 border-dashed border-[#D9C48F] pt-2.5">
           <span className="text-xs text-stone-500">Total · {itemCount} item</span>
           <span className="text-right">
-            <span className="font-display text-base font-bold text-stone-900">{formatRupiah(Number(o.total))}</span>
+            <span className="font-display text-lg font-bold text-stone-900">{formatRupiah(Number(o.total))}</span>
             {Number(o.discount) > 0 && <span className="block text-[11px] font-medium text-green-700">sudah termasuk diskon −{formatRupiah(Number(o.discount))}</span>}
           </span>
         </div>
-        <div className="mt-3">{children}</div>
+        <div className="mt-3 border-t-2 border-dashed border-stone-200 py-3.5">{children}</div>
       </div>
+      <div className="ticket-edge" aria-hidden="true" />
     </article>
   );
 }
