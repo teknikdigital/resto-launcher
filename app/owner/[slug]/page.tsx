@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChair, faClipboardList, faPenToSquare, faGlobe, faMobileScreen, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { faChair, faClipboardList, faPenToSquare, faGlobe, faMobileScreen, faChevronRight, faPalette } from "@fortawesome/free-solid-svg-icons";
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -108,6 +108,18 @@ function OwnerDashboardInner() {
                 <span className="mt-0.5 block text-sm text-stone-500">Tampilan yang dibuka pelanggan via QR ↗</span>
               </span>
             </a>
+            <Link href={`/owner/${slug}/tema`} className="panel group flex items-start gap-4 transition hover:-translate-y-0.5 hover:border-[#C9A227] hover:shadow-lg">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg" style={{ backgroundColor: "#B8860B14", color: "#9a7b1c" }}>
+                <FontAwesomeIcon icon={faPalette} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center justify-between">
+                  <span className="font-display text-lg font-bold">Tema & Tampilan</span>
+                  <FontAwesomeIcon icon={faChevronRight} className="text-xs text-stone-300 transition group-hover:text-[#C9A227]" />
+                </span>
+                <span className="mt-0.5 block text-sm text-stone-500">Pratinjau semua tema dengan data restoranmu, lalu minta ganti bila cocok.</span>
+              </span>
+            </Link>
           </div>
           <p className="mt-6 rounded-2xl border-2 border-dashed border-[#E3D3AC] bg-[#FFF8E6] px-4 py-3 text-sm text-stone-600">
             Butuh ubah QRIS, tema, atau info resto? Hubungi tim RestoLauncher via WhatsApp — kami bantu sampai beres.
