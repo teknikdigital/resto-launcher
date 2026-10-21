@@ -11,8 +11,10 @@ import {
   TEMPLATE_LABELS,
   toTemplate,
   type Package,
+  type RestaurantTemplate,
   type RestaurantWithSub,
 } from "@/lib/resto-types";
+import ThemePreview from "@/components/ThemePreview";
 
 type Check = { label: string; desc: string; done: boolean; href: string };
 
@@ -56,6 +58,17 @@ export default function RestaurantDashboard() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function applyTemplate(t: RestaurantTemplate) {
+    const res = await fetch(`/api/restaurants/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ template: t }),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.error ?? "Gagal menyimpan tema");
+    setResto((r) => (r ? { ...r, template: t } : r));
+  }
 
   if (loading)
     return (
@@ -191,6 +204,22 @@ export default function RestaurantDashboard() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* Tema & pratinjau */}
+      <section className="panel mb-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">Tema &amp; Pratinjau</h2>
+          <span className="text-sm text-zinc-500">
+            Aktif: <strong className="text-zinc-700">{TEMPLATE_LABELS[toTemplate(resto.template)]}</strong>
+          </span>
+        </div>
+        <ThemePreview
+          slug={resto.slug}
+          current={toTemplate(resto.template)}
+          canApply
+          onApply={applyTemplate}
+        />
       </section>
 
       {/* Link operasional */}
