@@ -49,6 +49,11 @@ export type Restaurant = {
   about_text: string | null;
   package: "basic" | "plus" | "premium" | null;
   owner_pin: string | null;
+  kasir_pin: string | null;
+  dapur_pin: string | null;
+  promo_title: string | null;
+  promo_text: string | null;
+  promo_image_url: string | null;
   created_at: string;
 };
 
@@ -116,6 +121,10 @@ export type Subscription = {
 
 export type RestaurantWithSub = Restaurant & { subscription: Subscription | null };
 
+export type VariantOption = { name: string; price_delta: number };
+export type VariantGroup = { label: string; options: VariantOption[] };
+export type MenuAddon = { name: string; price: number };
+
 export type MenuItem = {
   id: string;
   restaurant_id: string;
@@ -126,6 +135,8 @@ export type MenuItem = {
   image_url: string | null;
   is_available: boolean;
   sort_order: number;
+  variants: VariantGroup[];
+  addons: MenuAddon[];
 };
 
 export type OrderLine = { item_id: string; name: string; price: number; qty: number };
@@ -137,11 +148,28 @@ export type Order = {
   customer_phone: string;
   items: OrderLine[];
   total: number;
+  discount: number;
+  cash_received: number | null;
+  status_note: string | null;
+  queue_no: number | null;
   status: OrderStatus;
   table_id: string | null;
   order_type: OrderType | null;
   payment_method: PaymentMethod | null;
   payment_status: PaymentStatus | null;
+  created_at: string;
+};
+
+export type Shift = {
+  id: string;
+  restaurant_id: string;
+  opened_at: string;
+  closed_at: string | null;
+  opening_cash: number;
+  cash_in: number;
+  cash_out: number;
+  closing_cash: number | null;
+  note: string | null;
   created_at: string;
 };
 
