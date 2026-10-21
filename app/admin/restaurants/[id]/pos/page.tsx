@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMinus, faPlus, faCashRegister, faCheck, faPrint, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faMinus, faPlus, faCashRegister, faCheck, faPrint, faXmark, faMagnifyingGlass, faHouse, faReceipt, faFire, faChartSimple, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import {
   ORDER_TYPE_LABELS,
   PAYMENT_METHOD_LABELS,
@@ -52,6 +52,27 @@ function MenuThumb({ m }: { m: MenuItem }) {
   );
 }
 
+// Foto besar kartu menu POS (grid bergaya kasir modern); tanpa foto / gagal muat
+// -> ubin huruf awal besar berwarna.
+function MenuPhoto({ m }: { m: MenuItem }) {
+  const [err, setErr] = useState(false);
+  const TINTS = ["bg-[#1B5E3B]/10 text-[#1B5E3B]", "bg-[#C9A227]/15 text-[#8a6d1c]", "bg-[#B4552D]/10 text-[#B4552D]", "bg-[#38618C]/10 text-[#38618C]"];
+  let hash = 0;
+  for (const ch of m.name ?? "?") hash += ch.charCodeAt(0);
+  const tint = TINTS[hash % TINTS.length];
+  if (m.image_url && !err) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={m.image_url} alt={m.name} onError={() => setErr(true)} className="aspect-[4/3] w-full rounded-xl object-cover" loading="lazy" />
+    );
+  }
+  return (
+    <span className={`font-display flex aspect-[4/3] w-full items-center justify-center rounded-xl text-5xl font-bold ${tint}`}>
+      {(m.name ?? "?").trim().charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
 // Kasir POS: buat pesanan langsung di konter (dine-in / takeaway),
 // pilih menu → varian/add-on → diskon → bayar (kembalian otomatis) → dapur.
 export default function PosPage() {
@@ -78,23 +99,60 @@ function PosInner({ id }: { id: string }) {
   const [error, setError] = useState("");
   const [done, setDone] = useState<{ order: Order; change: number } | null>(null);
   const [configItem, setConfigItem] = useState<MenuItem | null>(null);
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState("Semua");
+  const [restoName, setRestoName] = useState("");
 
   useEffect(() => {
     (async () => {
       try {
-        const [mRes, tRes] = await Promise.all([
+        const [mRes, tRes, rRes] = await Promise.all([
           fetch(`/api/restaurants/${id}/menu`),
           fetch(`/api/restaurants/${id}/tables`),
+          fetch(`/api/restaurants`),
         ]);
         const m = await mRes.json();
         const t = await tRes.json();
         if (mRes.ok) setMenu((m.items ?? []).filter((x: MenuItem) => x.is_available));
         if (tRes.ok) setTables(t.tables ?? []);
+        if (rRes.ok) {
+          const r = await rRes.json();
+          const found = (r.restaurants ?? []).find((x: { id: string }) => x.id === id);
+          if (found) setRestoName(found.name ?? "");
+        }
       } catch {
         setError("Gagal memuat menu/meja");
       }
     })();
   }, [id]);
+
+  const categories = useMemo(() => {
+    const seen: string[] = [];
+    for (const m of menu) {
+      const c = (m.category ?? "").trim() || "Lainnya";
+      if (!seen.includes(c)) seen.push(c);
+    }
+    return ["Semua", ...seen];
+  }, [menu]);
+
+  const shownMenu = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return menu.filter((m) => {
+      const c = (m.category ?? "").trim() || "Lainnya";
+      if (cat !== "Semua" && c !== cat) return false;
+      if (q && !m.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [menu, cat, query]);
+
+  function clearCart() {
+    setLines([]);
+    setCustomer("");
+    setDiscValue("");
+    setCashReceived("");
+    setDone(null);
+    setError("");
+  }
 
   const subtotal = lines.reduce((s, l) => s + l.unit * l.qty, 0);
   const discNum = Math.max(0, Number(discValue) || 0);
@@ -156,21 +214,60 @@ function PosInner({ id }: { id: string }) {
     }
   }
 
+  const RAIL = [
+    { href: `/admin/restaurants/${id}`, label: "Dashboard", icon: faHouse, active: false },
+    { href: `/admin/restaurants/${id}/kasir`, label: "Kasir", icon: faReceipt, active: false },
+    { href: `/admin/restaurants/${id}/pos`, label: "POS", icon: faCashRegister, active: true },
+    { href: `/admin/restaurants/${id}/dapur`, label: "Dapur", icon: faFire, active: false },
+    { href: `/admin/restaurants/${id}/orders`, label: "Rekap", icon: faChartSimple, active: false },
+  ];
+
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8">
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <Link href={`/admin/restaurants/${id}`} className="back-link">← Dashboard</Link>
-          <h1 className="page-title mt-1">
-            <FontAwesomeIcon icon={faCashRegister} className="mr-2 text-[#1B5E3B]" />
-            Kasir POS
-          </h1>
-          <p className="mt-0.5 text-sm text-zinc-500">Buat pesanan langsung di konter — pilih menu, bayar, terkirim ke dapur.</p>
-        </div>
-        <Link href={`/admin/restaurants/${id}/dapur`} target="_blank" className="btn-secondary btn-sm">
-          Layar Dapur ↗
-        </Link>
-      </div>
+    <main className="mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-4">
+      <div className="flex items-start gap-3 sm:gap-4">
+        {/* Rel navigasi samping (khas POS RestoLauncher) */}
+        <nav className="sticky top-4 hidden w-[76px] shrink-0 flex-col gap-1.5 md:flex" aria-label="Navigasi kasir">
+          {RAIL.map((r) => (
+            <Link
+              key={r.label}
+              href={r.href}
+              className={`flex flex-col items-center gap-1 rounded-2xl px-1 py-3 text-[11px] font-semibold transition ${
+                r.active
+                  ? "bg-[#1B5E3B] text-white shadow-[0_4px_14px_rgba(27,94,59,0.35)]"
+                  : "text-stone-500 hover:bg-[#1B5E3B]/10 hover:text-[#1B5E3B]"
+              }`}
+            >
+              <FontAwesomeIcon icon={r.icon} className="text-base" />
+              {r.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="min-w-0 flex-1">
+          {/* Bilah atas: identitas resto + cari menu */}
+          <div className="panel mb-4 flex flex-wrap items-center gap-3 !py-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#1B5E3B] text-lg text-white">
+              <FontAwesomeIcon icon={faCashRegister} />
+            </span>
+            <div className="min-w-0">
+              <h1 className="font-display truncate text-xl leading-tight font-bold text-stone-900">
+                {restoName || "Kasir POS"}
+              </h1>
+              <p className="truncate text-xs text-stone-500">Kasir POS · buat pesanan di konter, lunas, terkirim ke dapur</p>
+            </div>
+            <div className="relative ml-auto w-full sm:w-64">
+              <FontAwesomeIcon icon={faMagnifyingGlass} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs text-stone-400" />
+              <input
+                className="field !pl-9"
+                placeholder="Cari menu…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <Link href={`/admin/restaurants/${id}/dapur`} target="_blank" className="btn-secondary btn-sm">
+              Layar Dapur ↗
+            </Link>
+          </div>
 
       <ShiftPanel restaurantId={id} />
 
@@ -192,36 +289,71 @@ function PosInner({ id }: { id: string }) {
       )}
       {error && <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</p>}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        {/* Daftar menu */}
-        <div className="grid content-start gap-3 sm:grid-cols-2">
-          {menu.map((m) => {
-            const inCart = lines.filter((l) => l.item_id === m.id).reduce((s, l) => s + l.qty, 0);
-            return (
+      <div className="grid items-start gap-5 xl:grid-cols-[1fr_380px]">
+        {/* Kolom kiri: chip kategori + grid menu berfoto */}
+        <div>
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            {categories.map((c) => (
               <button
-                key={m.id}
-                onClick={() => tapItem(m)}
-                className={`panel flex items-center gap-3 text-left ${inCart > 0 ? "border-[#1B5E3B]" : ""}`}
+                key={c}
+                onClick={() => setCat(c)}
+                className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${
+                  cat === c
+                    ? "border-[#1B5E3B] bg-[#1B5E3B] text-white"
+                    : "border-[#E0D5BE] bg-[#FFFDF8] text-stone-600 hover:border-[#C9A227]"
+                }`}
               >
-                <MenuThumb m={m} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{m.name}</p>
-                  <p className="text-sm text-zinc-500">
-                    {rupiah(Number(m.price))}
-                    {hasOptions(m) && <span className="ml-2 rounded-full bg-[#C9A227]/15 px-2 py-0.5 text-[11px] font-semibold text-[#8a6d1c]">ada pilihan</span>}
-                  </p>
-                </div>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B5E3B] font-bold text-white">
-                  {inCart > 0 ? inCart : <FontAwesomeIcon icon={faPlus} className="text-xs" />}
-                </span>
+                {c}
               </button>
-            );
-          })}
+            ))}
+            <span className="ml-auto text-xs text-stone-400">{shownMenu.length} menu</span>
+          </div>
+          <div className="grid grid-cols-2 content-start gap-3 lg:grid-cols-3 2xl:grid-cols-4">
+            {shownMenu.map((m) => {
+              const inCart = lines.filter((l) => l.item_id === m.id).reduce((s, l) => s + l.qty, 0);
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => tapItem(m)}
+                  className="panel relative !p-3 text-left transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(101,80,30,0.14)]"
+                >
+                  <span className="relative block">
+                    <MenuPhoto m={m} />
+                    {inCart > 0 && (
+                      <span className="absolute -top-2 -right-2 flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-[#FAF6EF] bg-[#C9A227] px-1 text-sm font-bold text-white">
+                        {inCart}
+                      </span>
+                    )}
+                  </span>
+                  <span className="mt-2.5 block">
+                    <span className="block truncate font-semibold text-stone-900">{m.name}</span>
+                    <span className="mt-0.5 block text-sm">
+                      <span className="font-bold text-[#1B5E3B]">{rupiah(Number(m.price))}</span>
+                      {hasOptions(m) && <span className="font-medium text-[#8a6d1c]"> · ada pilihan</span>}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           {!menu.length && <p className="text-sm text-zinc-500">Belum ada menu tersedia.</p>}
+          {menu.length > 0 && !shownMenu.length && (
+            <p className="text-sm text-zinc-500">Tidak ada menu yang cocok dengan pencarian / kategori ini.</p>
+          )}
         </div>
 
         {/* Ringkasan pesanan */}
-        <div className="panel h-fit space-y-4 lg:sticky lg:top-4">
+        <div className="panel h-fit space-y-4 xl:sticky xl:top-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg font-bold text-stone-900">Pesanan Baru</h2>
+            <button
+              onClick={clearCart}
+              disabled={!lines.length && !customer && !discValue && !cashReceived}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 transition hover:text-red-700 disabled:opacity-40"
+            >
+              <FontAwesomeIcon icon={faTrashCan} className="text-xs" /> Kosongkan
+            </button>
+          </div>
           <div>
             <p className="mb-1.5 text-xs font-medium text-zinc-500">Tipe pesanan</p>
             <div className="grid grid-cols-2 gap-2">
@@ -336,8 +468,8 @@ function PosInner({ id }: { id: string }) {
             </div>
           )}
           <button onClick={bayar} disabled={busy || !lines.length}
-            className="w-full rounded-xl bg-[#1B5E3B] py-3.5 text-base font-bold text-white hover:bg-[#14492e] disabled:opacity-50">
-            {busy ? "Menyimpan…" : `Bayar ${rupiah(total)}`}
+            className="w-full rounded-xl bg-[#1B5E3B] py-3.5 text-base font-bold text-white shadow-[0_6px_18px_rgba(27,94,59,0.35)] hover:bg-[#14492e] disabled:opacity-50 disabled:shadow-none">
+            {busy ? "Menyimpan…" : `Bayar · ${rupiah(total)}`}
           </button>
         </div>
       </div>
@@ -352,6 +484,8 @@ function PosInner({ id }: { id: string }) {
           }}
         />
       )}
+        </div>
+      </div>
     </main>
   );
 }
