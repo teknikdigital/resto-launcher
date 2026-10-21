@@ -141,6 +141,17 @@ export default function RestaurantDashboard() {
             <span className="font-mono font-bold tracking-widest">{resto.owner_pin ?? "—"}</span>
             <span className="text-xs text-zinc-400">| Portal: <span className="font-mono">/owner</span></span>
           </p>
+          <p className="mt-2 ml-0 block text-sm sm:ml-2 sm:inline-flex sm:items-center sm:gap-2">
+            <span className="inline-flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5">
+              <span className="text-zinc-500">PIN Kasir:</span>
+              <span className="font-mono font-bold tracking-widest">{resto.kasir_pin ?? "—"}</span>
+            </span>{" "}
+            <span className="mt-2 inline-flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5 sm:mt-0">
+              <span className="text-zinc-500">PIN Dapur:</span>
+              <span className="font-mono font-bold tracking-widest">{resto.dapur_pin ?? "—"}</span>
+            </span>
+            <span className="mt-1 block text-xs text-zinc-400 sm:ml-1 sm:mt-0 sm:inline">Kosong = halaman staf terbuka; atur di Edit Resto.</span>
+          </p>
         </div>
         <Link href="/admin/restaurants" className="back-link">← Daftar restoran</Link>
       </header>
