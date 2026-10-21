@@ -51,6 +51,61 @@ function Reveal({
   );
 }
 
+/* Label bagian gaya cap/stempel kertas — identitas RestoLauncher (bukan pola nomor urut). */
+function Eyebrow({ children, dark = false, className = "" }: { children: React.ReactNode; dark?: boolean; className?: string }) {
+  return (
+    <p
+      className={`mb-4 inline-block -rotate-1 rounded-md border-2 border-dashed px-3 py-1 text-[11px] font-extrabold tracking-[0.18em] uppercase shadow-sm ${
+        dark ? "border-[#C9A227]/80 bg-white/5 text-[#f3d97b]" : "border-[#C9A227]/80 bg-[#FFFDF6] text-[#1B5E3B]"
+      } ${className}`}
+    >
+      {children}
+    </p>
+  );
+}
+
+/* Label peran di atas judul fitur (tanpa nomor urut). */
+function RoleLabel({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs font-bold tracking-[0.2em] text-[#9a7b1c] uppercase">{children}</p>;
+}
+
+/* Bingkai foto tampilan asli: kertas miring + selotip di sudut, seperti ditempel di papan. */
+function ShotFrame({
+  src,
+  alt,
+  label,
+  tilt = "rotate-1",
+  browser = false,
+}: {
+  src: string;
+  alt: string;
+  label?: string;
+  tilt?: string;
+  browser?: boolean;
+}) {
+  return (
+    <figure className={`relative ${tilt}`}>
+      <span aria-hidden="true" className="absolute -top-3 left-8 z-10 h-6 w-24 -rotate-6 rounded-sm bg-[#E9D8A6]/80 shadow-sm" />
+      <span aria-hidden="true" className="absolute -top-3 right-8 z-10 h-6 w-24 rotate-6 rounded-sm bg-[#E9D8A6]/80 shadow-sm" />
+      <div className="overflow-hidden rounded-xl border border-[#E7DCC8] bg-white shadow-[0_18px_40px_rgba(120,90,20,0.18)]">
+        {browser && (
+          <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+            {label && <span className="ml-2 rounded-md bg-white px-2 py-0.5 font-mono text-[11px] text-stone-500">{label}</span>}
+          </div>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={alt} className="block w-full" loading="lazy" />
+      </div>
+      {label && !browser && (
+        <figcaption className="mt-3 text-center font-mono text-xs text-stone-500">{label}</figcaption>
+      )}
+    </figure>
+  );
+}
+
 /* Angka yang count-up saat masuk viewport (ala section statistik template). */
 function CountUp({
   to,
@@ -115,7 +170,7 @@ const PACKAGES = [
       "Website profil + menu digital",
       "QR code tiap meja + nomor meja otomatis",
       "QRIS dinamis per pesanan",
-      "Kasir simpel (tandai lunas pesanan)",
+      "Kasir model tiket struk (tandai sudah bayar)",
       "Pemesanan via web & WhatsApp",
       "Alamat web (slug) gratis",
       "3 pilihan tema desain",
@@ -203,7 +258,7 @@ const BENEFITS: Record<
         untung: "Nggak ada lagi selisih kas atau uang nyangkut. Tiap rupiah masuk pas dan langsung ke rekeningmu.",
       },
       {
-        feature: "Kasir simpel (tandai lunas)",
+        feature: "Kasir model tiket struk (tandai sudah bayar)",
         manfaat: "Semua pesanan tercatat di HP — nggak ada nota hilang atau lupa nagih.",
         untung: "Satu pesanan yang 'lupa ditagih' per minggu (Rp25.000) = Rp100.000/bulan kebocoran yang ketutup.",
       },
@@ -289,7 +344,7 @@ const STEPS = [
   {
     no: "4",
     title: "Pesanan masuk otomatis",
-    text: "Pelanggan scan → pilih menu → bayar QRIS dengan nominal yang sudah terkunci. Kamu pantau semuanya dari halaman kasir, tandai lunas, teruskan ke dapur. Uang langsung masuk ke rekening restomu.",
+    text: "Pelanggan scan → pilih menu → bayar QRIS dengan nominal yang sudah terkunci. Kamu pantau semuanya dari halaman kasir: tandai sudah bayar, teruskan ke dapur. Uang langsung masuk ke rekening restomu.",
   },
 ];
 
@@ -308,7 +363,7 @@ const ROLES = [
     icon: faCashRegister,
     title: "Untuk Kasir",
     points: [
-      "Mode konfirmasi: tandai lunas pesanan online",
+      "Mode konfirmasi: tandai sudah bayar pesanan online",
       "Mode POS: buat pesanan langsung di konter",
       "Terima tunai, QRIS, atau transfer",
       "Status semua pesanan terpantau di satu halaman",
@@ -737,12 +792,21 @@ export default function MarketingPage() {
               <p className="text-[11px] text-white/70">Scan untuk pesan</p>
             </div>
           </div>
-          <div aria-hidden="true" className="absolute top-28 -right-16 hidden w-52 rotate-6 opacity-95 lg:block">
-            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xl">
-              <p className="text-xs font-bold">Pesanan masuk</p>
-              <p className="mt-1 text-[11px] text-stone-500">Meja 5 · 3 item · Rp65.000</p>
-              <span className="mt-2 inline-block rounded-full bg-[#1B5E3B] px-3 py-1 text-[11px] font-bold text-white">Tandai Lunas</span>
+          <div aria-hidden="true" className="absolute top-28 -right-16 hidden w-52 rotate-3 opacity-95 lg:block">
+            <div className="rounded-t-xl border border-b-0 border-[#E7DCC8] bg-[#FFFDF6] p-4 shadow-xl">
+              <div className="flex items-start justify-between">
+                <p className="font-display text-xl leading-none font-bold text-stone-900">#005</p>
+                <span className="inline-block -rotate-[4deg] rounded border-2 border-[#C2410C] px-1.5 py-0.5 text-[9px] font-extrabold tracking-[0.12em] text-[#C2410C] uppercase">Belum Bayar</span>
+              </div>
+              <p className="mt-2 text-[11px] text-stone-500">Meja 5 · 3 item</p>
+              <div className="mt-2 flex items-baseline gap-1 text-[11px]">
+                <span className="font-semibold text-stone-800">3× Nasi Goreng…</span>
+                <span className="flex-1 -translate-y-0.5 border-b-2 border-dotted border-[#CBBFA4]" />
+                <span className="font-mono text-stone-600">Rp65.000</span>
+              </div>
+              <p className="mt-3 rounded-lg bg-[#1B5E3B] py-1.5 text-center text-[11px] font-bold text-white">Tandai Sudah Bayar</p>
             </div>
+            <div className="ticket-edge shadow-xl" />
           </div>
           <Reveal delay={150} from="zoom">
             <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xl shadow-stone-900/25">
@@ -752,32 +816,14 @@ export default function MarketingPage() {
                 <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
                 <span className="ml-2 rounded-md bg-white px-2.5 py-0.5 font-mono text-[11px] text-stone-500 shadow-sm">warungbutini.com</span>
               </div>
-              <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80"
-                  alt="Suasana restoran"
-                  className="h-56 w-full object-cover sm:h-72"
-                  loading="eager"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0E3A22]/90 via-[#0E3A22]/10 to-transparent" />
-                <div className="absolute bottom-4 left-5">
-                  <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C9A227] uppercase">Warung Bu Tini</p>
-                  <p className="mt-1 font-display text-2xl font-semibold text-white sm:text-3xl">Rasa rumahan, harga bersahabat.</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2.5 p-4">
-                {[
-                  ["Nasi Goreng Spesial", "Rp25.000"],
-                  ["Ayam Bakar Madu", "Rp32.000"],
-                  ["Es Teh Manis", "Rp8.000"],
-                ].map(([n, p]) => (
-                  <div key={n} className="rounded-xl bg-stone-50 px-3 py-2.5">
-                    <p className="truncate text-xs font-semibold">{n}</p>
-                    <p className="mt-0.5 text-[11px] text-stone-500">{p}</p>
-                  </div>
-                ))}
-              </div>
+              {/* Foto tampilan asli website resto (bukan ilustrasi) */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/fitur/menu.png"
+                alt="Tampilan asli website resto: halaman profil dan menu digital"
+                className="block w-full"
+                loading="eager"
+              />
             </div>
           </Reveal>
         </div>
@@ -820,17 +866,17 @@ export default function MarketingPage() {
       <section id="fitur" className="py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="mx-auto mb-16 max-w-2xl text-center" from="zoom">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">01 · Fitur Lengkap</p>
+            <Eyebrow>Fitur Lengkap</Eyebrow>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
               Semua yang didapat restomu, <em className="text-[#1B5E3B]">lengkap dengan wujudnya</em>
             </h2>
-            <p className="mt-3 text-stone-600">Lima fitur utama — tiap-tiapnya ada contoh tampilannya, fungsinya, dan manfaatnya buat restomu.</p>
+            <p className="mt-3 text-stone-600">Lima fitur utama — semua gambarnya adalah <strong className="text-stone-800">foto tampilan asli aplikasinya</strong>, bukan ilustrasi.</p>
           </Reveal>
 
           {/* 1 — Website resto */}
           <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
             <Reveal from="right">
-              <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 1 · Untuk pemilik resto</p>
+              <RoleLabel>Untuk pemilik resto</RoleLabel>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Website resto sendiri</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
                 <strong className="text-stone-800">Fungsinya:</strong> restomu punya alamat website sendiri (mis. warungbutini.com)
@@ -842,72 +888,23 @@ export default function MarketingPage() {
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
-              <div className="rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
-                <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                  <span className="ml-2 rounded-md bg-white px-2 py-0.5 font-mono text-[11px] text-stone-500">warungbutini.com</span>
-                </div>
-                <div className="relative overflow-hidden bg-[#1B5E3B] px-6 py-10">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80"
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 h-full w-full object-cover opacity-25"
-                    loading="lazy"
-                  />
-                  <div className="relative">
-                    <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C9A227] uppercase">Warung Bu Tini</p>
-                    <p className="mt-1 font-display text-2xl font-semibold text-white">Rasa rumahan,<br />harga bersahabat.</p>
-                    <span className="mt-4 inline-block rounded-lg bg-[#C9A227] px-4 py-2 text-xs font-bold text-stone-900">Lihat Menu</span>
-                  </div>
-                </div>
-                <div className="space-y-2 p-4">
-                  {[
-                    ["Nasi Goreng Spesial", "Rp25.000"],
-                    ["Ayam Bakar Madu", "Rp32.000"],
-                  ].map(([n, p]) => (
-                    <div key={n} className="flex items-center justify-between rounded-xl bg-stone-50 px-3 py-2.5">
-                      <p className="text-xs font-semibold">{n}</p>
-                      <p className="text-xs text-stone-500">{p}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <ShotFrame src="/fitur/menu.png" alt="Tampilan asli website resto beserta menu digitalnya" label="warungdemo.restolauncher.id" browser tilt="rotate-1" />
             </Reveal>
           </div>
 
           {/* 2 — Menu digital */}
           <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
             <Reveal className="order-2 lg:order-1" from="right">
-              <div className="mx-auto w-64 rotate-2 rounded-[2.4rem] border-[10px] border-stone-900 bg-[#FAF6EF] p-4 shadow-2xl">
-                <p className="font-display text-base font-semibold">Warung Bu Tini</p>
-                <p className="text-[11px] text-stone-500">Meja 5 · Dine-in</p>
-                <div className="mt-3 space-y-2">
-                  {[
-                    ["Nasi Goreng Spesial", "Rp25.000"],
-                    ["Ayam Bakar Madu", "Rp32.000"],
-                    ["Es Teh Manis", "Rp8.000"],
-                  ].map(([n, p]) => (
-                    <div key={n} className="flex items-center justify-between rounded-xl bg-white p-2.5 shadow-sm">
-                      <div>
-                        <p className="text-xs font-semibold">{n}</p>
-                        <p className="text-[11px] text-stone-500">{p}</p>
-                      </div>
-                      <span className="rounded-full bg-[#1B5E3B] px-2.5 py-1 text-[11px] font-bold text-white">+</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 flex items-center justify-between rounded-xl bg-[#1B5E3B] px-3 py-2.5 text-white">
-                  <span className="text-xs font-medium">3 item</span>
-                  <span className="text-sm font-bold">Rp65.000</span>
+              <div className="relative mx-auto w-64 rotate-2">
+                <span aria-hidden="true" className="absolute -top-3 left-1/2 z-10 h-6 w-24 -translate-x-1/2 -rotate-3 rounded-sm bg-[#E9D8A6]/80 shadow-sm" />
+                <div className="overflow-hidden rounded-[2.4rem] border-[10px] border-stone-900 bg-[#FAF6EF] shadow-2xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/fitur/menu-hp.png" alt="Tampilan asli menu digital di HP pelanggan" className="block w-full" loading="lazy" />
                 </div>
               </div>
             </Reveal>
             <Reveal delay={120} className="order-1 lg:order-2" from="left">
-              <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 2 · Untuk pelanggan</p>
+              <RoleLabel>Untuk pelanggan</RoleLabel>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Menu digital & pesan dari HP</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
                 <strong className="text-stone-800">Fungsinya:</strong> pelanggan scan QR di meja, menu langsung kebuka di HP —
@@ -923,7 +920,7 @@ export default function MarketingPage() {
           {/* 3 — QR meja */}
           <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
             <Reveal from="right">
-              <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 3 · Untuk pelanggan</p>
+              <RoleLabel>Untuk pelanggan</RoleLabel>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">QR code tiap meja</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
                 <strong className="text-stone-800">Fungsinya:</strong> tiap meja punya QR-nya sendiri. Ditempel sekali,
@@ -956,7 +953,7 @@ export default function MarketingPage() {
               </div>
             </Reveal>
             <Reveal delay={120} className="order-1 lg:order-2" from="left">
-              <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 4 · Untuk pelanggan & kasir</p>
+              <RoleLabel>Untuk pelanggan & kasir</RoleLabel>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Bayar QRIS, nominal selalu pas</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
                 <strong className="text-stone-800">Fungsinya:</strong> setelah pesan, muncul QRIS dengan nominal yang sudah
@@ -972,11 +969,12 @@ export default function MarketingPage() {
           {/* 5 — Kasir (2 mode) */}
           <div className="grid items-center gap-10 lg:grid-cols-2">
             <Reveal from="right">
-              <p className="text-xs font-bold tracking-[0.2em] text-[#C9A227] uppercase">Fitur 5 · Untuk kamu (pemilik/kasir)</p>
+              <RoleLabel>Untuk kamu (pemilik/kasir)</RoleLabel>
               <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Kasir dua mode dalam satu layar</h3>
               <p className="mt-3 leading-relaxed text-stone-600">
                 <strong className="text-stone-800">Mode 1 — Konfirmasi pesanan online:</strong> pesanan dari QR meja
-                masuk ke halaman kasir. Begitu notifikasi pembayaran masuk di HP-mu, ketuk "Tandai Lunas".
+                tampil di kasir sebagai <strong className="text-stone-800">tiket struk</strong> berstempel BELUM BAYAR.
+                Begitu uangnya masuk, ketuk "Tandai Sudah Bayar" — tiket pindah ke tab Diproses dan dapur boleh mulai masak.
               </p>
               <p className="mt-2 leading-relaxed text-stone-600">
                 <strong className="text-stone-800">Mode 2 — Kasir POS + layar dapur:</strong> pelanggan pesan di
@@ -991,83 +989,55 @@ export default function MarketingPage() {
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
-              <div className="space-y-4">
-                <div className="-rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
-                  <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                    <span className="ml-2 text-[11px] text-stone-400">Mode 1 · Konfirmasi pesanan</span>
-                  </div>
-                  <div className="space-y-2.5 p-4">
-                    {[
-                      ["Meja 5", "3 item · Rp65.000", false],
-                      ["Meja 2", "5 item · Rp112.500", false],
-                      ["Meja 8", "2 item · Rp47.000", true],
-                    ].map(([meja, desc, lunas]) => (
-                      <div key={meja as string} className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50/60 px-3 py-2.5">
-                        <div>
-                          <p className="text-xs font-bold">{meja}</p>
-                          <p className="text-[11px] text-stone-500">{desc}</p>
-                        </div>
-                        {lunas ? (
-                          <span className="rounded-full bg-green-100 px-3 py-1 text-[11px] font-bold text-green-700">Lunas <FontAwesomeIcon icon={faCheck} className="ml-1" /></span>
-                        ) : (
-                          <span className="rounded-full bg-[#1B5E3B] px-3 py-1 text-[11px] font-bold text-white">Tandai Lunas</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rotate-1 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
-                  <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                    <span className="ml-2 text-[11px] text-stone-400">Mode 2 · Kasir POS → Layar dapur</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 p-4">
-                    <div className="rounded-xl bg-stone-50/70 p-3">
-                      <p className="mb-2 text-[11px] font-bold text-stone-500 uppercase">Kasir POS</p>
-                      {[
-                        ["Nasi Goreng", "Rp15.000", "2"],
-                        ["Es Teh Manis", "Rp5.000", "1"],
-                      ].map(([nm, hg, q]) => (
-                        <div key={nm} className="mb-1.5 flex items-center justify-between text-[11px]">
-                          <span className="font-semibold">{q}× {nm}</span>
-                          <span className="text-stone-500">{hg}</span>
-                        </div>
-                      ))}
-                      <div className="mt-2 flex items-center justify-between border-t border-stone-200 pt-1.5 text-xs font-bold">
-                        <span>Total</span><span>Rp35.000</span>
-                      </div>
-                      <div className="mt-2 rounded-lg bg-[#1B5E3B] py-1.5 text-center text-[11px] font-bold text-white">Bayar · Tunai</div>
-                    </div>
-                    <div className="rounded-xl bg-zinc-900 p-3 text-white">
-                      <p className="mb-2 text-[11px] font-bold text-orange-300 uppercase">Layar dapur</p>
-                      <div className="rounded-lg border border-zinc-700 bg-zinc-800 p-2">
-                        <div className="mb-1 flex items-center justify-between">
-                          <p className="text-[11px] font-bold">Meja 5</p>
-                          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold">12 mnt</span>
-                        </div>
-                        <p className="text-[11px] text-zinc-300"><span className="font-bold text-amber-300">2×</span> Nasi Goreng</p>
-                        <p className="text-[11px] text-zinc-300"><span className="font-bold text-amber-300">1×</span> Es Teh Manis</p>
-                        <div className="mt-2 rounded-lg bg-green-600 py-1.5 text-center text-[11px] font-bold">Selesai Dimasak</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-8">
+                <ShotFrame src="/fitur/kasir.png" alt="Tampilan asli kasir model tiket struk dengan tab tahap" label="Mode 1 · Kasir tiket — tab Diproses" tilt="-rotate-1" />
+                <ShotFrame src="/fitur/pos.png" alt="Tampilan asli kasir POS dengan foto menu" label="Mode 2 · Kasir POS (Plus & Premium)" tilt="rotate-1" />
               </div>
             </Reveal>
           </div>
         </div>
       </section>
 
+      {/* Galeri tampilan asli */}
+      <section className="border-t-2 border-dashed border-[#D9C48F] py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal className="mx-auto mb-10 max-w-2xl text-center" from="zoom">
+            <Eyebrow>Galeri Asli</Eyebrow>
+            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Ini tampilan benerannya, <em className="text-[#1B5E3B]">bukan gambar ilustrasi</em></h2>
+            <p className="mt-3 text-stone-600">Geser untuk melihat layar-layar lain yang dipakai restomu setiap hari.</p>
+          </Reveal>
+        </div>
+        <Reveal from="up">
+          <div className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto px-4 pb-4 sm:px-6 lg:justify-center">
+            {[
+              { src: "/fitur/owner.png", cap: "Portal Pemilik — ubah menu, harga & promo sendiri, cukup PIN" },
+              { src: "/fitur/dapur.png", cap: "Layar Dapur — antrean masak tanpa harga (Plus & Premium)" },
+              { src: "/fitur/rekap.png", cap: "Rekap — omzet, menu terlaris, unduh laporan CSV" },
+              { src: "/fitur/pos-varian.png", cap: "Varian & tambahan — level pedas, ekstra topping, otomatis ke harga" },
+              { src: "/fitur/pos-kembalian.png", cap: "Kembalian otomatis — ketuk pecahan uang, selisih shift tercatat" },
+              { src: "/fitur/kasir-baru.png", cap: "Kasir tiket — tab Baru berisi pesanan yang menunggu dibayar" },
+              { src: "/fitur/struk.png", cap: "Struk thermal 58/80mm — siap cetak atau kirim via WA" },
+            ].map((g, i) => (
+              <figure key={g.src} className={`w-72 shrink-0 snap-start sm:w-80 ${i % 2 === 0 ? "-rotate-1" : "rotate-1"}`}>
+                <div className="relative">
+                  <span aria-hidden="true" className="absolute -top-3 left-1/2 z-10 h-6 w-24 -translate-x-1/2 -rotate-2 rounded-sm bg-[#E9D8A6]/80 shadow-sm" />
+                  <div className="overflow-hidden rounded-xl border border-[#E7DCC8] bg-white shadow-[0_14px_30px_rgba(120,90,20,0.16)]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={g.src} alt={g.cap} className="block w-full" loading="lazy" />
+                  </div>
+                </div>
+                <figcaption className="mt-3 px-1 text-center text-xs leading-relaxed text-stone-600">{g.cap}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
       {/* Cara kerja */}
       <section id="cara-kerja" className="bg-[#1B5E3B] pt-20 pb-44 text-white sm:pt-28 sm:pb-60">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal from="zoom" className="mx-auto mb-14 max-w-2xl text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#C9A227] uppercase">02 · Cara Kerja</p>
+            <Eyebrow dark>Cara Kerja</Eyebrow>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Dari daftar sampai terima pesanan</h2>
             <p className="mt-3 text-white/70">Tiga langkah. Tanpa istilah teknis yang membingungkan.</p>
           </Reveal>
@@ -1089,22 +1059,23 @@ export default function MarketingPage() {
       <section id="harga" className="relative z-10 -mt-32 scroll-mt-24 pb-20 sm:-mt-44 sm:pb-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="mx-auto mb-12 max-w-2xl text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#C9A227] uppercase">03 · Harga</p>
+            <Eyebrow dark>Harga</Eyebrow>
             <h2 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Pilih paket sesuai kebutuhan restoranmu</h2>
             <p className="mt-3 text-white/70">Bulanan atau tahunan — bayar tahunan hemat 2 bulan. Upgrade atau downgrade kapan saja.</p>
           </Reveal>
           <div className="grid items-stretch gap-6 lg:grid-cols-3">
             {PACKAGES.map((p, i) => (
               <Reveal key={p.id} delay={i * 100} from={i === 1 ? "zoom" : i === 0 ? "left" : "right"} className="h-full">
+                <div className="flex h-full flex-col">
                 <div
-                  className={`relative flex h-full flex-col rounded-3xl p-8 ${
+                  className={`relative flex flex-1 flex-col p-8 ${
                     p.highlight
-                      ? "bg-[#1B5E3B] text-white shadow-2xl shadow-[#1B5E3B]/25 ring-4 ring-[#C9A227]/60"
-                      : "border border-stone-200 bg-white shadow-sm"
+                      ? "rounded-t-3xl bg-[#1B5E3B] text-white shadow-2xl shadow-[#1B5E3B]/25 ring-4 ring-[#C9A227]/60"
+                      : "rounded-t-3xl border border-b-0 border-[#E7DCC8] bg-[#FFFDF6] shadow-sm"
                   }`}
                 >
                   {p.highlight && (
-                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#C9A227] px-4 py-1 text-xs font-bold tracking-wide text-stone-900 uppercase">
+                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 -rotate-3 rounded-md border-[2.5px] border-[#C9A227] bg-[#FFFDF6] px-3 py-1 text-xs font-extrabold tracking-[0.14em] text-[#9a7b1c] uppercase shadow-md">
                       Paling Laris
                     </span>
                   )}
@@ -1158,6 +1129,8 @@ export default function MarketingPage() {
                     {p.cta}
                   </button>
                 </div>
+                <div className={p.highlight ? "ticket-edge-green" : "ticket-edge"} aria-hidden="true" />
+                </div>
               </Reveal>
             ))}
           </div>
@@ -1173,7 +1146,7 @@ export default function MarketingPage() {
       <section className="py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="mx-auto mb-12 max-w-2xl text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">04 · Untuk Siapa Saja</p>
+            <Eyebrow>Untuk Siapa Saja</Eyebrow>
             <h2 className="font-display text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">Satu sistem, dipakai seluruh tim restoranmu</h2>
             <p className="mt-3 text-stone-600">Setiap orang di restoranmu kebagian alat yang memang untuk pekerjaannya — tidak lebih, tidak kurang.</p>
           </Reveal>
@@ -1204,7 +1177,7 @@ export default function MarketingPage() {
       <section id="faq" className="border-t border-stone-200/80 bg-white/60 py-20 sm:py-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <Reveal from="zoom" className="mb-10 text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">05 · FAQ</p>
+            <Eyebrow>FAQ</Eyebrow>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Pertanyaan yang sering ditanyakan</h2>
           </Reveal>
           <div className="space-y-3">
