@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   formatRupiah,
@@ -112,6 +112,8 @@ function HeroPattern() {
 
 export default function LandingView() {
   const { slug } = useParams<{ slug: string }>();
+  // Pratinjau tema: ?tema=<template> hanya mengubah tampilan, tidak menyimpan apa pun.
+  const temaParam = useSearchParams().get("tema");
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
   const [scrolled, setScrolled] = useState(false);
@@ -160,9 +162,10 @@ export default function LandingView() {
     );
   }
 
-  if (toTemplate(r.template) === "amok") return <AmokLanding restaurant={r} menu={menu} />;
-  if (toTemplate(r.template) === "amak") return <AmakLanding restaurant={r} menu={menu} />;
-  if (toTemplate(r.template) === "patachou") return <PatachouLanding restaurant={r} menu={menu} />;
+  const tpl = temaParam ? toTemplate(temaParam) : toTemplate(r.template);
+  if (tpl === "amok") return <AmokLanding restaurant={r} menu={menu} />;
+  if (tpl === "amak") return <AmakLanding restaurant={r} menu={menu} />;
+  if (tpl === "patachou") return <PatachouLanding restaurant={r} menu={menu} />;
 
   const accent = r.primary_color ?? "#16a34a";
   const cta = { backgroundColor: accent, color: readableOn(accent) };
