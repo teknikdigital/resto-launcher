@@ -59,6 +59,8 @@ function KasirInner({ id }: { id: string }) {
   const [error, setError] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [tab, setTab] = useState<"baru" | "proses" | "selesai">("baru");
+  const tabAuto = useRef(true);
 
   // "table:<id>" untuk dine-in, atau "takeaway" / "delivery".
   const [target, setTarget] = useState("takeaway");
@@ -96,6 +98,15 @@ function KasirInner({ id }: { id: string }) {
       }
       knownOrderIds.current = new Set(fresh.map((x) => x.id));
       setOrders(fresh);
+      // Tab awal mengikuti kebutuhan: ada pesanan Baru -> tab Baru; kalau tidak, tab Diproses.
+      if (tabAuto.current) {
+        tabAuto.current = false;
+        const hasBaru = fresh.some((x) => x.status === "baru" && x.payment_status !== "paid");
+        const hasProses = fresh.some(
+          (x) => x.status === "dikonfirmasi" || (x.status === "baru" && x.payment_status === "paid"),
+        );
+        setTab(hasBaru ? "baru" : hasProses ? "proses" : "selesai");
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal memuat data kasir");
     } finally {
@@ -401,76 +412,92 @@ function KasirInner({ id }: { id: string }) {
             </div>
           )}
 
-          <div className="space-y-10">
-            <TicketSection
-              title="Baru — menunggu bayar"
-              count={colBaru.length}
-              badgeCls="bg-[#D97706]"
-              emptyText="Belum ada pesanan baru — pesanan QRIS & online mendarat di sini sebagai tiket."
-            >
-              {colBaru.map((o) => (
-                <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now}>
-                  <div className="flex gap-2">
-                    <button onClick={() => tandaiSudahBayar(o)} className="flex-1 rounded-xl bg-[#1B5E3B] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14492e] active:scale-[0.98]">
-                      Tandai Sudah Bayar
-                    </button>
-                    <button onClick={() => prosesDulu(o)} className="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50" title="Proses dulu, bayar belakangan">
-                      Proses Dulu
-                    </button>
-                  </div>
-                  <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
-                </TicketCard>
-              ))}
-            </TicketSection>
+          <div>
+            {/* Tab tahap yang lengket: kasir fokus ke satu tahap, jumlah tiap tahap selalu terlihat. */}
+            <div className="sticky top-2 z-20 mb-6 flex gap-1.5 rounded-full border border-[#E7DCC8] bg-[#FFFDF6] p-1.5 shadow-[0_6px_18px_rgba(120,90,20,0.12)]">
+              {(
+                [
+                  { key: "baru", label: "Baru", count: colBaru.length, onCls: "bg-[#D97706] text-white", badgeOff: "bg-amber-100 text-amber-800" },
+                  { key: "proses", label: "Diproses", count: colProses.length, onCls: "bg-[#1B5E3B] text-white", badgeOff: "bg-emerald-100 text-emerald-800" },
+                  { key: "selesai", label: "Selesai", count: colSelesai.length, onCls: "bg-stone-500 text-white", badgeOff: "bg-stone-200 text-stone-600" },
+                ] as const
+              ).map((t) => {
+                const on = tab === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-sm font-semibold transition ${on ? t.onCls : "text-stone-600 hover:bg-[#F3ECDC]"}`}
+                  >
+                    {t.label}
+                    <span className={`min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs font-bold ${on ? "bg-white/30 text-white" : t.badgeOff}`}>
+                      {t.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-            <TicketSection
-              title="Sedang diproses"
-              count={colProses.length}
-              badgeCls="bg-[#1B5E3B]"
-              emptyText="Belum ada yang sedang diproses."
-            >
-              {colProses.map((o) => (
-                <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now}>
-                  {o.payment_status === "paid" ? (
-                    <button onClick={() => selesaikan(o)} className="w-full rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
-                      Selesai
-                    </button>
-                  ) : (
+            {tab === "baru" && (
+              <TicketGrid empty={colBaru.length === 0} emptyText="Belum ada pesanan baru — pesanan QRIS & online mendarat di sini sebagai tiket.">
+                {colBaru.map((o) => (
+                  <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now}>
                     <div className="flex gap-2">
-                      <button onClick={() => tandaiBayarSaja(o)} className="flex-1 rounded-xl border border-emerald-300 bg-emerald-100 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-200 active:scale-[0.98]">
+                      <button onClick={() => tandaiSudahBayar(o)} className="flex-1 rounded-xl bg-[#1B5E3B] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14492e] active:scale-[0.98]">
                         Tandai Sudah Bayar
                       </button>
-                      <button onClick={() => selesaikan(o)} className="flex-1 rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
-                        Selesai
+                      <button onClick={() => prosesDulu(o)} className="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50" title="Proses dulu, bayar belakangan">
+                        Proses Dulu
                       </button>
                     </div>
-                  )}
-                  <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
-                </TicketCard>
-              ))}
-            </TicketSection>
+                    <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
+                  </TicketCard>
+                ))}
+              </TicketGrid>
+            )}
 
-            <TicketSection
-              title="Selesai hari ini"
-              count={colSelesai.length}
-              badgeCls="bg-stone-400"
-              emptyText="Belum ada pesanan selesai hari ini."
-            >
-              {colSelesai.map((o) => (
-                <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now} dim>
-                  <div className="flex items-center justify-between text-xs">
-                    <Link href={`/admin/restaurants/${id}/struk/${o.id}`} target="_blank" className="font-medium text-stone-500 underline-offset-2 hover:underline">
-                      Cetak struk
-                    </Link>
-                    {o.payment_status !== "paid" && (
-                      <button onClick={() => tandaiBayarSaja(o)} className="font-semibold text-emerald-700 underline-offset-2 hover:underline">
-                        Tandai Sudah Bayar
+            {tab === "proses" && (
+              <TicketGrid empty={colProses.length === 0} emptyText="Belum ada yang sedang diproses.">
+                {colProses.map((o) => (
+                  <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now}>
+                    {o.payment_status === "paid" ? (
+                      <button onClick={() => selesaikan(o)} className="w-full rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
+                        Selesai
                       </button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button onClick={() => tandaiBayarSaja(o)} className="flex-1 rounded-xl border border-emerald-300 bg-emerald-100 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-200 active:scale-[0.98]">
+                          Tandai Sudah Bayar
+                        </button>
+                        <button onClick={() => selesaikan(o)} className="flex-1 rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
+                          Selesai
+                        </button>
+                      </div>
                     )}
-                  </div>
-                </TicketCard>
-              ))}
-            </TicketSection>
+                    <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
+                  </TicketCard>
+                ))}
+              </TicketGrid>
+            )}
+
+            {tab === "selesai" && (
+              <TicketGrid empty={colSelesai.length === 0} emptyText="Belum ada pesanan selesai hari ini.">
+                {colSelesai.map((o) => (
+                  <TicketCard key={o.id} o={o} tableName={tableName(o.table_id)} now={now} dim>
+                    <div className="flex items-center justify-between text-xs">
+                      <Link href={`/admin/restaurants/${id}/struk/${o.id}`} target="_blank" className="font-medium text-stone-500 underline-offset-2 hover:underline">
+                        Cetak struk
+                      </Link>
+                      {o.payment_status !== "paid" && (
+                        <button onClick={() => tandaiBayarSaja(o)} className="font-semibold text-emerald-700 underline-offset-2 hover:underline">
+                          Tandai Sudah Bayar
+                        </button>
+                      )}
+                    </div>
+                  </TicketCard>
+                ))}
+              </TicketGrid>
+            )}
           </div>
         </>
       )}
@@ -478,33 +505,23 @@ function KasirInner({ id }: { id: string }) {
   );
 }
 
-function TicketSection({
-  title,
-  count,
-  badgeCls,
+function TicketGrid({
+  empty,
   emptyText,
   children,
 }: {
-  title: string;
-  count: number;
-  badgeCls: string;
+  empty: boolean;
   emptyText: string;
   children: React.ReactNode;
 }) {
-  return (
-    <section>
-      <header className="mb-4 flex items-center gap-3">
-        <h2 className="font-display text-xl font-bold text-stone-800">{title}</h2>
-        <span className={`min-w-6 rounded-full px-2 py-0.5 text-center text-xs font-bold text-white ${badgeCls}`}>{count}</span>
-        <span className="flex-1 border-t-2 border-dashed border-[#D9C48F]" />
-      </header>
-      {count === 0 ? (
-        <p className="rounded-2xl border-2 border-dashed border-[#E3D3AC] bg-[#FFFDF6]/60 px-4 py-8 text-center text-sm text-stone-500">{emptyText}</p>
-      ) : (
-        <div className="grid items-start gap-5 sm:grid-cols-2">{children}</div>
-      )}
-    </section>
-  );
+  if (empty) {
+    return (
+      <p className="rounded-2xl border-2 border-dashed border-[#E3D3AC] bg-[#FFFDF6]/60 px-4 py-10 text-center text-sm text-stone-500">
+        {emptyText}
+      </p>
+    );
+  }
+  return <div className="grid items-start gap-5 sm:grid-cols-2">{children}</div>;
 }
 
 function CardLinks({ o, restoId, onCancel }: { o: Order; restoId: string; onCancel: () => void }) {
