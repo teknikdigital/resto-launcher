@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUtensils, faCartShopping, faReceipt, faCheck, faVolumeHigh, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
+import { faUtensils, faCartShopping, faCheck, faVolumeHigh, faVolumeXmark, faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -30,6 +30,17 @@ function startOfToday(): string {
   return d.toISOString();
 }
 
+function ageLabel(iso: string, now: number): string {
+  const mins = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 60000));
+  if (mins < 1) return "baru saja";
+  if (mins < 60) return `${mins} mnt lalu`;
+  return `${Math.floor(mins / 60)} jam ${mins % 60} mnt lalu`;
+}
+
+function ageMinutes(iso: string, now: number): number {
+  return Math.max(0, Math.floor((now - new Date(iso).getTime()) / 60000));
+}
+
 export default function KasirPage() {
   const { id } = useParams<{ id: string }>();
   return (
@@ -46,6 +57,8 @@ function KasirInner({ id }: { id: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   // "table:<id>" untuk dine-in, atau "takeaway" / "delivery".
   const [target, setTarget] = useState("takeaway");
@@ -97,6 +110,11 @@ function KasirInner({ id }: { id: string }) {
     const iv = setInterval(load, 20000);
     return () => clearInterval(iv);
   }, [load]);
+
+  useEffect(() => {
+    const iv = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(iv);
+  }, []);
 
   const grouped = useMemo(() => {
     const map = new Map<string, MenuItem[]>();
@@ -150,19 +168,31 @@ function KasirInner({ id }: { id: string }) {
     }
   }
 
-  async function markPaid(o: Order) {
+  async function patchOrder(o: Order, patch: Record<string, string>) {
     setError("");
     const res = await fetch(`/api/orders/${o.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ payment_status: "paid", payment_method: o.payment_method ?? method }),
+      body: JSON.stringify(patch),
     });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setError(d.error ?? "Gagal menandai lunas");
+      setError(d.error ?? "Gagal memperbarui pesanan");
       return;
     }
     setOrders((os) => os.map((x) => (x.id === o.id ? d.order : x)));
+  }
+
+  // Alur QRIS tanpa webhook: pesanan masuk sebagai Baru (belum bayar);
+  // kasir klik "Tandai Sudah Bayar" -> lunas + masuk Diproses (dapur boleh masak).
+  const tandaiSudahBayar = (o: Order) => patchOrder(o, { payment_status: "paid", status: "dikonfirmasi" });
+  // Makan dulu bayar belakangan: proses tanpa menunggu lunas.
+  const prosesDulu = (o: Order) => patchOrder(o, { status: "dikonfirmasi" });
+  const tandaiBayarSaja = (o: Order) => patchOrder(o, { payment_status: "paid" });
+  const selesaikan = (o: Order) => patchOrder(o, { status: "selesai" });
+  function batalkan(o: Order) {
+    if (!window.confirm(`Batalkan pesanan${o.queue_no ? ` #${o.queue_no}` : ""}?`)) return;
+    void patchOrder(o, { status: "batal" });
   }
 
   function receiptText(o: Order): string {
@@ -187,11 +217,23 @@ function KasirInner({ id }: { id: string }) {
 
   const receiptWa = receipt ? toWaNumber(custPhone || receipt.customer_phone) : null;
 
+  // Papan 3 kolom: Baru (belum bayar) -> Diproses (lunas/dimasak) -> Selesai.
+  const visible = orders.filter((o) => o.status !== "batal");
+  const colBaru = visible
+    .filter((o) => o.status === "baru" && o.payment_status !== "paid")
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const colProses = visible
+    .filter((o) => o.status === "dikonfirmasi" || (o.status === "baru" && o.payment_status === "paid"))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const colSelesai = visible
+    .filter((o) => o.status === "selesai")
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8">
+    <main className="mx-auto w-full max-w-7xl px-4 py-8">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="page-title min-w-0 break-words">Kasir{restaurant ? ` — ${restaurant.name}` : ""}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => {
               unlockBeep();
@@ -204,6 +246,10 @@ function KasirInner({ id }: { id: string }) {
             <FontAwesomeIcon icon={soundOn ? faVolumeHigh : faVolumeXmark} className="mr-1.5" />
             {soundOn ? "Bunyi Aktif" : "Bunyi Mati"}
           </button>
+          <button onClick={() => setCreateOpen((v) => !v)} className="btn-primary btn-sm">
+            <FontAwesomeIcon icon={faPlus} className="mr-1.5" />
+            Pesanan Baru
+          </button>
           <Link href="/admin/restaurants" className="back-link">
             Kembali ke Restoran
           </Link>
@@ -211,219 +257,349 @@ function KasirInner({ id }: { id: string }) {
       </header>
       {error && <p className="alert-error">{error}</p>}
       {loading ? (
-        <div className="grid gap-6 lg:grid-cols-[1fr_360px]" aria-busy="true" aria-label="Memuat">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="skeleton h-20" />
-            ))}
-          </div>
-          <div className="skeleton h-64" />
+        <div className="grid gap-4 lg:grid-cols-3" aria-busy="true" aria-label="Memuat">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="skeleton h-72" />
+          ))}
         </div>
       ) : (
         <>
-          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-            <section>
-              <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium text-zinc-700">Meja / Tipe pesanan</label>
-                <select className={inputCls} value={target} onChange={(e) => setTarget(e.target.value)}>
-                  <option value="takeaway">Takeaway</option>
-                  <option value="delivery">Delivery</option>
-                  {tables.map((t) => (
-                    <option key={t.id} value={`table:${t.id}`}>
-                      Meja {t.name}
-                      {t.seats ? ` (${t.seats} kursi)` : ""}
-                    </option>
-                  ))}
-                </select>
-                {tables.length === 0 && (
-                  <p className="mt-1 text-xs text-zinc-500">
-                    Belum ada meja. <Link href={`/admin/restaurants/${id}/tables`} className="text-blue-600 underline">Tambah meja</Link>
-                  </p>
-                )}
-              </div>
-              {grouped.length === 0 && (
-                <div className="empty-state">
-                  <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faUtensils} /></div>
-                  <p className="font-semibold text-zinc-800">Belum ada menu tersedia</p>
-                  <p className="mt-1 text-sm text-zinc-500">Tambahkan menu dulu agar bisa dipakai di kasir.</p>
-                </div>
-              )}
-              {grouped.map(([cat, items]) => (
-                <div key={cat} className="mb-5">
-                  <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">{cat}</h2>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {items.map((m) => {
-                      const qty = cart[m.id] ?? 0;
-                      return (
-                        <button
-                          key={m.id}
-                          onClick={() => setQty(m.id, qty + 1)}
-                          className={`relative min-w-0 rounded-xl border bg-white p-3 text-left text-sm shadow-sm transition hover:shadow-md active:scale-[0.98] ${qty > 0 ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-zinc-200 hover:border-zinc-300"}`}
-                        >
-                          <p className={`font-medium leading-snug text-zinc-900 ${qty > 0 ? "pr-7" : ""}`}>{m.name}</p>
-                          <p className="mt-1 font-semibold text-zinc-500">{formatRupiah(Number(m.price))}</p>
-                          {qty > 0 && (
-                            <span className="absolute right-2 top-2 min-w-6 rounded-full bg-blue-600 px-1.5 py-0.5 text-center text-xs font-bold text-white">{qty}</span>
-                          )}
-                        </button>
-                      );
-                    })}
+          {createOpen && (
+            <div className="panel mb-8">
+              <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                <section>
+                  <div className="mb-4">
+                    <label className="mb-1 block text-sm font-medium text-stone-700">Meja / Tipe pesanan</label>
+                    <select className={inputCls} value={target} onChange={(e) => setTarget(e.target.value)}>
+                      <option value="takeaway">Takeaway</option>
+                      <option value="delivery">Delivery</option>
+                      {tables.map((t) => (
+                        <option key={t.id} value={`table:${t.id}`}>
+                          Meja {t.name}
+                          {t.seats ? ` (${t.seats} kursi)` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {tables.length === 0 && (
+                      <p className="mt-1 text-xs text-stone-500">
+                        Belum ada meja. <Link href={`/admin/restaurants/${id}/tables`} className="underline">Tambah meja</Link>
+                      </p>
+                    )}
                   </div>
-                </div>
-              ))}
-            </section>
-
-            <aside className="panel h-fit lg:sticky lg:top-4">
-              <h2 className="mb-3 text-lg font-semibold">Keranjang</h2>
-              {receipt ? (
-                <div>
-                  <p className="mb-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-medium text-green-700">Pesanan tersimpan &amp; lunas <FontAwesomeIcon icon={faCheck} className="ml-1" /></p>
-                  <pre className="mb-3 whitespace-pre-wrap break-words rounded-lg bg-zinc-100 p-3 font-mono text-xs text-zinc-800">
-                    {receiptText(receipt).replace(/\*/g, "")}
-                  </pre>
-                  <input className={`${inputCls} mb-2`} type="tel" placeholder="No. WA pelanggan" value={custPhone} onChange={(e) => setCustPhone(e.target.value)} />
-                  {receiptWa ? (
-                    <a
-                      href={`https://wa.me/${receiptWa}?text=${encodeURIComponent(receiptText(receipt))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-success mb-2 w-full"
-                    >
-                      Kirim Struk via WA
-                    </a>
-                  ) : (
-                    <p className="mb-2 text-xs text-zinc-500">Isi nomor WA pelanggan untuk mengirim struk.</p>
+                  {grouped.length === 0 && (
+                    <div className="empty-state">
+                      <div className="empty-state-icon text-stone-400"><FontAwesomeIcon icon={faUtensils} /></div>
+                      <p className="font-semibold text-stone-800">Belum ada menu tersedia</p>
+                      <p className="mt-1 text-sm text-stone-500">Tambahkan menu dulu agar bisa dipakai di kasir.</p>
+                    </div>
                   )}
-                  <button
-                    onClick={() => {
-                      setReceipt(null);
-                      setCustName("");
-                      setCustPhone("");
-                    }}
-                    className="btn-secondary w-full"
-                  >
-                    Pesanan Baru
-                  </button>
-                </div>
-              ) : lines.length === 0 ? (
-                <div className="flex flex-col items-center py-8 text-center">
-                  <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faCartShopping} /></div>
-                  <p className="text-sm text-zinc-500">Ketuk menu untuk menambah pesanan.</p>
-                </div>
-              ) : (
-                <>
-                  <ul className="mb-3 divide-y divide-zinc-200">
-                    {lines.map(({ item, qty }) => (
-                      <li key={item.id} className="flex items-center gap-2 py-2 text-sm">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium">{item.name}</p>
-                          <p className="text-zinc-500">{formatRupiah(Number(item.price) * qty)}</p>
-                        </div>
-                        <button onClick={() => setQty(item.id, qty - 1)} className="h-8 w-8 shrink-0 rounded-full border border-zinc-300 bg-white transition hover:bg-zinc-100" aria-label="Kurangi">−</button>
-                        <span className="w-5 text-center font-semibold">{qty}</span>
-                        <button onClick={() => setQty(item.id, qty + 1)} className="h-8 w-8 shrink-0 rounded-full border border-zinc-300 bg-white transition hover:bg-zinc-100" aria-label="Tambah">+</button>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mb-3 flex items-center justify-between border-t border-zinc-200 pt-3">
-                    <span className="text-sm text-zinc-500">Total</span>
-                    <span className="text-xl font-bold">{formatRupiah(total)}</span>
-                  </div>
-                  <div className="mb-3 grid grid-cols-3 gap-2">
-                    {PAYMENT_METHODS.map((pm) => (
-                      <button
-                        key={pm}
-                        onClick={() => setMethod(pm)}
-                        className={`rounded-lg border px-2 py-2 text-sm font-medium transition ${method === pm ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50"}`}
-                      >
-                        {PAYMENT_METHOD_LABELS[pm]}
-                      </button>
-                    ))}
-                  </div>
-                  <input className={`${inputCls} mb-2`} placeholder="Nama pelanggan (opsional)" value={custName} onChange={(e) => setCustName(e.target.value)} />
-                  <input className={`${inputCls} mb-3`} type="tel" placeholder="No. WA pelanggan (opsional)" value={custPhone} onChange={(e) => setCustPhone(e.target.value)} />
-                  <button
-                    onClick={finish}
-                    disabled={saving}
-                    className="btn-success w-full !py-3 !font-semibold"
-                  >
-                    {saving ? "Menyimpan..." : "Selesaikan Pesanan"}
-                  </button>
-                </>
-              )}
-            </aside>
-          </div>
+                  {grouped.map(([cat, items]) => (
+                    <div key={cat} className="mb-5">
+                      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-stone-500">{cat}</h2>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {items.map((m) => {
+                          const qty = cart[m.id] ?? 0;
+                          return (
+                            <button
+                              key={m.id}
+                              onClick={() => setQty(m.id, qty + 1)}
+                              className={`relative min-w-0 rounded-xl border bg-white p-3 text-left text-sm shadow-sm transition hover:shadow-md active:scale-[0.98] ${qty > 0 ? "border-[#1B5E3B] bg-emerald-50 ring-1 ring-[#1B5E3B]" : "border-stone-200 hover:border-stone-300"}`}
+                            >
+                              <p className={`font-medium leading-snug text-stone-900 ${qty > 0 ? "pr-7" : ""}`}>{m.name}</p>
+                              <p className="mt-1 font-semibold text-stone-500">{formatRupiah(Number(m.price))}</p>
+                              {qty > 0 && (
+                                <span className="absolute right-2 top-2 min-w-6 rounded-full bg-[#1B5E3B] px-1.5 py-0.5 text-center text-xs font-bold text-white">{qty}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </section>
 
-          <section className="mt-10">
-            <h2 className="mb-3 text-lg font-semibold">Pesanan Hari Ini</h2>
-            {orders.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon text-zinc-400"><FontAwesomeIcon icon={faReceipt} /></div>
-                <p className="font-semibold text-zinc-800">Belum ada pesanan hari ini</p>
+                <aside className="h-fit lg:sticky lg:top-4">
+                  <h2 className="mb-3 text-lg font-semibold">Keranjang</h2>
+                  {receipt ? (
+                    <div>
+                      <p className="mb-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-medium text-green-700">Pesanan tersimpan &amp; lunas <FontAwesomeIcon icon={faCheck} className="ml-1" /></p>
+                      <pre className="mb-3 whitespace-pre-wrap break-words rounded-lg bg-stone-100 p-3 font-mono text-xs text-stone-800">
+                        {receiptText(receipt).replace(/\*/g, "")}
+                      </pre>
+                      <input className={`${inputCls} mb-2`} type="tel" placeholder="No. WA pelanggan" value={custPhone} onChange={(e) => setCustPhone(e.target.value)} />
+                      {receiptWa ? (
+                        <a
+                          href={`https://wa.me/${receiptWa}?text=${encodeURIComponent(receiptText(receipt))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-success mb-2 w-full"
+                        >
+                          Kirim Struk via WA
+                        </a>
+                      ) : (
+                        <p className="mb-2 text-xs text-stone-500">Isi nomor WA pelanggan untuk mengirim struk.</p>
+                      )}
+                      <button
+                        onClick={() => {
+                          setReceipt(null);
+                          setCustName("");
+                          setCustPhone("");
+                        }}
+                        className="btn-secondary w-full"
+                      >
+                        Pesanan Baru
+                      </button>
+                    </div>
+                  ) : lines.length === 0 ? (
+                    <div className="flex flex-col items-center py-8 text-center">
+                      <div className="empty-state-icon text-stone-400"><FontAwesomeIcon icon={faCartShopping} /></div>
+                      <p className="text-sm text-stone-500">Ketuk menu untuk menambah pesanan.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <ul className="mb-3 divide-y divide-stone-200">
+                        {lines.map(({ item, qty }) => (
+                          <li key={item.id} className="flex items-center gap-2 py-2 text-sm">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-medium">{item.name}</p>
+                              <p className="text-stone-500">{formatRupiah(Number(item.price) * qty)}</p>
+                            </div>
+                            <button onClick={() => setQty(item.id, qty - 1)} className="h-8 w-8 shrink-0 rounded-full border border-stone-300 bg-white transition hover:bg-stone-100" aria-label="Kurangi">−</button>
+                            <span className="w-5 text-center font-semibold">{qty}</span>
+                            <button onClick={() => setQty(item.id, qty + 1)} className="h-8 w-8 shrink-0 rounded-full border border-stone-300 bg-white transition hover:bg-stone-100" aria-label="Tambah">+</button>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mb-3 flex items-center justify-between border-t border-stone-200 pt-3">
+                        <span className="text-sm text-stone-500">Total</span>
+                        <span className="text-xl font-bold">{formatRupiah(total)}</span>
+                      </div>
+                      <div className="mb-3 grid grid-cols-3 gap-2">
+                        {PAYMENT_METHODS.map((pm) => (
+                          <button
+                            key={pm}
+                            onClick={() => setMethod(pm)}
+                            className={`rounded-lg border px-2 py-2 text-sm font-medium transition ${method === pm ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-sm" : "border-stone-300 bg-white text-stone-700 hover:bg-stone-50"}`}
+                          >
+                            {PAYMENT_METHOD_LABELS[pm]}
+                          </button>
+                        ))}
+                      </div>
+                      <input className={`${inputCls} mb-2`} placeholder="Nama pelanggan (opsional)" value={custName} onChange={(e) => setCustName(e.target.value)} />
+                      <input className={`${inputCls} mb-3`} type="tel" placeholder="No. WA pelanggan (opsional)" value={custPhone} onChange={(e) => setCustPhone(e.target.value)} />
+                      <button
+                        onClick={finish}
+                        disabled={saving}
+                        className="btn-success w-full !py-3 !font-semibold"
+                      >
+                        {saving ? "Menyimpan..." : "Selesaikan Pesanan"}
+                      </button>
+                    </>
+                  )}
+                </aside>
               </div>
-            ) : (
-              <div className="table-wrap">
-                <table className="data-table min-w-[720px]">
-                  <thead>
-                    <tr>
-                      <th>Jam</th>
-                      <th>Antrean</th>
-                      <th>Tipe</th>
-                      <th>Pesanan</th>
-                      <th>Total</th>
-                      <th>Status</th>
-                      <th>Bayar</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map((o) => {
-                      const tn = tableName(o.table_id);
-                      return (
-                        <tr key={o.id} className="align-top">
-                          <td className="whitespace-nowrap">
-                            {new Date(o.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
-                          </td>
-                          <td className="whitespace-nowrap font-bold">{o.queue_no ? `#${o.queue_no}` : "—"}</td>
-                          <td>
-                            {o.order_type ? ORDER_TYPE_LABELS[o.order_type] : "-"}
-                            {tn ? ` · Meja ${tn}` : ""}
-                          </td>
-                          <td>
-                            {o.items.map((l) => `${l.name} x${l.qty}`).join(", ")}
-                            {o.status_note && <p className="mt-0.5 text-xs text-zinc-500">Catatan: {o.status_note}</p>}
-                          </td>
-                          <td className="whitespace-nowrap font-semibold text-zinc-900">
-                            {formatRupiah(Number(o.total))}
-                            {Number(o.discount) > 0 && <p className="text-xs font-normal text-green-700">diskon −{formatRupiah(Number(o.discount))}</p>}
-                          </td>
-                          <td>{o.status}</td>
-                          <td>
-                            {o.payment_status === "paid" ? (
-                              <span className="inline-block whitespace-nowrap rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                                Lunas{o.payment_method ? ` (${PAYMENT_METHOD_LABELS[o.payment_method]})` : ""}
-                              </span>
-                            ) : (
-                              <button onClick={() => markPaid(o)} className="btn-secondary btn-sm">
-                                Tandai Lunas
-                              </button>
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap">
-                            <Link href={`/admin/restaurants/${id}/struk/${o.id}`} target="_blank" className="btn-secondary btn-sm">
-                              Struk
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            </div>
+          )}
+
+          <section>
+            <div className="grid items-start gap-4 lg:grid-cols-3">
+              <BoardColumn
+                title="Baru"
+                count={colBaru.length}
+                wrapCls="border-amber-200 bg-amber-50/70"
+                dotCls="bg-amber-500"
+                badgeCls="bg-amber-500 text-white"
+                emptyText="Belum ada pesanan baru"
+              >
+                {colBaru.map((o) => (
+                  <OrderCard key={o.id} o={o} restoId={id} tableName={tableName(o.table_id)} now={now} bandCls="from-amber-500 to-amber-400">
+                    <div className="flex gap-2">
+                      <button onClick={() => tandaiSudahBayar(o)} className="flex-1 rounded-xl bg-[#1B5E3B] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14492e] active:scale-[0.98]">
+                        Tandai Sudah Bayar
+                      </button>
+                      <button onClick={() => prosesDulu(o)} className="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50" title="Proses dulu, bayar belakangan">
+                        Proses Dulu
+                      </button>
+                    </div>
+                    <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
+                  </OrderCard>
+                ))}
+              </BoardColumn>
+
+              <BoardColumn
+                title="Diproses"
+                count={colProses.length}
+                wrapCls="border-emerald-200 bg-emerald-50/60"
+                dotCls="bg-[#1B5E3B]"
+                badgeCls="bg-[#1B5E3B] text-white"
+                emptyText="Belum ada yang diproses"
+              >
+                {colProses.map((o) => (
+                  <OrderCard key={o.id} o={o} restoId={id} tableName={tableName(o.table_id)} now={now} bandCls="from-[#1B5E3B] to-[#2A7A4C]">
+                    {o.payment_status === "paid" ? (
+                      <button onClick={() => selesaikan(o)} className="w-full rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
+                        Selesai
+                      </button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button onClick={() => tandaiBayarSaja(o)} className="flex-1 rounded-xl border border-emerald-300 bg-emerald-100 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-200 active:scale-[0.98]">
+                          Tandai Sudah Bayar
+                        </button>
+                        <button onClick={() => selesaikan(o)} className="flex-1 rounded-xl bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 active:scale-[0.98]">
+                          Selesai
+                        </button>
+                      </div>
+                    )}
+                    <CardLinks o={o} restoId={id} onCancel={() => batalkan(o)} />
+                  </OrderCard>
+                ))}
+              </BoardColumn>
+
+              <BoardColumn
+                title="Selesai"
+                count={colSelesai.length}
+                wrapCls="border-stone-200 bg-stone-100/70"
+                dotCls="bg-stone-400"
+                badgeCls="bg-stone-400 text-white"
+                emptyText="Belum ada pesanan selesai hari ini"
+                scroll
+              >
+                {colSelesai.map((o) => (
+                  <OrderCard key={o.id} o={o} restoId={id} tableName={tableName(o.table_id)} now={now} bandCls="from-stone-400 to-stone-300" dim>
+                    <div className="flex items-center justify-between text-xs">
+                      <Link href={`/admin/restaurants/${id}/struk/${o.id}`} target="_blank" className="font-medium text-stone-500 underline-offset-2 hover:underline">
+                        Cetak struk
+                      </Link>
+                      {o.payment_status !== "paid" && (
+                        <button onClick={() => tandaiBayarSaja(o)} className="font-semibold text-emerald-700 underline-offset-2 hover:underline">
+                          Tandai Sudah Bayar
+                        </button>
+                      )}
+                    </div>
+                  </OrderCard>
+                ))}
+              </BoardColumn>
+            </div>
           </section>
         </>
       )}
     </main>
+  );
+}
+
+function BoardColumn({
+  title,
+  count,
+  wrapCls,
+  dotCls,
+  badgeCls,
+  emptyText,
+  scroll,
+  children,
+}: {
+  title: string;
+  count: number;
+  wrapCls: string;
+  dotCls: string;
+  badgeCls: string;
+  emptyText: string;
+  scroll?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className={`rounded-3xl border p-3 ${wrapCls}`}>
+      <header className="mb-3 flex items-center gap-2 px-1">
+        <span className={`h-2.5 w-2.5 rounded-full ${dotCls}`} />
+        <h2 className="font-display text-lg font-bold text-stone-800">{title}</h2>
+        <span className={`min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs font-bold ${badgeCls}`}>{count}</span>
+      </header>
+      <div className={`space-y-3 ${scroll ? "lg:max-h-[760px] lg:overflow-y-auto lg:pr-1" : ""}`}>
+        {count === 0 ? (
+          <p className="rounded-2xl border-2 border-dashed border-stone-300/70 px-3 py-10 text-center text-sm text-stone-500">{emptyText}</p>
+        ) : (
+          children
+        )}
+      </div>
+    </section>
+  );
+}
+
+function CardLinks({ o, restoId, onCancel }: { o: Order; restoId: string; onCancel: () => void }) {
+  return (
+    <div className="mt-2 flex items-center justify-between text-xs">
+      <Link href={`/admin/restaurants/${restoId}/struk/${o.id}`} target="_blank" className="font-medium text-stone-500 underline-offset-2 hover:underline">
+        Cetak struk
+      </Link>
+      <button onClick={onCancel} className="font-medium text-red-500 underline-offset-2 hover:underline">
+        Batalkan pesanan
+      </button>
+    </div>
+  );
+}
+
+function OrderCard({
+  o,
+  tableName,
+  now,
+  bandCls,
+  dim,
+  children,
+}: {
+  o: Order;
+  restoId: string;
+  tableName: string | undefined;
+  now: number;
+  bandCls: string;
+  dim?: boolean;
+  children: React.ReactNode;
+}) {
+  const paid = o.payment_status === "paid";
+  const itemCount = o.items.reduce((s, l) => s + l.qty, 0);
+  const mins = ageMinutes(o.created_at, now);
+  const warn = !dim && mins >= 15 ? "ring-2 ring-red-400" : !dim && mins >= 10 ? "ring-2 ring-amber-400" : "";
+  const place = tableName
+    ? `Meja ${tableName}`
+    : o.order_type
+      ? ORDER_TYPE_LABELS[o.order_type]
+      : "Pesanan";
+  return (
+    <article className={`overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-sm ${warn} ${dim ? "opacity-80" : ""}`}>
+      <div className={`bg-gradient-to-r px-3.5 py-2.5 text-white ${bandCls}`}>
+        <div className="flex items-baseline justify-between gap-2 text-xs">
+          <span className="font-medium text-white/90">
+            {new Date(o.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} · {ageLabel(o.created_at, now)}
+          </span>
+          <span className="min-w-0 truncate font-semibold">{o.customer_name || "Pelanggan"}</span>
+        </div>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-sm font-bold">{place}</span>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${paid ? "bg-white/95 text-green-700" : "bg-white/95 text-red-600"}`}>
+              {paid ? `LUNAS${o.payment_method ? ` · ${PAYMENT_METHOD_LABELS[o.payment_method]}` : ""}` : "BELUM BAYAR"}
+            </span>
+          </span>
+          {o.queue_no ? <span className="font-display shrink-0 text-xl font-bold">#{String(o.queue_no).padStart(3, "0")}</span> : null}
+        </div>
+      </div>
+      <div className="p-3.5">
+        <ul className="space-y-1.5">
+          {o.items.map((l, i) => (
+            <li key={i} className="flex items-baseline gap-2 text-sm">
+              <span className="w-7 shrink-0 font-bold text-stone-700">{l.qty}×</span>
+              <span className="min-w-0 flex-1 break-words text-stone-800">{l.name}</span>
+              <span className="shrink-0 text-stone-500">{formatRupiah(l.price * l.qty)}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 flex items-baseline justify-between border-t border-dashed border-stone-200 pt-2.5">
+          <span className="text-xs text-stone-500">Total · {itemCount} item</span>
+          <span className="text-right">
+            <span className="font-display text-base font-bold text-stone-900">{formatRupiah(Number(o.total))}</span>
+            {Number(o.discount) > 0 && <span className="block text-[11px] font-medium text-green-700">sudah termasuk diskon −{formatRupiah(Number(o.discount))}</span>}
+          </span>
+        </div>
+        <div className="mt-3">{children}</div>
+      </div>
+    </article>
   );
 }
