@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 type PackageOrder = {
   id: string;
   package: string;
+  billing_period: string | null;
   restaurant_name: string;
   owner_name: string;
   phone: string;
@@ -93,6 +94,9 @@ export default function PackageOrdersPage() {
                   <td className="px-3 py-2.5">
                     <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
                       {PKG_LABEL[o.package] ?? o.package}
+                    </span>{" "}
+                    <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
+                      {o.billing_period === "yearly" ? "Tahunan" : "Bulanan"}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 font-semibold">{o.restaurant_name}</td>
