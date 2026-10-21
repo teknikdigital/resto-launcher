@@ -33,6 +33,11 @@ export const RESTAURANT_FIELDS = [
   "qris_payload",
   "package",
   "owner_pin",
+  "kasir_pin",
+  "dapur_pin",
+  "promo_title",
+  "promo_text",
+  "promo_image_url",
 ] as const;
 
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
@@ -80,6 +85,15 @@ export function parseRestaurantBody(
   if ("owner_pin" in data) {
     if (!data.owner_pin) delete data.owner_pin;
     else if (!/^[0-9]{4,8}$/.test(data.owner_pin)) return { error: "PIN owner harus 4-8 digit angka" };
+  }
+  // PIN staf (kasir/dapur): 4-8 digit angka, boleh dikosongkan (= tanpa gerbang).
+  for (const f of ["kasir_pin", "dapur_pin"] as const) {
+    if (f in data && data[f] && !/^[0-9]{4,8}$/.test(data[f] as string)) {
+      return { error: "PIN staf harus 4-8 digit angka" };
+    }
+  }
+  if (data.promo_image_url && !/^https?:\/\//i.test(data.promo_image_url)) {
+    return { error: "Gambar promo harus berupa URL http/https" };
   }
   // Foto sampul: URL penuh atau path proxy foto Google (/api/places/photo?...).
   if (data.cover_url && !/^(https?:\/\/|\/api\/places\/photo\?)/i.test(data.cover_url)) {
@@ -152,10 +166,63 @@ export function parseMenuBody(
     if (!Number.isInteger(n)) return { error: "Urutan harus bilangan bulat" };
     data.sort_order = n;
   }
+  if (body.variants !== undefined) {
+    const v = sanitizeVariants(body.variants);
+    if (!v) return { error: "Format varian tidak valid" };
+    data.variants = v;
+  }
+  if (body.addons !== undefined) {
+    const a = sanitizeAddons(body.addons);
+    if (!a) return { error: "Format add-on tidak valid" };
+    data.addons = a;
+  }
   return { data };
 }
 
+const cleanName = (v: unknown, max = 60): string | null =>
+  typeof v === "string" && v.trim() && v.trim().length <= max ? v.trim() : null;
+const cleanMoney = (v: unknown): number | null => {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 && n <= 100_000_000 ? Math.round(n) : null;
+};
+
+// Rapikan varian dari input tak tepercaya; null bila strukturnya rusak.
+export function sanitizeVariants(raw: unknown): { label: string; options: { name: string; price_delta: number }[] }[] | null {
+  if (raw === null || raw === undefined) return [];
+  if (!Array.isArray(raw) || raw.length > 5) return null;
+  const groups: { label: string; options: { name: string; price_delta: number }[] }[] = [];
+  for (const g of raw) {
+    const label = cleanName((g as { label?: unknown })?.label, 40);
+    const rawOpts = (g as { options?: unknown })?.options;
+    if (!label || !Array.isArray(rawOpts) || rawOpts.length === 0 || rawOpts.length > 10) return null;
+    const options: { name: string; price_delta: number }[] = [];
+    for (const o of rawOpts) {
+      const name = cleanName((o as { name?: unknown })?.name, 40);
+      const delta = cleanMoney((o as { price_delta?: unknown })?.price_delta);
+      if (!name || delta === null) return null;
+      options.push({ name, price_delta: delta });
+    }
+    groups.push({ label, options });
+  }
+  return groups;
+}
+
+export function sanitizeAddons(raw: unknown): { name: string; price: number }[] | null {
+  if (raw === null || raw === undefined) return [];
+  if (!Array.isArray(raw) || raw.length > 20) return null;
+  const addons: { name: string; price: number }[] = [];
+  for (const a of raw) {
+    const name = cleanName((a as { name?: unknown })?.name, 40);
+    const price = cleanMoney((a as { price?: unknown })?.price);
+    if (!name || price === null) return null;
+    addons.push({ name, price });
+  }
+  return addons;
+}
+
 // Validasi item keranjang lalu hitung ulang harga/total dari menu_items di DB.
+// Item boleh membawa pilihan `variant` (nama opsi) & `addons` (nama add-on);
+// harga satuan dihitung ulang di server: harga dasar + delta varian + add-on.
 // Melempar error Supabase mentah bila query gagal (ditangkap caughtErrorResponse).
 export async function buildOrderLines(
   restaurantId: string,
@@ -164,14 +231,25 @@ export async function buildOrderLines(
   if (!Array.isArray(rawItems) || rawItems.length === 0 || rawItems.length > 100) {
     return { error: "Keranjang kosong", status: 400 };
   }
-  const qty = new Map<string, number>();
+  type Pick = { itemId: string; variant: string; addons: string[]; qty: number };
+  const picks = new Map<string, Pick>();
   for (const it of rawItems) {
     const itemId = (it as { item_id?: unknown })?.item_id;
     const n = Number((it as { qty?: unknown })?.qty);
     if (typeof itemId !== "string" || !Number.isInteger(n) || n < 1 || n > 99) {
       return { error: "Item pesanan tidak valid", status: 400 };
     }
-    qty.set(itemId, (qty.get(itemId) ?? 0) + n);
+    const variantRaw = (it as { variant?: unknown })?.variant;
+    const variant = typeof variantRaw === "string" ? variantRaw.trim() : "";
+    const addonsRaw = (it as { addons?: unknown })?.addons;
+    const addons = Array.isArray(addonsRaw)
+      ? [...new Set(addonsRaw.filter((a): a is string => typeof a === "string").map((a) => a.trim()).filter(Boolean))].sort()
+      : [];
+    if (addons.length > 10) return { error: "Add-on terlalu banyak", status: 400 };
+    const key = `${itemId}|${variant}|${addons.join(",")}`;
+    const prev = picks.get(key);
+    if (prev) prev.qty = Math.min(99, prev.qty + n);
+    else picks.set(key, { itemId, variant, addons, qty: n });
   }
 
   const [sub] = await fetchSubscriptions([restaurantId]);
@@ -183,12 +261,49 @@ export async function buildOrderLines(
   const byId = new Map(menu.map((m) => [m.id, m]));
 
   const lines: OrderLine[] = [];
-  for (const [itemId, n] of qty) {
-    const m = byId.get(itemId);
+  for (const pick of picks.values()) {
+    const m = byId.get(pick.itemId);
     if (!m) return { error: "Ada menu yang tidak tersedia", status: 400 };
-    lines.push({ item_id: m.id, name: m.name, price: Number(m.price), qty: n });
+    let unit = Number(m.price);
+    let display = m.name;
+    const groups = Array.isArray(m.variants) ? m.variants : [];
+    if (pick.variant) {
+      let found: { name: string; price_delta: number } | undefined;
+      for (const g of groups) {
+        found = g.options.find((o) => o.name === pick.variant);
+        if (found) break;
+      }
+      if (!found) return { error: `Varian "${pick.variant}" tidak tersedia untuk ${m.name}`, status: 400 };
+      unit += Number(found.price_delta) || 0;
+      display += ` (${found.name})`;
+    }
+    const addonList = Array.isArray(m.addons) ? m.addons : [];
+    for (const aName of pick.addons) {
+      const addon = addonList.find((a) => a.name === aName);
+      if (!addon) return { error: `Add-on "${aName}" tidak tersedia untuk ${m.name}`, status: 400 };
+      unit += Number(addon.price) || 0;
+      display += ` + ${addon.name}`;
+    }
+    lines.push({ item_id: m.id, name: display, price: unit, qty: pick.qty });
   }
   return { lines, total: lines.reduce((s, l) => s + l.price * l.qty, 0) };
+}
+
+// Awal hari ini (Asia/Jakarta) sebagai ISO UTC — batas reset nomor antrean harian.
+export function jakartaDayStartISO(now = new Date()): string {
+  const jkt = new Date(now.getTime() + 7 * 3600_000);
+  jkt.setUTCHours(0, 0, 0, 0);
+  return new Date(jkt.getTime() - 7 * 3600_000).toISOString();
+}
+
+// Nomor antrean berikutnya untuk restoran ini (urut per hari, mulai 1).
+export async function nextQueueNo(restaurantId: string): Promise<number> {
+  const res = await supabaseRest(
+    `orders?restaurant_id=eq.${q(restaurantId)}&created_at=gte.${q(jakartaDayStartISO())}&queue_no=not.is.null&select=queue_no&order=queue_no.desc&limit=1`,
+  );
+  if (!res.ok) return 1;
+  const rows: { queue_no: number | null }[] = await res.json().catch(() => []);
+  return (rows[0]?.queue_no ?? 0) + 1;
 }
 
 export async function fetchTables(restaurantId: string, extra = ""): Promise<RestaurantTable[]> {
