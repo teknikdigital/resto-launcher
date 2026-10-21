@@ -38,6 +38,11 @@ type Form = {
   qris_payload: string;
   package: Package;
   owner_pin: string;
+  kasir_pin: string;
+  dapur_pin: string;
+  promo_title: string;
+  promo_text: string;
+  promo_image_url: string;
 };
 
 const EMPTY: Form = {
@@ -59,6 +64,11 @@ const EMPTY: Form = {
   qris_payload: "",
   package: "basic",
   owner_pin: "",
+  kasir_pin: "",
+  dapur_pin: "",
+  promo_title: "",
+  promo_text: "",
+  promo_image_url: "",
 };
 
 const PREVIEW: Record<RestaurantTemplate, string> = {
@@ -178,6 +188,11 @@ function AdminRestaurants() {
       qris_payload: r.qris_payload ?? "",
       package: (r.package as Package) ?? "basic",
       owner_pin: r.owner_pin ?? "",
+      kasir_pin: r.kasir_pin ?? "",
+      dapur_pin: r.dapur_pin ?? "",
+      promo_title: r.promo_title ?? "",
+      promo_text: r.promo_text ?? "",
+      promo_image_url: r.promo_image_url ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -346,6 +361,44 @@ function AdminRestaurants() {
             Acak
           </button>
         </label>
+        <label className="flex items-center gap-2 text-sm text-zinc-600">
+          <span className="font-medium">PIN Kasir:</span>
+          <input
+            className={`${inputCls} w-28 font-mono`}
+            placeholder="opsional"
+            inputMode="numeric"
+            maxLength={8}
+            value={form.kasir_pin}
+            onChange={(e) => set("kasir_pin", e.target.value.replace(/\D/g, ""))}
+          />
+          <button
+            type="button"
+            onClick={() => set("kasir_pin", String(Math.floor(100000 + Math.random() * 900000)))}
+            className="btn-secondary btn-sm"
+          >
+            Acak
+          </button>
+          <span className="text-xs text-zinc-400">kosong = halaman kasir/POS terbuka</span>
+        </label>
+        <label className="flex items-center gap-2 text-sm text-zinc-600">
+          <span className="font-medium">PIN Dapur:</span>
+          <input
+            className={`${inputCls} w-28 font-mono`}
+            placeholder="opsional"
+            inputMode="numeric"
+            maxLength={8}
+            value={form.dapur_pin}
+            onChange={(e) => set("dapur_pin", e.target.value.replace(/\D/g, ""))}
+          />
+          <button
+            type="button"
+            onClick={() => set("dapur_pin", String(Math.floor(100000 + Math.random() * 900000)))}
+            className="btn-secondary btn-sm"
+          >
+            Acak
+          </button>
+          <span className="text-xs text-zinc-400">kosong = layar dapur terbuka</span>
+        </label>
         <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-start">
           <textarea className={`${inputCls} sm:flex-1`} rows={3} placeholder="Deskripsi singkat (tampil di hero & halaman link IG)" value={form.description}
             onChange={(e) => set("description", e.target.value)} />
@@ -384,6 +437,12 @@ function AdminRestaurants() {
           onChange={(e) => set("whatsapp", e.target.value)} />
         <input className={`${inputCls} sm:col-span-2`} type="url" placeholder="Link Google Maps (opsional)" value={form.maps_url}
           onChange={(e) => set("maps_url", e.target.value)} />
+        <input className={inputCls} placeholder="Banner promo: judul (opsional)" value={form.promo_title}
+          onChange={(e) => set("promo_title", e.target.value)} />
+        <input className={inputCls} placeholder="Banner promo: teks (opsional)" value={form.promo_text}
+          onChange={(e) => set("promo_text", e.target.value)} />
+        <input className={`${inputCls} sm:col-span-2`} placeholder="Banner promo: URL gambar (opsional)" value={form.promo_image_url}
+          onChange={(e) => set("promo_image_url", e.target.value)} />
         <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-4 sm:col-span-2">
           <p className="text-sm font-medium text-zinc-700">QRIS statis restoran</p>
           <p className="mt-0.5 text-xs text-zinc-500">
