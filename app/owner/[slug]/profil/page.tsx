@@ -34,6 +34,9 @@ function ProfilForm({ restaurantId, slug }: { restaurantId: string; slug: string
     maps_url: "",
     logo_url: "",
     cover_url: "",
+    promo_title: "",
+    promo_text: "",
+    promo_image_url: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -55,6 +58,9 @@ function ProfilForm({ restaurantId, slug }: { restaurantId: string; slug: string
             maps_url: r.maps_url ?? "",
             logo_url: r.logo_url ?? "",
             cover_url: r.cover_url ?? "",
+            promo_title: r.promo_title ?? "",
+            promo_text: r.promo_text ?? "",
+            promo_image_url: r.promo_image_url ?? "",
           });
         }
       } catch {
@@ -131,6 +137,26 @@ function ProfilForm({ restaurantId, slug }: { restaurantId: string; slug: string
           <div>
             <label className="mb-1 block text-xs font-medium text-zinc-500">Foto sampul (URL gambar)</label>
             <input className={inputCls} value={form.cover_url} onChange={set("cover_url")} placeholder="https://…" />
+          </div>
+        </div>
+        <div className="rounded-xl border border-[#C9A227]/40 bg-[#C9A227]/5 p-4">
+          <p className="text-sm font-semibold">Banner Promo</p>
+          <p className="mb-3 mt-0.5 text-xs text-zinc-500">
+            Tampil di bagian atas halaman menu restomu. Kosongkan semua bila tidak ada promo.
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Judul promo</label>
+              <input className={inputCls} value={form.promo_title} onChange={set("promo_title")} placeholder="Promo Jumat: Diskon 20% Semua Menu" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Teks promo</label>
+              <input className={inputCls} value={form.promo_text} onChange={set("promo_text")} placeholder="Berlaku dine-in, pukul 11.00–15.00" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Gambar promo (URL, opsional)</label>
+              <input className={inputCls} value={form.promo_image_url} onChange={set("promo_image_url")} placeholder="https://…" />
+            </div>
           </div>
         </div>
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
