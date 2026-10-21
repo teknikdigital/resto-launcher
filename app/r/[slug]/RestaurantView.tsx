@@ -11,7 +11,20 @@ import { getTheme, readableOn } from "@/lib/resto-themes";
 import { isQrisPayload, makeDynamicQris, qrisMerchantName } from "@/lib/qris";
 import { AlertIcon, CartIcon, ChairIcon, CloseIcon, LockIcon, MinusIcon, PinIcon, PlusIcon, UtensilsIcon } from "./icons";
 
-type Data = { restaurant: Restaurant; active: boolean; menu: MenuItem[] };
+type SoldOutItem = { id: string; category: string | null; name: string; price: number; image_url: string | null };
+type Data = { restaurant: Restaurant; active: boolean; menu: MenuItem[]; sold_out?: SoldOutItem[] };
+
+type CartLine = {
+  key: string;
+  item: MenuItem;
+  qty: number;
+  variant?: string;
+  addons: string[];
+  unit: number;
+  displayName: string;
+};
+
+const hasOptions = (m: MenuItem) => (m.variants?.length ?? 0) > 0 || (m.addons?.length ?? 0) > 0;
 
 export function PageStatus({ children, loading }: { children?: React.ReactNode; loading?: boolean }) {
   if (loading) {
@@ -41,7 +54,8 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
   const tableName = useSearchParams().get("table")?.trim() || "";
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
-  const [cart, setCart] = useState<Record<string, number>>({});
+  const [lines, setLines] = useState<CartLine[]>([]);
+  const [configItem, setConfigItem] = useState<MenuItem | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -141,7 +155,14 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={payInfo.qrUrl} alt="QRIS dinamis" className="mx-auto mt-5 h-64 w-64 rounded-2xl border-4 border-white bg-white shadow" />
                 <p className="mt-4 text-3xl font-bold" style={t.accentText}>{formatRupiah(payInfo.order.total)}</p>
-                <p className={`mt-1 text-sm ${t.muted}`}>Merchant: {merchant}</p>
+                {payInfo.order.queue_no ? (
+                  <p className="mt-3">
+                    <span className={`inline-block rounded-2xl px-4 py-2 ${t.notice}`}>
+                      Nomor antrean Anda: <strong className="text-lg">#{payInfo.order.queue_no}</strong>
+                    </span>
+                  </p>
+                ) : null}
+                <p className={`mt-2 text-sm ${t.muted}`}>Merchant: {merchant}</p>
                 <div className={`mt-5 rounded-xl px-4 py-3 text-left text-sm ${t.notice}`}>
                   <p className="font-semibold">Cara bayar:</p>
                   <ol className="mt-1 list-decimal pl-5 leading-relaxed">
@@ -162,7 +183,7 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
                 <h1 className="text-xl font-bold">Pembayaran diterima!</h1>
                 <p className={`mt-2 text-sm ${t.muted}`}>
                   Pesanan {formatRupiah(payInfo.order.total)}{tableName ? ` untuk Meja ${tableName}` : ""} diteruskan ke dapur.
-                  Silakan duduk dan tunggu hidangan Anda.
+                  {payInfo.order.queue_no ? <> Nomor antrean Anda <strong>#{payInfo.order.queue_no}</strong> — sebutkan nomor ini saat mengambil pesanan.</> : " Silakan duduk dan tunggu hidangan Anda."}
                 </p>
               </>
             )}
@@ -179,16 +200,27 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
     );
   }
 
-  const lines = menu.filter((m) => cart[m.id] > 0).map((m) => ({ item: m, qty: cart[m.id] }));
-  const total = lines.reduce((s, l) => s + Number(l.item.price) * l.qty, 0);
+  const total = lines.reduce((s, l) => s + l.unit * l.qty, 0);
 
-  function setQty(id: string, qty: number) {
-    setCart((c) => {
-      const next = { ...c };
-      if (qty <= 0) delete next[id];
-      else next[id] = Math.min(qty, 99);
-      return next;
+  function setLineQty(key: string, qty: number) {
+    setLines((ls) =>
+      qty <= 0 ? ls.filter((l) => l.key !== key) : ls.map((l) => (l.key === key ? { ...l, qty: Math.min(qty, 99) } : l)),
+    );
+  }
+
+  function addLine(line: Omit<CartLine, "qty">, qty: number) {
+    setLines((ls) => {
+      const found = ls.find((l) => l.key === line.key);
+      if (found) return ls.map((l) => (l.key === line.key ? { ...l, qty: Math.min(99, l.qty + qty) } : l));
+      return [...ls, { ...line, qty }];
     });
+  }
+
+  function addPlain(item: MenuItem) {
+    addLine(
+      { key: item.id, item, addons: [], unit: Number(item.price), displayName: item.name },
+      1,
+    );
   }
 
   async function checkout(e: React.FormEvent) {
@@ -203,11 +235,12 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
           customer_name: name,
           customer_phone: phone,
           table: tableName || undefined,
-          items: lines.map((l) => ({ item_id: l.item.id, qty: l.qty })),
+          items: lines.map((l) => ({ item_id: l.item.id, qty: l.qty, variant: l.variant, addons: l.addons })),
         }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "Gagal membuat pesanan");
+      const queueTxt = (d.order as Order)?.queue_no ? `Nomor antrean Anda: #${(d.order as Order).queue_no}. ` : "";
       // Restoran punya QRIS: tampilkan QRIS dinamis dengan nominal terkunci.
       if (restaurant.qris_payload && isQrisPayload(restaurant.qris_payload)) {
         const dynamic = makeDynamicQris(restaurant.qris_payload, d.order.total);
@@ -215,26 +248,29 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
         const qrUrl = await QRCode.toDataURL(dynamic, { width: 300, margin: 2 });
         setPayInfo({ order: d.order as Order, qrUrl });
         setPayPaid(false);
-        setCart({});
+        setLines([]);
         setSheetOpen(false);
         window.scrollTo({ top: 0 });
         return;
       }
       if (!wa) {
-        setNotice("Nomor WhatsApp restoran belum diatur.");
+        setNotice(`${queueTxt}Nomor WhatsApp restoran belum diatur.`);
+        setLines([]);
+        setSheetOpen(false);
         return;
       }
       const summary = [
         `Halo ${restaurant.name}, saya ingin memesan${tableName ? ` (Meja ${tableName})` : ""}:`,
-        ...lines.map((l) => `- ${l.item.name} x${l.qty} = ${formatRupiah(Number(l.item.price) * l.qty)}`),
+        ...lines.map((l) => `- ${l.displayName} x${l.qty} = ${formatRupiah(l.unit * l.qty)}`),
         `Total: ${formatRupiah(d.order.total)}`,
+        (d.order as Order)?.queue_no ? `No. antrean: #${(d.order as Order).queue_no}` : "",
         `Nama: ${name}`,
         `No. WA: ${phone}`,
-      ].join("\n");
+      ].filter(Boolean).join("\n");
       window.open(`https://wa.me/${wa}?text=${encodeURIComponent(summary)}`, "_blank", "noopener,noreferrer");
-      setCart({});
+      setLines([]);
       setSheetOpen(false);
-      setNotice("Pesanan tersimpan. Lanjutkan konfirmasi lewat WhatsApp.");
+      setNotice(`${queueTxt}Pesanan tersimpan. Lanjutkan konfirmasi lewat WhatsApp.`);
     } catch (err) {
       setNotice(err instanceof Error ? err.message : "Gagal membuat pesanan");
     } finally {
@@ -325,6 +361,20 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
       )}
 
       <main className="mx-auto w-full max-w-2xl px-4 pt-6">
+        {(restaurant.promo_title || restaurant.promo_text || restaurant.promo_image_url) && (
+          <div className="mb-6 overflow-hidden rounded-3xl border shadow-sm" style={{ borderColor: `${color}40` }}>
+            {restaurant.promo_image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={restaurant.promo_image_url} alt={restaurant.promo_title ?? "Promo"} className="h-40 w-full object-cover" />
+            )}
+            {(restaurant.promo_title || restaurant.promo_text) && (
+              <div className="p-4" style={{ backgroundColor: `${color}14` }}>
+                {restaurant.promo_title && <p className="font-serif text-lg font-bold">{restaurant.promo_title}</p>}
+                {restaurant.promo_text && <p className={`mt-0.5 text-sm ${t.muted}`}>{restaurant.promo_text}</p>}
+              </div>
+            )}
+          </div>
+        )}
         {!isMenu && <h2 className={t.eyebrow}>Menu Pilihan</h2>}
         {grouped.length === 0 && (
           <div className="flex flex-col items-center px-6 py-16 text-center">
@@ -340,7 +390,9 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
             <h2 className={t.catTitle}>{category}</h2>
             <ul className={t.list}>
               {items.map((m) => {
-                const qty = cart[m.id] ?? 0;
+                const plainQty = lines.find((l) => l.key === m.id)?.qty ?? 0;
+                const itemQty = lines.filter((l) => l.item.id === m.id).reduce((s, l) => s + l.qty, 0);
+                const optioned = hasOptions(m);
                 return (
                   <li key={m.id} className={t.card}>
                     {m.image_url ? (
@@ -362,14 +414,18 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
                         <p className={t.price} style={t.priceStyle}>
                           {formatRupiah(Number(m.price))}
                         </p>
-                        {qty > 0 ? (
+                        {optioned ? (
+                          <button onClick={() => setConfigItem(m)} className={t.btn} style={t.btnStyle}>
+                            Pilih{itemQty > 0 ? ` (${itemQty})` : ""}
+                          </button>
+                        ) : plainQty > 0 ? (
                           <div className="flex items-center gap-2">
-                            <button onClick={() => setQty(m.id, qty - 1)} aria-label="Kurangi" className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`}>
+                            <button onClick={() => setLineQty(m.id, plainQty - 1)} aria-label="Kurangi" className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`}>
                               <MinusIcon className="h-4 w-4" />
                             </button>
-                            <span className="w-5 text-center font-semibold">{qty}</span>
+                            <span className="w-5 text-center font-semibold">{plainQty}</span>
                             <button
-                              onClick={() => setQty(m.id, qty + 1)}
+                              onClick={() => addPlain(m)}
                               aria-label="Tambah"
                               className="flex h-8 w-8 items-center justify-center rounded-full transition hover:brightness-110 active:scale-90"
                               style={t.btnStyle}
@@ -378,7 +434,7 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
                             </button>
                           </div>
                         ) : (
-                          <button onClick={() => setQty(m.id, 1)} className={t.btn} style={t.btnStyle}>
+                          <button onClick={() => addPlain(m)} className={t.btn} style={t.btnStyle}>
                             Tambah
                           </button>
                         )}
@@ -390,6 +446,38 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
             </ul>
           </section>
         ))}
+        {isMenu && (data.sold_out?.length ?? 0) > 0 && (
+          <section className="mb-8">
+            <h2 className={t.catTitle}>Sedang Habis</h2>
+            <ul className={t.list}>
+              {data.sold_out!.map((m) => (
+                <li key={m.id} className={`${t.card} opacity-60`}>
+                  {m.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.image_url} alt={m.name} className={`${t.img} grayscale`} />
+                  ) : (
+                    <div
+                      aria-hidden="true"
+                      className={`${t.img} flex items-center justify-center text-3xl font-bold grayscale`}
+                      style={{ background: `linear-gradient(135deg, ${color}, ${color}88)`, color: readableOn(color) }}
+                    >
+                      {initials(m.name)}
+                    </div>
+                  )}
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <p className={`break-words ${t.name}`}>{m.name}</p>
+                    <div className="mt-auto flex items-center justify-between pt-2">
+                      <p className={t.price} style={t.priceStyle}>
+                        {formatRupiah(Number(m.price))}
+                      </p>
+                      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">Habis</span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {!isMenu && menu.length > 0 && (
           <div className={`mb-8 ${leftAlign ? "" : "text-center"}`}>
             <Link href={`/r/${restaurant.slug}/menu`} className={`inline-block px-6 py-3 ${t.btn}`} style={t.btnStyle}>
@@ -437,20 +525,20 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
             ) : (
               <>
                 <ul className={`mb-4 divide-y ${t.divider}`}>
-                  {lines.map(({ item, qty }) => (
-                    <li key={item.id} className="flex items-center gap-3 py-3 text-sm">
+                  {lines.map((l) => (
+                    <li key={l.key} className="flex items-center gap-3 py-3 text-sm">
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium">{item.name}</p>
-                        <p className={t.muted}>{formatRupiah(Number(item.price) * qty)}</p>
+                        <p className="font-medium">{l.displayName}</p>
+                        <p className={t.muted}>{formatRupiah(l.unit * l.qty)}</p>
                       </div>
-                      <button onClick={() => setQty(item.id, qty - 1)} className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`} aria-label="Kurangi">
+                      <button onClick={() => setLineQty(l.key, l.qty - 1)} className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`} aria-label="Kurangi">
                         <MinusIcon className="h-4 w-4" />
                       </button>
-                      <span className="w-5 text-center font-semibold">{qty}</span>
-                      <button onClick={() => setQty(item.id, qty + 1)} className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`} aria-label="Tambah">
+                      <span className="w-5 text-center font-semibold">{l.qty}</span>
+                      <button onClick={() => setLineQty(l.key, l.qty + 1)} className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`} aria-label="Tambah">
                         <PlusIcon className="h-4 w-4" />
                       </button>
-                      <button onClick={() => setQty(item.id, 0)} className="text-red-500 transition hover:opacity-70" aria-label="Hapus">
+                      <button onClick={() => setLineQty(l.key, 0)} className="text-red-500 transition hover:opacity-70" aria-label="Hapus">
                         <CloseIcon className="h-4 w-4" />
                       </button>
                     </li>
@@ -493,6 +581,152 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
           </div>
         </div>
       )}
+
+      {configItem && (
+        <ItemSheet
+          item={configItem}
+          theme={t}
+          color={color}
+          onClose={() => setConfigItem(null)}
+          onAdd={(line, qty) => {
+            addLine(line, qty);
+            setConfigItem(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Lembar pilihan varian & add-on untuk pelanggan (tema mengikuti resto).
+function ItemSheet({
+  item,
+  theme: t,
+  color,
+  onClose,
+  onAdd,
+}: {
+  item: MenuItem;
+  theme: ReturnType<typeof getTheme>;
+  color: string;
+  onClose: () => void;
+  onAdd: (line: Omit<CartLine, "qty">, qty: number) => void;
+}) {
+  const [variant, setVariant] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    for (const g of item.variants ?? []) if (g.options[0]) init[g.label] = g.options[0].name;
+    return init;
+  });
+  const [addons, setAddons] = useState<string[]>([]);
+  const [qty, setQty] = useState(1);
+
+  let unit = Number(item.price);
+  for (const g of item.variants ?? []) {
+    const opt = g.options.find((o) => o.name === variant[g.label]);
+    if (opt) unit += Number(opt.price_delta) || 0;
+  }
+  for (const a of item.addons ?? []) if (addons.includes(a.name)) unit += Number(a.price) || 0;
+
+  const chosenVariants = (item.variants ?? []).map((g) => variant[g.label]).filter(Boolean);
+  const primaryVariant = chosenVariants[0];
+
+  return (
+    <div className={`fixed inset-0 z-40 flex items-end justify-center ${t.overlayBackdrop}`} onClick={onClose}>
+      <div
+        className={`max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl p-5 shadow-2xl ${t.sheet}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={`mx-auto mb-4 h-1.5 w-12 rounded-full ${t.handle}`} />
+        <div className="mb-1 flex items-start justify-between">
+          <div>
+            <h2 className="text-xl font-bold">{item.name}</h2>
+            <p className={`text-sm ${t.muted}`}>Harga dasar {formatRupiah(Number(item.price))}</p>
+          </div>
+          <button onClick={onClose} className={`rounded-full px-3 py-1 text-sm transition hover:opacity-70 ${t.muted}`}>
+            Tutup
+          </button>
+        </div>
+        {(item.variants ?? []).map((g) => (
+          <div key={g.label} className="mt-4">
+            <p className={`mb-1.5 text-xs font-semibold tracking-wide uppercase ${t.muted}`}>{g.label}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {g.options.map((o) => {
+                const on = variant[g.label] === o.name;
+                return (
+                  <button
+                    key={o.name}
+                    onClick={() => setVariant((v) => ({ ...v, [g.label]: o.name }))}
+                    className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${on ? "" : t.ghostBtn}`}
+                    style={on ? { backgroundColor: color, color: readableOn(color), borderColor: color } : undefined}
+                  >
+                    {o.name}
+                    {Number(o.price_delta) > 0 && <span className="opacity-80"> +{formatRupiah(Number(o.price_delta))}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        {(item.addons ?? []).length > 0 && (
+          <div className="mt-4">
+            <p className={`mb-1.5 text-xs font-semibold tracking-wide uppercase ${t.muted}`}>Tambahan</p>
+            <div className="space-y-1.5">
+              {item.addons.map((a) => (
+                <label key={a.name} className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm ${t.input}`}>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    style={{ accentColor: color }}
+                    checked={addons.includes(a.name)}
+                    onChange={(e) => setAddons((as) => (e.target.checked ? [...as, a.name] : as.filter((x) => x !== a.name)))}
+                  />
+                  <span className="flex-1 font-medium">{a.name}</span>
+                  <span className={t.muted}>+{formatRupiah(Number(a.price))}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="mt-5 flex items-center justify-between">
+          <span className={`text-sm font-medium ${t.muted}`}>Jumlah</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setQty((q) => Math.max(1, q - 1))} className={`flex h-9 w-9 items-center justify-center rounded-full ${t.ghostBtn}`} aria-label="Kurangi">
+              <MinusIcon className="h-4 w-4" />
+            </button>
+            <span className="w-6 text-center font-bold">{qty}</span>
+            <button
+              onClick={() => setQty((q) => Math.min(99, q + 1))}
+              className="flex h-9 w-9 items-center justify-center rounded-full transition hover:brightness-110 active:scale-90"
+              style={t.btnStyle}
+              aria-label="Tambah"
+            >
+              <PlusIcon className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+        <button
+          onClick={() =>
+            onAdd(
+              {
+                key: `${item.id}|${primaryVariant ?? ""}|${[...addons].sort().join(",")}`,
+                item,
+                variant: primaryVariant,
+                addons: [...addons].sort(),
+                unit,
+                displayName:
+                  item.name +
+                  (chosenVariants.length ? ` (${chosenVariants.join(", ")})` : "") +
+                  addons.map((a) => ` + ${a}`).join(""),
+              },
+              qty,
+            )
+          }
+          className={`mt-5 w-full py-3.5 ${t.btn}`}
+          style={t.btnStyle}
+        >
+          Tambahkan — {formatRupiah(unit * qty)}
+        </button>
+      </div>
     </div>
   );
 }
