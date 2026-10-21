@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faStar, faCircleDot, faLocationDot } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faStar, faCircleDot, faLocationDot, faMobileScreen, faCashRegister, faKitchenSet, faStore } from "@fortawesome/free-solid-svg-icons";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -104,6 +104,9 @@ const PACKAGES = [
     name: "Basic",
     price: "Rp50.000",
     per: "/bulan",
+    yearly: "Rp500.000",
+    yearlyWas: "Rp600.000",
+    yearlyLabel: "/tahun",
     desc: "Buat warung & resto kecil yang mau tampil profesional di internet.",
     segment: "Warung, resto kecil, kuliner rumahan",
     address: "restolauncher.com/r/nama-resto",
@@ -124,6 +127,9 @@ const PACKAGES = [
     name: "Plus",
     price: "Rp99.000",
     per: "/bulan",
+    yearly: "Rp990.000",
+    yearlyWas: "Rp1.188.000",
+    yearlyLabel: "/tahun",
     desc: "Buat resto dine-in yang butuh kasir digital: kelola pesanan & rekap transaksi.",
     segment: "Resto menengah, cafe, dine-in",
     address: "nama-resto.restolauncher.com",
@@ -145,6 +151,9 @@ const PACKAGES = [
     name: "Premium",
     price: "Rp500.000",
     per: " sekali bayar",
+    yearly: "Rp490.000",
+    yearlyWas: "Rp588.000",
+    yearlyLabel: " maintenance/tahun",
     setup: "Termasuk setup + domain tahun pertama · + Rp49.000/bln maintenance",
     desc: "Buat brand yang serius: bayar sekali di depan, maintenance murah per bulan.",
     segment: "Resto mapan, brand F&B serius",
@@ -281,6 +290,49 @@ const STEPS = [
   },
 ];
 
+const ROLES = [
+  {
+    icon: faMobileScreen,
+    title: "Untuk Pelanggan",
+    points: [
+      "Scan QR di meja — menu langsung terbuka di browser",
+      "Tanpa install aplikasi apa pun",
+      "Pesan dine-in atau takeaway dari HP",
+      "Bayar QRIS, nominal otomatis pas dengan pesanan",
+    ],
+  },
+  {
+    icon: faCashRegister,
+    title: "Untuk Kasir",
+    points: [
+      "Mode konfirmasi: tandai lunas pesanan online",
+      "Mode POS: buat pesanan langsung di konter",
+      "Terima tunai, QRIS, atau transfer",
+      "Status semua pesanan terpantau di satu halaman",
+    ],
+  },
+  {
+    icon: faKitchenSet,
+    title: "Untuk Dapur",
+    points: [
+      "Layar khusus tablet di dapur",
+      "Antrean pesanan yang sudah lunas, urut dari terlama",
+      "Penanda merah bila pesanan menunggu ≥ 15 menit",
+      "Sekali sentuh \"Selesai Dimasak\" saat hidangan siap",
+    ],
+  },
+  {
+    icon: faStore,
+    title: "Untuk Pemilik",
+    points: [
+      "Portal pribadi dengan PIN 6 digit",
+      "Kelola meja & QR, menu, dan profil resto sendiri",
+      "Rekap transaksi harian (paket Plus & Premium)",
+      "Atur tema dan tampilan website restoranmu",
+    ],
+  },
+];
+
 const FAQS = [
   {
     q: "Apakah uang pelanggan lewat RestoLauncher dulu?",
@@ -296,7 +348,7 @@ const FAQS = [
   },
   {
     q: "Apakah bisa berhenti kapan saja?",
-    a: "Bisa. Langganan bersifat bulanan tanpa kontrak tahunan. Jika berhenti, website dinonaktifkan dan data Anda tidak kami tahan.",
+    a: "Bisa. Tidak ada kontrak jangka panjang yang mengikat. Jika berhenti, website dinonaktifkan dan data Anda tidak kami tahan — lanjut lagi kapan pun bisa.",
   },
   {
     q: "Saya sudah punya QRIS, apakah bisa dipakai?",
@@ -305,6 +357,14 @@ const FAQS = [
   {
     q: "Apakah pesanan bisa diteruskan ke dapur?",
     a: "Bisa. Pesanan yang sudah dibayar otomatis tampil di Layar Dapur (tablet) — koki melihat antrean masak real-time dan mengetuk \"Selesai Dimasak\" saat hidangan siap.",
+  },
+  {
+    q: "Kalau berhenti langganan, data menu dan resto saya hilang?",
+    a: "Tidak hilang. Menu, meja, dan riwayat pesananmu tetap tersimpan rapi. Selama berhenti, website resto dinonaktifkan — begitu kamu lanjut lagi, semuanya aktif kembali persis seperti sebelumnya.",
+  },
+  {
+    q: "Kalau naik paket di tengah jalan, hitungannya bagaimana?",
+    a: "Adil dan tidak mulai dari nol: kamu cukup membayar selisih harganya, dihitung dari sisa masa aktif paket yang sedang berjalan. Chat kami lewat WhatsApp, kami bantu hitungkan sebelum kamu bayar.",
   },
 ];
 
@@ -946,7 +1006,7 @@ export default function MarketingPage() {
           <Reveal className="mx-auto mb-12 max-w-2xl text-center">
             <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#C9A227] uppercase">03 · Harga</p>
             <h2 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Pilih paket sesuai kebutuhan restoranmu</h2>
-            <p className="mt-3 text-white/70">Bulanan, tanpa kontrak tahunan. Upgrade atau downgrade kapan saja.</p>
+            <p className="mt-3 text-white/70">Bulanan atau tahunan — bayar tahunan hemat 2 bulan. Upgrade atau downgrade kapan saja.</p>
           </Reveal>
           <div className="grid items-stretch gap-6 lg:grid-cols-3">
             {PACKAGES.map((p, i) => (
@@ -960,7 +1020,7 @@ export default function MarketingPage() {
                 >
                   {p.highlight && (
                     <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#C9A227] px-4 py-1 text-xs font-bold tracking-wide text-stone-900 uppercase">
-                      Paling populer
+                      Paling Laris
                     </span>
                   )}
                   <h3 className="font-display text-xl font-semibold">{p.name}</h3>
@@ -973,6 +1033,11 @@ export default function MarketingPage() {
                     <span className={`text-sm ${p.highlight ? "text-white/70" : "text-stone-500"}`}>{p.per}</span>
                   </p>
                   {"setup" in p && <p className={`mt-1 text-xs ${p.highlight ? "text-white/70" : "text-stone-500"}`}>{p.setup}</p>}
+                  <p className={`mt-2 text-sm ${p.highlight ? "text-white/80" : "text-stone-500"}`}>
+                    atau <span className="line-through opacity-60">{p.yearlyWas}</span>{" "}
+                    <span className={`font-bold ${p.highlight ? "text-[#f3d97b]" : "text-[#1B5E3B]"}`}>{p.yearly}</span>
+                    {p.yearlyLabel} · hemat 2 bulan
+                  </p>
                   <p className={`mt-3 rounded-lg px-3 py-2 font-mono text-xs break-all ${p.highlight ? "bg-white/10 text-white/90" : "bg-stone-100 text-stone-600"}`}>
                     {p.address}
                   </p>
@@ -1016,11 +1081,42 @@ export default function MarketingPage() {
         </div>
       </section>
 
+      {/* Untuk siapa saja — fitur per peran */}
+      <section className="py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal className="mx-auto mb-12 max-w-2xl text-center">
+            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">04 · Untuk Siapa Saja</p>
+            <h2 className="font-display text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">Satu sistem, dipakai seluruh tim restoranmu</h2>
+            <p className="mt-3 text-stone-600">Setiap orang di restoranmu kebagian alat yang memang untuk pekerjaannya — tidak lebih, tidak kurang.</p>
+          </Reveal>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {ROLES.map((r, i) => (
+              <Reveal key={r.title} delay={i * 100} from="up" className="h-full">
+                <div className="flex h-full flex-col rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1B5E3B]/8 text-lg text-[#1B5E3B]">
+                    <FontAwesomeIcon icon={r.icon} />
+                  </span>
+                  <h3 className="mt-4 font-display text-lg font-semibold text-stone-900">{r.title}</h3>
+                  <ul className="mt-3 space-y-2 text-sm text-stone-600">
+                    {r.points.map((pt) => (
+                      <li key={pt} className="flex gap-2">
+                        <FontAwesomeIcon icon={faCheck} className="mt-0.5 text-xs text-[#1B5E3B]" />
+                        <span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section id="faq" className="border-t border-stone-200/80 bg-white/60 py-20 sm:py-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <Reveal from="zoom" className="mb-10 text-center">
-            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">04 · FAQ</p>
+            <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-[#1B5E3B] uppercase">05 · FAQ</p>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Pertanyaan yang sering ditanyakan</h2>
           </Reveal>
           <div className="space-y-3">
@@ -1057,10 +1153,10 @@ export default function MarketingPage() {
               </div>
               <div className="relative">
                 <h2 className="mx-auto max-w-2xl font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Siap punya website pemesanan sendiri minggu ini?
+                  Siap terima pesanan online hari ini juga?
                 </h2>
                 <p className="mx-auto mt-3 max-w-xl text-white/75">
-                  Isi form pemesanan, kami hubungi via WhatsApp, dan website restoranmu bisa aktif dalam hitungan hari.
+                  Isi form pemesanan, kami hubungi via WhatsApp, dan kami bantu setup sampai website restoranmu aktif dan siap dipakai.
                 </p>
                 <p className="mx-auto mt-4 inline-flex max-w-xl items-center gap-2 rounded-full border border-[#C9A227]/50 bg-[#C9A227]/15 px-5 py-2.5 text-sm font-medium text-[#f3d97b]">
                   <FontAwesomeIcon icon={faLocationDot} />
