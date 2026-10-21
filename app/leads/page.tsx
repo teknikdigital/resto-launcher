@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar, faPaperPlane, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons";
 import { LEAD_STATUSES, type Lead, type LeadStatus } from "@/lib/lead-types";
 
 const TEMPLATE_KEY = "wa_template";
@@ -64,117 +66,158 @@ export default function LeadsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-10">
-      <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Leads</h1>
-        <nav className="flex gap-4 text-sm font-medium text-blue-600">
-          <Link href="/admin/restaurants" className="hover:underline">
-            Restoran
-          </Link>
-          <Link href="/" className="hover:underline">
-            Cari Lead
-          </Link>
-        </nav>
-      </header>
+    <main className="min-h-screen bg-[#FAF6EF]">
+      <div className="mx-auto w-full max-w-6xl px-4 py-10">
+        <header className="mb-7 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-bold tracking-[0.25em] text-[#C9A227] uppercase">RestoLauncher · Alat Internal</p>
+            <h1 className="font-display mt-1 text-3xl font-semibold text-zinc-900 sm:text-4xl">Daftar Leads</h1>
+            <p className="mt-1.5 max-w-lg text-sm text-zinc-500">
+              Calon pelanggan dari alat pencari. Hubungi via WA, pantau statusnya, lalu buatkan websitenya.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link href="/tools" className="btn-secondary">Cari Lead</Link>
+            <Link href="/admin/restaurants" className="btn-secondary">Admin Resto</Link>
+          </div>
+        </header>
 
-      <section className="mb-6">
-        <label htmlFor="tpl" className="mb-1 block text-sm font-medium">
-          Template pesan WA
-        </label>
-        <textarea
-          id="tpl"
-          rows={3}
-          value={template}
-          onChange={(e) => changeTemplate(e.target.value)}
-          className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm"
-        />
-        <p className="mt-1 text-xs text-zinc-500">
-          Variabel: {"{nama}"}, {"{alamat}"}. Tersimpan di browser ini.
-        </p>
-      </section>
+        {!loading && leads.length > 0 && (
+          <div className="mb-5 flex flex-wrap gap-2">
+            <span className="rounded-full bg-[#1B5E3B] px-3.5 py-1.5 text-xs font-bold text-white">
+              Total {leads.length} lead
+            </span>
+            {LEAD_STATUSES.map((s) => {
+              const n = leads.filter((l) => l.status === s).length;
+              if (!n) return null;
+              return (
+                <span key={s} className="rounded-full border border-[#1B5E3B]/25 bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-700">
+                  {s}: {n}
+                </span>
+              );
+            })}
+          </div>
+        )}
 
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
-      {loading ? (
-        <p className="text-sm text-zinc-500">Memuat...</p>
-      ) : leads.length === 0 ? (
-        <p className="text-sm text-zinc-500">Belum ada lead.</p>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-zinc-200">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-zinc-100 text-xs uppercase text-zinc-600">
-              <tr>
-                <th className="px-3 py-2">Nama</th>
-                <th className="px-3 py-2">Alamat</th>
-                <th className="px-3 py-2">Telepon</th>
-                <th className="px-3 py-2">Rating</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Notes</th>
-                <th className="px-3 py-2"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-200">
-              {leads.map((lead) => {
-                const wa = buildWaUrl(lead, template);
-                return (
-                  <tr key={lead.id} className="align-top">
-                    <td className="px-3 py-2 font-medium">{lead.name}</td>
-                    <td className="px-3 py-2 text-zinc-600">{lead.address ?? "-"}</td>
-                    <td className="whitespace-nowrap px-3 py-2">{lead.phone ?? "-"}</td>
-                    <td className="px-3 py-2">{lead.rating ?? "-"}</td>
-                    <td className="px-3 py-2">
-                      <select
-                        value={lead.status}
-                        onChange={(e) => patch(lead.id, { status: e.target.value as LeadStatus })}
-                        className="rounded-md border border-zinc-300 bg-transparent px-2 py-1"
-                      >
-                        {LEAD_STATUSES.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        key={lead.updated_at}
-                        defaultValue={lead.notes ?? ""}
-                        onBlur={(e) => {
-                          if (e.target.value !== (lead.notes ?? "")) patch(lead.id, { notes: e.target.value });
-                        }}
-                        placeholder="Catatan..."
-                        className="w-48 rounded-md border border-zinc-300 bg-transparent px-2 py-1"
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex gap-2">
-                      <Link
-                        href={`/admin/restaurants?${new URLSearchParams({
-                          name: lead.name,
-                          address: lead.address ?? "",
-                          phone: lead.phone ?? "",
-                          maps_url: lead.maps_url ?? "",
-                          cover_url: `/api/places/photo?place_id=${encodeURIComponent(lead.place_id)}`,
-                        }).toString()}`}
-                        className="whitespace-nowrap rounded-md border border-zinc-300 px-3 py-1 hover:bg-zinc-100"
-                      >
-                        Buatkan dari Lead
-                      </Link>
-                      <button
-                        disabled={!wa}
-                        onClick={() => wa && window.open(wa, "_blank", "noopener,noreferrer")}
-                        className="whitespace-nowrap rounded-md bg-green-600 px-3 py-1 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500"
-                      >
-                        Kirim WA
-                      </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+        <section className="panel mb-6 !rounded-3xl">
+          <label htmlFor="tpl" className="mb-1 block text-sm font-semibold text-zinc-800">
+            Template pesan WA
+          </label>
+          <textarea
+            id="tpl"
+            rows={3}
+            value={template}
+            onChange={(e) => changeTemplate(e.target.value)}
+            className="field"
+          />
+          <p className="mt-1.5 text-xs text-zinc-500">
+            Variabel: {"{nama}"}, {"{alamat}"}. Tersimpan otomatis di browser ini.
+          </p>
+        </section>
+
+        {error && <p className="alert-error mb-4">{error}</p>}
+        {loading ? (
+          <div className="space-y-3" aria-busy="true" aria-label="Memuat">
+            <div className="skeleton h-12 w-full" />
+            <div className="skeleton h-16 w-full" />
+            <div className="skeleton h-16 w-full" />
+          </div>
+        ) : leads.length === 0 ? (
+          <div className="empty-state !rounded-3xl">
+            <div className="empty-state-icon text-[#1B5E3B]">
+              <FontAwesomeIcon icon={faWandMagicSparkles} />
+            </div>
+            <p className="font-semibold text-zinc-800">Belum ada lead</p>
+            <p className="mt-1 text-sm text-zinc-500">
+              Cari restoran lewat <Link href="/tools" className="font-medium text-[#1B5E3B] underline">Alat Cari Lead</Link> lalu simpan sebagai lead.
+            </p>
+          </div>
+        ) : (
+          <div className="table-wrap !rounded-3xl">
+            <table className="data-table min-w-[880px]">
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Alamat</th>
+                  <th>Telepon</th>
+                  <th>Rating</th>
+                  <th>Status</th>
+                  <th>Catatan</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {leads.map((lead) => {
+                  const wa = buildWaUrl(lead, template);
+                  return (
+                    <tr key={lead.id} className="align-top">
+                      <td className="font-semibold text-zinc-900">{lead.name}</td>
+                      <td className="max-w-56 text-zinc-600">{lead.address ?? "-"}</td>
+                      <td className="whitespace-nowrap">{lead.phone ?? "-"}</td>
+                      <td className="whitespace-nowrap">
+                        {lead.rating ? (
+                          <span className="inline-flex items-center gap-1">
+                            <FontAwesomeIcon icon={faStar} className="text-[#C9A227]" /> {lead.rating}
+                          </span>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td>
+                        <select
+                          value={lead.status}
+                          onChange={(e) => patch(lead.id, { status: e.target.value as LeadStatus })}
+                          className="field !w-auto !py-1.5"
+                        >
+                          {LEAD_STATUSES.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          key={lead.updated_at}
+                          defaultValue={lead.notes ?? ""}
+                          onBlur={(e) => {
+                            if (e.target.value !== (lead.notes ?? "")) patch(lead.id, { notes: e.target.value });
+                          }}
+                          placeholder="Catatan…"
+                          className="field !w-48 !py-1.5"
+                        />
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/admin/restaurants?${new URLSearchParams({
+                              name: lead.name,
+                              address: lead.address ?? "",
+                              phone: lead.phone ?? "",
+                              maps_url: lead.maps_url ?? "",
+                              cover_url: `/api/places/photo?place_id=${encodeURIComponent(lead.place_id)}`,
+                            }).toString()}`}
+                            className="btn-secondary btn-sm"
+                          >
+                            Buatkan dari Lead
+                          </Link>
+                          <button
+                            disabled={!wa}
+                            onClick={() => wa && window.open(wa, "_blank", "noopener,noreferrer")}
+                            className="rounded-lg bg-[#1B5E3B] px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-[#14492e] disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500"
+                          >
+                            <FontAwesomeIcon icon={faPaperPlane} className="mr-1.5" /> WA
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
