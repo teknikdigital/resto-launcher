@@ -8,7 +8,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ orderId: s
   const { orderId } = await ctx.params;
   try {
     const res = await supabaseRest(
-      `orders?id=eq.${encodeURIComponent(orderId)}&select=id,status,payment_status,payment_method,total,table_id,created_at&limit=1`,
+      `orders?id=eq.${encodeURIComponent(orderId)}&select=id,status,payment_status,payment_method,total,table_id,queue_no,created_at&limit=1`,
     );
     if (!res.ok) return supabaseErrorResponse(res);
     const [order] = await res.json();
@@ -23,7 +23,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ orderId: s
 export async function PATCH(request: Request, ctx: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await ctx.params;
   const body = await request.json().catch(() => null);
-  const patch: Record<string, string> = {};
+  const patch: Record<string, string | null> = {};
   if (body?.status !== undefined) {
     if (!(ORDER_STATUSES as readonly string[]).includes(body.status)) {
       return NextResponse.json({ error: "Status tidak valid" }, { status: 400 });
@@ -41,6 +41,12 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ orderId: 
       return NextResponse.json({ error: "Metode pembayaran tidak valid" }, { status: 400 });
     }
     patch.payment_method = body.payment_method;
+  }
+  if (body?.status_note !== undefined) {
+    if (body.status_note !== null && typeof body.status_note !== "string") {
+      return NextResponse.json({ error: "Catatan status tidak valid" }, { status: 400 });
+    }
+    patch.status_note = body.status_note ? body.status_note.trim().slice(0, 200) || null : null;
   }
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Tidak ada perubahan" }, { status: 400 });
