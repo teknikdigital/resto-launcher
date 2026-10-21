@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #18181b;
+  /* Identitas RestoLauncher: kertas hangat, hijau merek, teks batu hangat. */
+  --background: #faf6ef;
+  --foreground: #292524;
   color-scheme: light;
 }
 
@@ -108,30 +109,36 @@ html {
 }
 
 body {
-  background: var(--background);
+  /* Kertas hangat + grain sangat halus (sama seperti landing) agar tidak flat. */
+  background-color: var(--background);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
+::selection {
+  background: rgba(201, 162, 39, 0.35);
+}
+
 /* Komponen UI bersama (admin & halaman publik) */
 @utility btn {
-  @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent px-4 py-2 text-sm font-medium shadow-sm transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100;
+  @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent px-4 py-2 text-sm font-medium shadow-sm transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]/60 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100;
 }
 
 @layer components {
   .btn-primary {
-    @apply btn bg-blue-600 text-white hover:bg-blue-700;
+    @apply btn bg-[#1B5E3B] text-white hover:bg-[#14492e];
   }
   .btn-success {
-    @apply btn bg-green-600 text-white hover:bg-green-700;
+    @apply btn bg-[#2F7D4F] text-white hover:bg-[#276B43];
   }
   .btn-secondary {
-    @apply btn border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50;
+    @apply btn border-[#E0D5BE] bg-[#FFFDF8] text-stone-700 hover:border-[#C9A227] hover:bg-[#FAF6EF];
   }
   .btn-danger {
-    @apply btn border-red-300 bg-white text-red-600 hover:bg-red-50;
+    @apply btn border-red-300 bg-[#FFFDF8] text-red-600 hover:bg-red-50;
   }
   .btn-ai {
     @apply btn border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100;
@@ -140,49 +147,50 @@ body {
     @apply px-2.5 py-1 text-xs;
   }
   .field {
-    @apply w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20;
+    @apply w-full rounded-lg border border-[#E0D5BE] bg-[#FFFDF8] px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-[#1B5E3B] focus:ring-2 focus:ring-[#1B5E3B]/15;
   }
   .panel {
-    @apply rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5;
+    @apply rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] p-4 shadow-[0_2px_12px_rgba(101,80,30,0.06)] sm:p-5;
   }
   .table-wrap {
-    @apply overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm;
+    @apply overflow-x-auto rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] shadow-[0_2px_12px_rgba(101,80,30,0.06)];
   }
   .data-table {
     @apply w-full text-left text-sm;
   }
   .data-table thead {
-    @apply bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500;
+    @apply bg-[#F3ECDC] text-xs font-semibold tracking-wide text-[#7C6F57] uppercase;
   }
   .data-table th {
-    @apply whitespace-nowrap px-3 py-3;
+    @apply px-3 py-3 whitespace-nowrap;
   }
   .data-table td {
     @apply px-3 py-3;
   }
   .data-table tbody {
-    @apply divide-y divide-zinc-100;
+    @apply divide-y divide-[#F0E7D3];
   }
   .data-table tbody tr {
-    @apply transition-colors hover:bg-zinc-50/70;
+    @apply transition-colors hover:bg-[#FAF6EF];
   }
   .page-title {
-    @apply text-2xl font-bold tracking-tight text-zinc-900;
+    @apply text-2xl font-bold tracking-tight text-stone-900;
+    font-family: var(--font-display), Georgia, "Times New Roman", serif;
   }
   .back-link {
-    @apply rounded-lg px-3 py-1.5 text-sm font-medium text-blue-600 transition hover:bg-blue-50;
+    @apply rounded-lg px-3 py-1.5 text-sm font-medium text-[#1B5E3B] transition hover:bg-[#1B5E3B]/10;
   }
   .alert-error {
     @apply mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700;
   }
   .empty-state {
-    @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white px-6 py-12 text-center;
+    @apply flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#E0D5BE] bg-[#FFFDF8] px-6 py-12 text-center;
   }
   .empty-state-icon {
-    @apply mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 text-2xl;
+    @apply mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#1B5E3B]/10 text-2xl text-[#1B5E3B];
   }
   .skeleton {
-    @apply animate-pulse rounded-lg bg-zinc-200/80;
+    @apply animate-pulse rounded-lg bg-[#E9E0CC]/80;
   }
   .no-scrollbar {
     scrollbar-width: none;
