@@ -33,7 +33,7 @@ Kasih 2 link ini ke owner (via WA):
 | Link | Fungsi | Cara pakai owner |
 |------|--------|------------------|
 | `/r/[slug]` | Website resto | Disebar ke pelanggan, dipasang di bio medsos & Google Maps |
-| `/admin/restaurants/[id]/kasir` | Halaman kasir | Dibuka di HP/tablet kasir. Tiap ada notifikasi bayar dari aplikasi merchant/QRIS → ketuk **Tandai Lunas** |
+| `/admin/restaurants/[id]/kasir` | Halaman kasir | Dibuka di HP/tablet kasir. Tiap ada notifikasi bayar dari aplikasi merchant/QRIS → ketuk **Tandai Sudah Bayar** |
 
 > Catatan: halaman admin (`/admin/...`) saat ini untuk operator. Bila owner resto perlu akses sendiri, buatkan bookmark di HP-nya ke link kasir di atas.
 
@@ -41,7 +41,7 @@ Kasih 2 link ini ke owner (via WA):
 
 1. Pelanggan **scan QR di meja** → menu kebuka, nomor meja otomatis.
 2. Pelanggan pilih menu → **bayar QRIS** (nominal dikunci) atau catat untuk bayar tunai.
-3. **Kasir**: dengar notifikasi dari aplikasi QRIS/merchant → ketuk **Tandai Lunas** di halaman kasir.
+3. **Kasir**: dengar notifikasi dari aplikasi QRIS/merchant → ketuk **Tandai Sudah Bayar** di halaman kasir.
 4. Dapur terima info pesanan dari kasir (integrasi layar dapur: segera hadir).
 5. Plus/Premium: cek **Rekap order** (`/admin/restaurants/[id]/orders`) untuk riwayat & rekap harian.
 
@@ -72,7 +72,7 @@ Kasih 2 link ini ke owner (via WA):
 | Website + menu digital | ✓ | ✓ | ✓ |
 | QR tiap meja | ✓ | ✓ | ✓ |
 | QRIS dinamis | ✓ | ✓ | ✓ |
-| Kasir | Simpel (tandai lunas) | Full + rekap | Full + rekap |
+| Kasir | Simpel (tandai sudah bayar) | Full + rekap | Full + rekap |
 | Alamat | slug gratis | subdomain | domain sendiri |
 | Tema | 3 | 6 | 7 (semua) |
 
