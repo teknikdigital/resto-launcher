@@ -29,6 +29,6 @@ Alur yang dialami pemilik resto, dari pertama buka website sampai restorannya ja
 
 ## 6. Operasional harian
 16. Tempel QR di tiap meja
-17. Kasir: buka halaman kasir di HP → tiap pesanan masuk → dengar notifikasi bayar → ketuk **Tandai Lunas**
+17. Kasir: buka halaman kasir di HP → tiap pesanan masuk → dengar notifikasi bayar → ketuk **Tandai Sudah Bayar**
 18. Butuh ubah menu/meja/tulisan? Buka **Portal Owner** (`restolauncher.com/owner`) pakai PIN — bisa edit sendiri
 19. Butuh bantuan? Hubungi tim via WhatsApp kapan saja
