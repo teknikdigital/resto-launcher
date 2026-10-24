@@ -4,7 +4,7 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export const TRIAL_DAYS = 14;
 
-export const TEMPLATES = ["minimal", "dark", "bold", "warm", "amok", "amak", "patachou"] as const;
+export const TEMPLATES = ["minimal", "dark", "bold", "warm", "amok", "amak", "patachou", "elegan"] as const;
 export type RestaurantTemplate = (typeof TEMPLATES)[number];
 export const TEMPLATE_LABELS: Record<RestaurantTemplate, string> = {
   minimal: "Minimal",
@@ -14,6 +14,7 @@ export const TEMPLATE_LABELS: Record<RestaurantTemplate, string> = {
   amok: "Amok",
   amak: "Amak",
   patachou: "Patachou",
+  elegan: "Elegan",
 };
 export const TEMPLATE_DESCRIPTIONS: Record<RestaurantTemplate, string> = {
   minimal: "Putih bersih, lega",
@@ -23,6 +24,7 @@ export const TEMPLATE_DESCRIPTIONS: Record<RestaurantTemplate, string> = {
   amok: "Hijau gelap, promo kopi",
   amak: "Hitam & tan, premium",
   patachou: "Putih bersih, aksen kuning",
+  elegan: "Krem elegan, foto menu, oranye",
 };
 
 export function toTemplate(v: unknown): RestaurantTemplate {
