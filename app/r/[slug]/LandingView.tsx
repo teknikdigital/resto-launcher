@@ -19,6 +19,10 @@ import AmokLanding from "./AmokLanding";
 import AmakLanding from "./AmakLanding";
 import PatachouLanding from "./PatachouLanding";
 import EleganLanding from "./EleganLanding";
+import FoodShopLanding from "./FoodShopLanding";
+import PassionLanding from "./PassionLanding";
+import VeloraLanding from "./VeloraLanding";
+import NoirLanding from "./NoirLanding";
 import {
   AlertIcon,
   ArrowIcon,
@@ -168,6 +172,10 @@ export default function LandingView() {
   if (tpl === "amak") return <AmakLanding restaurant={r} menu={menu} />;
   if (tpl === "patachou") return <PatachouLanding restaurant={r} menu={menu} />;
   if (tpl === "elegan") return <EleganLanding restaurant={r} menu={menu} />;
+  if (tpl === "food-shop") return <FoodShopLanding restaurant={r} menu={menu} />;
+  if (tpl === "passion") return <PassionLanding restaurant={r} menu={menu} />;
+  if (tpl === "velora") return <VeloraLanding restaurant={r} menu={menu} />;
+  if (tpl === "noir") return <NoirLanding restaurant={r} menu={menu} />;
 
   const accent = r.primary_color ?? "#16a34a";
   const cta = { backgroundColor: accent, color: readableOn(accent) };
