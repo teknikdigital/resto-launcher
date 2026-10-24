@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  TEMPLATES,
+  PICKER_TEMPLATES,
   TEMPLATE_LABELS,
   TEMPLATE_DESCRIPTIONS,
   type RestaurantTemplate,
@@ -52,7 +52,7 @@ export default function ThemePreview({
     <div>
       {/* Pilihan tema */}
       <div className="mb-4 flex flex-wrap gap-2">
-        {TEMPLATES.map((t) => {
+        {PICKER_TEMPLATES.map((t) => {
           const on = selected === t;
           return (
             <button
