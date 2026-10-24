@@ -4,7 +4,7 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export const TRIAL_DAYS = 14;
 
-export const TEMPLATES = ["minimal", "dark", "bold", "warm", "amok", "amak", "patachou", "elegan", "oranye"] as const;
+export const TEMPLATES = ["minimal", "dark", "bold", "warm", "amok", "amak", "patachou", "elegan", "oranye", "food-shop", "passion", "velora", "noir"] as const;
 export type RestaurantTemplate = (typeof TEMPLATES)[number];
 export const TEMPLATE_LABELS: Record<RestaurantTemplate, string> = {
   minimal: "Minimal",
@@ -16,6 +16,10 @@ export const TEMPLATE_LABELS: Record<RestaurantTemplate, string> = {
   patachou: "Patachou",
   elegan: "Elegan",
   oranye: "Oranye",
+  "food-shop": "Food Shop",
+  passion: "Passion",
+  velora: "Velora",
+  noir: "Noir",
 };
 export const TEMPLATE_DESCRIPTIONS: Record<RestaurantTemplate, string> = {
   minimal: "Putih bersih, lega",
@@ -27,7 +31,16 @@ export const TEMPLATE_DESCRIPTIONS: Record<RestaurantTemplate, string> = {
   patachou: "Putih bersih, aksen kuning",
   elegan: "Krem elegan, foto menu, oranye",
   oranye: "Putih, hitam tebal, oranye",
+  "food-shop": "Klasik, serif hijau tua, tombol aksi",
+  passion: "Krem hijau segar, judul miring",
+  velora: "Krem kafe, hijau tua, aksen emas",
+  noir: "Hitam pekat, serif putih, oranye",
 };
+
+// Daftar final yang tampil di pemilih tema (admin & pemilik):
+// 3 lama (Amok, Amak, Patachou) + 4 baru. Tema lain tetap valid di kode
+// supaya pratinjau dan resto lama tidak rusak, tapi tidak tampil di pemilih.
+export const PICKER_TEMPLATES = ["amok", "amak", "patachou", "food-shop", "passion", "velora", "noir"] as const;
 
 export function toTemplate(v: unknown): RestaurantTemplate {
   return TEMPLATES.includes(v as RestaurantTemplate) ? (v as RestaurantTemplate) : "minimal";
