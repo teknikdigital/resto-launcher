@@ -365,6 +365,49 @@ export function getTheme(template: RestaurantTemplate, color: string): Theme {
         overlayBackdrop: "bg-black/50",
       };
     }
+    case "oranye": {
+      // Tema baru ala referensi oranye: latar putih, judul hitam tebal,
+      // pil kategori oranye, kartu menu berfoto, bilah pesanan oranye.
+      const orange = "#FF6B00";
+      return {
+        root: "min-h-screen bg-white pb-28 font-sans text-zinc-900",
+        headerLanding: "relative overflow-hidden border-b border-zinc-100 bg-white px-5 pb-14 pt-14 text-center",
+        headerMenu: "border-b border-zinc-100 bg-white/95 px-4 py-4 backdrop-blur",
+        overlay: "hidden",
+        logoRing: "ring-2 ring-[#FF6B00] shadow-sm",
+        logoFallback: "bg-[#FF6B00] text-white",
+        h1Landing: "font-sans text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl",
+        h1Menu: "font-sans text-xl font-extrabold tracking-tight text-zinc-900",
+        desc: "mx-auto mt-4 max-w-md text-base leading-relaxed text-zinc-500",
+        meta: "mt-3 text-sm text-zinc-500",
+        heroBtn: "inline-block rounded-full bg-[#FF6B00] px-6 py-2.5 text-sm font-bold text-white shadow-sm transition duration-300 hover:brightness-110",
+        navWrap: "mx-auto flex max-w-2xl gap-2 overflow-x-auto rounded-full border border-zinc-200 bg-white p-2 shadow-sm",
+        pillOn: "bg-[#FF6B00] font-semibold text-white shadow-sm",
+        pillOff: "font-medium text-zinc-500 transition duration-300 hover:bg-orange-50",
+        eyebrow: "mb-6 text-center text-sm font-bold uppercase tracking-[0.2em] text-zinc-400",
+        catTitle: "mb-4 font-sans text-[22px] font-extrabold tracking-tight text-zinc-900",
+        list: "space-y-3",
+        card: "flex gap-4 rounded-3xl border border-zinc-100 bg-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition duration-300 hover:shadow-[0_10px_24px_rgba(0,0,0,0.10)]",
+        img: "h-24 w-24 shrink-0 rounded-2xl object-cover shadow-sm",
+        name: "text-[17px] font-bold leading-snug text-zinc-900",
+        itemDesc: "mt-0.5 line-clamp-2 text-sm text-zinc-500",
+        price: "text-base font-extrabold",
+        priceStyle: { color: "#09090b" },
+        btn: "rounded-full px-4 py-1.5 text-sm font-bold shadow-sm transition duration-300 hover:brightness-110 active:scale-95",
+        btnStyle: { backgroundColor: orange, color: "#ffffff" },
+        ghostBtn: "border border-zinc-200 bg-white text-zinc-800 transition duration-300 hover:bg-orange-50",
+        bar: "rounded-full px-6 py-4 font-bold shadow-[0_14px_34px_rgba(255,107,0,0.35)] ring-4 ring-white/60 transition duration-300 hover:brightness-110",
+        barStyle: { backgroundColor: orange, color: "#ffffff" },
+        accentText: { color: orange },
+        sheet: "bg-white text-zinc-900",
+        handle: "bg-[#FF6B00]",
+        muted: "text-zinc-500",
+        divider: "divide-zinc-100 border-zinc-100",
+        input: "border border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#FF6B00]",
+        notice: "bg-white text-zinc-700 ring-1 ring-zinc-200",
+        overlayBackdrop: "bg-black/50",
+      };
+    }
     default:
       return {
         // Klasik bersih, tapi tidak datar: kertas putih hangat bertekstur titik halus,
