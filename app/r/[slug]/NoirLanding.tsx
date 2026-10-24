@@ -23,7 +23,7 @@ const NAV_LINKS = [
   { id: "jam-lokasi", label: "Jam & Lokasi" },
 ] as const;
 
-function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+function Reveal({ children, className = "", delay = 0, style }: { children: React.ReactNode; className?: string; delay?: number; style?: React.CSSProperties }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -50,7 +50,7 @@ function Reveal({ children, className = "", delay = 0 }: { children: React.React
     <div
       ref={ref}
       className={`reveal ${visible ? "is-visible" : ""} ${className}`}
-      style={{ "--reveal-delay": `${delay}ms` } as React.CSSProperties}
+      style={{ "--reveal-delay": `${delay}ms`, ...style } as React.CSSProperties}
     >
       {children}
     </div>
