@@ -226,7 +226,7 @@ const PACKAGES = [
       "Rekap transaksi harian",
       "Bantuan setup & migrasi",
       "Prioritas dukungan",
-      "Bebas pilih semua 8 tema",
+      "Bebas pilih semua 9 tema",
     ],
     cta: "Pilih Premium",
     highlight: false,
@@ -833,7 +833,7 @@ export default function MarketingPage() {
           <dl className="relative mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-4 px-4 pb-12 text-center sm:px-6">
             <div>
               <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">
-                <CountUp to={8} />
+                <CountUp to={9} />
               </dt>
               <dd className="mt-1 text-xs leading-snug text-stone-500">Tema desain siap pakai</dd>
             </div>
@@ -885,10 +885,58 @@ export default function MarketingPage() {
               <ul className="mt-3 space-y-2 text-sm text-stone-700">
                 <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> pelanggan yang nemu di Google langsung percaya — resto kelihatan profesional, bukan sekadar akun medsos.</span></li>
                 <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> menu & info bisa diubah kapan saja tanpa perlu programmer.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Pilihan:</strong> 7 model tampilan di samping bisa dibuka dulu sebagai pratinjau live sebelum deal.</span></li>
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
-              <ShotFrame src="/fitur/menu.png" alt="Tampilan asli website resto beserta menu digitalnya" label="warungdemo.restolauncher.id" browser tilt="rotate-1" />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {([
+                  ["minimal", "Minimal", "bg-white", "bg-zinc-900 text-white"],
+                  ["dark", "Dark Elegant", "bg-zinc-950", "bg-amber-300 text-zinc-950"],
+                  ["bold", "Bold", "bg-yellow-300", "bg-zinc-950 text-white"],
+                  ["warm", "Warm", "bg-amber-50", "bg-[#1B5E3B] text-white"],
+                  ["amok", "Amok", "bg-[#14231a]", "bg-[#b08968] text-[#14231a]"],
+                  ["amak", "Amak", "bg-zinc-950", "bg-[#c9a87c] text-zinc-950"],
+                  ["patachou", "Patachou", "bg-white", "bg-[#f5c518] text-zinc-900"],
+                ] as const).map(([tpl, label, headBg, pillCls]) => (
+                  <a
+                    key={tpl}
+                    href={`/r/jardin-cafe-5/menu?tema=${tpl}`}
+                    className="group rounded-2xl border border-[#E7DCC8] bg-white p-3 shadow-[0_10px_24px_rgba(120,90,20,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(120,90,20,0.16)]"
+                  >
+                    <div className={`flex items-center gap-2 rounded-lg px-2 py-2 ${headBg}`}>
+                      <span className="h-5 w-5 shrink-0 rounded-full bg-white/80" />
+                      <span className="h-2.5 flex-1 rounded-full bg-black/10" />
+                    </div>
+                    <div className="mt-2.5 flex gap-1.5">
+                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${pillCls}`}>Semua</span>
+                      <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-medium text-zinc-500">Menu</span>
+                    </div>
+                    <div className="mt-2.5 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="h-9 w-9 shrink-0 rounded-lg bg-zinc-200" />
+                        <span className="flex-1 space-y-1.5">
+                          <span className="block h-2 w-3/4 rounded-full bg-zinc-300" />
+                          <span className="block h-2 w-1/2 rounded-full bg-zinc-200" />
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="h-9 w-9 shrink-0 rounded-lg bg-zinc-200" />
+                        <span className="flex-1 space-y-1.5">
+                          <span className="block h-2 w-2/3 rounded-full bg-zinc-300" />
+                          <span className="block h-2 w-1/3 rounded-full bg-zinc-200" />
+                        </span>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-center text-sm font-bold text-stone-900">{label}</p>
+                    <p className="text-center text-[11px] font-semibold text-[#1B5E3B] group-hover:underline">Lihat model →</p>
+                  </a>
+                ))}
+                <div className="col-span-2 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#D9C48F] bg-[#FAF6EF] p-4 text-center sm:col-span-1">
+                  <p className="text-sm font-bold text-stone-900">7 model tampilan</p>
+                  <p className="mt-1 text-xs leading-relaxed text-stone-600">Ketuk model untuk pratinjau live dari data resto. Pratinjau tidak mengubah apa pun.</p>
+                </div>
+              </div>
             </Reveal>
           </div>
 
