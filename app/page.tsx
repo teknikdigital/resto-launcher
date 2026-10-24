@@ -783,13 +783,44 @@ export default function MarketingPage() {
       {/* Mockup browser menumpang di atas lengkungan */}
       <div className="relative overflow-x-clip bg-[#FAF6EF]">
         <div className="relative z-10 mx-auto -mt-44 max-w-4xl px-4 sm:-mt-60 sm:px-6">
+          {/* Intipan kartu di kiri-kanan (desktop) */}
+          <div aria-hidden="true" className="absolute top-16 -left-16 hidden w-52 -rotate-6 opacity-95 lg:block">
+            <div className="rounded-2xl bg-[#1B5E3B] p-4 text-center text-white shadow-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/lp/qr-meja.png" alt="" className="mx-auto h-24 w-24 rounded-lg bg-white p-1" />
+              <p className="mt-2 font-display text-lg font-semibold">Meja 5</p>
+              <p className="text-[11px] text-white/70">Scan untuk pesan</p>
+            </div>
+          </div>
+          <div aria-hidden="true" className="absolute top-28 -right-16 hidden w-52 rotate-3 opacity-95 lg:block">
+            <div className="rounded-t-xl border border-b-0 border-[#E7DCC8] bg-[#FFFDF6] p-4 shadow-xl">
+              <div className="flex items-start justify-between">
+                <p className="font-display text-xl leading-none font-bold text-stone-900">#005</p>
+                <span className="inline-block -rotate-[4deg] rounded border-2 border-[#C2410C] px-1.5 py-0.5 text-[9px] font-extrabold tracking-[0.12em] text-[#C2410C] uppercase">Belum Bayar</span>
+              </div>
+              <p className="mt-2 text-[11px] text-stone-500">Meja 5 · 3 item</p>
+              <div className="mt-2 flex items-baseline gap-1 text-[11px]">
+                <span className="font-semibold text-stone-800">3× Nasi Goreng…</span>
+                <span className="flex-1 -translate-y-0.5 border-b-2 border-dotted border-[#CBBFA4]" />
+                <span className="font-mono text-stone-600">Rp65.000</span>
+              </div>
+              <p className="mt-3 rounded-lg bg-[#1B5E3B] py-1.5 text-center text-[11px] font-bold text-white">Tandai Sudah Bayar</p>
+            </div>
+            <div className="ticket-edge shadow-xl" />
+          </div>
           <Reveal delay={150} from="zoom">
             <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xl shadow-stone-900/25">
-              {/* Foto asli: kolase QR meja, website resto, dan tiket kasir Warung Demo */}
+              <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-3">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                <span className="ml-2 rounded-md bg-white px-2.5 py-0.5 font-mono text-[11px] text-stone-500 shadow-sm">warungbutini.com</span>
+              </div>
+              {/* Foto tampilan asli website resto (bukan ilustrasi) */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/lp/hero-kolase.png"
-                alt="Tampilan asli: kartu QR Meja 5, website resto Warung Demo, dan tiket kasir"
+                src="/fitur/menu.png"
+                alt="Tampilan asli website resto: halaman profil dan menu digital"
                 className="block w-full"
                 loading="eager"
               />
@@ -857,11 +888,7 @@ export default function MarketingPage() {
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
-              <div className="relative mx-auto max-w-xl rotate-1">
-                <span aria-hidden="true" className="absolute -top-3 left-8 z-10 h-6 w-24 -rotate-6 rounded-sm bg-[#E9D8A6]/80 shadow-sm" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/lp/website-laptop-asli.png" alt="Tampilan asli website resto Warung Demo di laptop" className="block w-full rounded-xl border border-[#E7DCC8] shadow-[0_18px_40px_rgba(120,90,20,0.18)]" loading="lazy" />
-              </div>
+              <ShotFrame src="/fitur/menu.png" alt="Tampilan asli website resto beserta menu digitalnya" label="warungdemo.restolauncher.id" browser tilt="rotate-1" />
             </Reveal>
           </div>
 
@@ -869,8 +896,11 @@ export default function MarketingPage() {
           <div className="mb-20 grid items-center gap-10 lg:grid-cols-2">
             <Reveal className="order-2 lg:order-1" from="right">
               <div className="relative mx-auto w-64 rotate-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/lp/menu-hp-asli.png" alt="Tampilan asli menu digital Warung Demo di HP pelanggan" className="block w-full drop-shadow-2xl" loading="lazy" />
+                <span aria-hidden="true" className="absolute -top-3 left-1/2 z-10 h-6 w-24 -translate-x-1/2 -rotate-3 rounded-sm bg-[#E9D8A6]/80 shadow-sm" />
+                <div className="overflow-hidden rounded-[2.4rem] border-[10px] border-stone-900 bg-[#FAF6EF] shadow-2xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/fitur/menu-hp.png" alt="Tampilan asli menu digital di HP pelanggan" className="block w-full" loading="lazy" />
+                </div>
               </div>
             </Reveal>
             <Reveal delay={120} className="order-1 lg:order-2" from="left">
@@ -902,9 +932,11 @@ export default function MarketingPage() {
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
-              <div className="mx-auto w-52 -rotate-3">
+              <div className="mx-auto w-52 -rotate-3 rounded-2xl bg-[#1B5E3B] p-5 text-center text-white shadow-xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/lp/qr-meja-asli.png" alt="Kartu QR asli Meja 5 Warung Demo" className="block w-full rounded-2xl shadow-xl" loading="lazy" />
+                <img src="/lp/qr-meja.png" alt="Contoh QR meja" className="mx-auto h-36 w-36 rounded-lg bg-white p-1.5" />
+                <p className="mt-3 font-display text-xl font-semibold">Meja 5</p>
+                <p className="text-xs text-white/70">Scan untuk lihat menu & pesan</p>
               </div>
             </Reveal>
           </div>
@@ -1174,7 +1206,7 @@ export default function MarketingPage() {
               <div className="absolute inset-0 opacity-10" aria-hidden="true">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/lp/hero-kolase.png"
+                  src="https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1600&q=80"
                   alt=""
                   className="h-full w-full object-cover"
                   loading="lazy"
