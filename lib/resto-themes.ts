@@ -325,6 +325,7 @@ export function getTheme(template: RestaurantTemplate, color: string): Theme {
       const gold = "#C9A227";
       return {
         // Menu ala referensi: latar krem, logo emas, tab & tombol oranye,
+        // Pemicu deploy Vercel 2026-10-24 (tidak mengubah tampilan).
         // kartu menu putih dengan foto di kiri, bilah pesanan oranye melayang.
         root: "min-h-screen bg-[#FDF6EC] pb-28 text-zinc-900 [background-image:radial-gradient(rgba(180,140,60,0.08)_1px,transparent_1.4px)] [background-size:22px_22px]",
         headerLanding: "relative overflow-hidden border-b border-[#F0DFC0] bg-[#FDF6EC] px-5 pb-14 pt-14 text-center",
