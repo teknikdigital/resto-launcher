@@ -155,7 +155,7 @@ export default function RestaurantDashboard() {
     },
     {
       label: "Pilih tema",
-      desc: `Aktif: ${TEMPLATE_LABELS[toTemplate(resto.template)]}${pkg === "premium" ? " (bebas ganti 9 tema)" : pkg === "plus" ? " (6 pilihan)" : " (3 pilihan)"}`,
+      desc: `Aktif: ${TEMPLATE_LABELS[toTemplate(resto.template)]}${pkg === "premium" ? " (bebas ganti 7 tema)" : pkg === "plus" ? " (6 pilihan)" : " (3 pilihan)"}`,
       done: true,
       href: "#tema",
     },
