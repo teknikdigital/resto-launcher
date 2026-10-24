@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 // Gerbang PIN admin: halaman operator hanya tampil setelah PIN terverifikasi.
@@ -10,7 +10,7 @@ import { usePathname } from "next/navigation";
 // sudah punya gerbang PIN per peran sendiri (StaffGate).
 const STAFF_PATHS = ["/kasir", "/pos", "/dapur", "/struk"];
 
-export default function AdminGate({ children }: { children: React.ReactNode }) {
+function AdminGateInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [ok, setOk] = useState(false);
   const [pin, setPin] = useState("");
@@ -89,4 +89,12 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
+}
+
+export default function AdminGate({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={null}>
+      <AdminGateInner>{children}</AdminGateInner>
+    </Suspense>
+  );
 }
