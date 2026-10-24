@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import {
   subStatus,
-  TEMPLATES,
+  PICKER_TEMPLATES,
   TEMPLATE_DESCRIPTIONS,
   TEMPLATE_LABELS,
   toTemplate,
@@ -81,6 +81,10 @@ const PREVIEW: Record<RestaurantTemplate, string> = {
   patachou: "bg-white text-zinc-900 border-[#f5c518] italic",
   elegan: "bg-[#FDF6EC] text-zinc-900 border-[#F0DFC0] font-serif",
   oranye: "bg-white text-zinc-900 border-[#FF6B00] font-sans font-bold",
+  "food-shop": "bg-white text-[#14532D] border-[#14532D] font-serif",
+  passion: "bg-[#F6F1E3] text-[#1E7A34] border-[#C8E6C9] font-serif italic",
+  velora: "bg-[#FAF5EC] text-[#143C2B] border-[#C9A227] font-serif italic",
+  noir: "bg-zinc-950 text-white border-[#FF7A00] font-serif",
 };
 
 const slugify = (s: string) =>
@@ -481,7 +485,7 @@ function AdminRestaurants() {
         <fieldset className="sm:col-span-2">
           <legend className="mb-2 text-sm font-medium text-zinc-700">Tema desain</legend>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-            {TEMPLATES.map((tpl) => (
+            {PICKER_TEMPLATES.map((tpl) => (
               <label
                 key={tpl}
                 className={`cursor-pointer rounded-xl border-2 p-1.5 transition hover:border-blue-300 ${form.template === tpl ? "border-blue-600 bg-blue-50" : "border-transparent"}`}
