@@ -80,6 +80,7 @@ const PREVIEW: Record<RestaurantTemplate, string> = {
   amak: "bg-zinc-950 text-[#c9a87c] border-zinc-700 font-serif",
   patachou: "bg-white text-zinc-900 border-[#f5c518] italic",
   elegan: "bg-[#FDF6EC] text-zinc-900 border-[#F0DFC0] font-serif",
+  oranye: "bg-white text-zinc-900 border-[#FF6B00] font-sans font-bold",
 };
 
 const slugify = (s: string) =>
