@@ -18,6 +18,7 @@ import { PageStatus } from "./RestaurantView";
 import AmokLanding from "./AmokLanding";
 import AmakLanding from "./AmakLanding";
 import PatachouLanding from "./PatachouLanding";
+import EleganLanding from "./EleganLanding";
 import {
   AlertIcon,
   ArrowIcon,
@@ -166,6 +167,7 @@ export default function LandingView() {
   if (tpl === "amok") return <AmokLanding restaurant={r} menu={menu} />;
   if (tpl === "amak") return <AmakLanding restaurant={r} menu={menu} />;
   if (tpl === "patachou") return <PatachouLanding restaurant={r} menu={menu} />;
+  if (tpl === "elegan") return <EleganLanding restaurant={r} menu={menu} />;
 
   const accent = r.primary_color ?? "#16a34a";
   const cta = { backgroundColor: accent, color: readableOn(accent) };
