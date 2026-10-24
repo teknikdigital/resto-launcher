@@ -70,6 +70,86 @@ function RoleLabel({ children }: { children: React.ReactNode }) {
 }
 
 /* Bingkai foto tampilan asli: kertas miring + selotip di sudut, seperti ditempel di papan. */
+/* Satu foto yang bergeser tiap 2 detik: 7 model tema, data contoh Warung Demo. */
+const SLIDE_MODELS = [
+  ["minimal", "Minimal", "bg-white", "bg-zinc-900 text-white"],
+  ["dark", "Dark Elegant", "bg-zinc-950", "bg-amber-300 text-zinc-950"],
+  ["bold", "Bold", "bg-yellow-300", "bg-zinc-950 text-white"],
+  ["warm", "Warm", "bg-amber-50", "bg-[#1B5E3B] text-white"],
+  ["amok", "Amok", "bg-[#14231a]", "bg-[#b08968] text-[#14231a]"],
+  ["amak", "Amak", "bg-zinc-950", "bg-[#c9a87c] text-zinc-950"],
+  ["patachou", "Patachou", "bg-white", "bg-[#f5c518] text-zinc-900"],
+] as const;
+const DUMMY_ITEMS = [
+  { init: "NG", name: "Nasi Goreng Spesial", price: "Rp25.000" },
+  { init: "AG", name: "Ayam Geprek", price: "Rp18.000" },
+  { init: "SA", name: "Soto Ayam Lamongan", price: "Rp20.000" },
+];
+function ThemeSlideshow() {
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => setIdx((i) => (i + 1) % SLIDE_MODELS.length), 2000);
+    return () => clearInterval(id);
+  }, [paused]);
+  const [tpl, label, headBg, pillCls] = SLIDE_MODELS[idx];
+  return (
+    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="relative mx-auto max-w-xl rotate-1">
+        <span aria-hidden="true" className="absolute -top-3 left-8 z-10 h-6 w-24 -rotate-6 rounded-sm bg-[#E9D8A6]/80 shadow-sm" />
+        <div className="overflow-hidden rounded-xl border border-[#E7DCC8] bg-white shadow-[0_18px_40px_rgba(120,90,20,0.18)]">
+          <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+            <span className="ml-2 rounded-md bg-white px-2 py-0.5 font-mono text-[11px] text-stone-500">warungdemo.restolauncher.id</span>
+          </div>
+          <div className="p-4 sm:p-5">
+            <div className={`flex items-center gap-2 rounded-xl px-3 py-3 ${headBg}`}>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/90 text-sm font-bold text-stone-900">W</span>
+              <span className="text-base font-bold text-stone-900">Warung Demo</span>
+            </div>
+            <div className="mt-3 flex gap-1.5">
+              <span className={`rounded-full px-3 py-1 text-xs font-bold ${pillCls}`}>Semua</span>
+              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-500">Makanan</span>
+              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-500">Minuman</span>
+            </div>
+            <div className="mt-3 space-y-2.5">
+              {DUMMY_ITEMS.map((m) => (
+                <div key={m.init} className="flex items-center gap-3 rounded-2xl border border-zinc-100 p-2.5">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1B5E3B] text-sm font-bold text-white">{m.init}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-bold text-stone-900">{m.name}</span>
+                    <span className="block text-sm font-bold text-stone-900">{m.price}</span>
+                  </span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${pillCls}`}>Tambah</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 flex items-center justify-center gap-2">
+        {SLIDE_MODELS.map(([t2, l2], i) => (
+          <button
+            key={t2}
+            onClick={() => setIdx(i)}
+            aria-label={`Model ${l2}`}
+            className={`h-2.5 rounded-full transition-all ${i === idx ? "w-6 bg-[#1B5E3B]" : "w-2.5 bg-stone-300 hover:bg-stone-400"}`}
+          />
+        ))}
+      </div>
+      <p className="mt-2 text-center text-sm text-stone-700">
+        <strong className="text-stone-900">Model: {label}</strong>
+        {" · "}
+        <a href={`/r/jardin-cafe-5/menu?tema=${tpl}`} className="font-semibold text-[#1B5E3B] hover:underline">Lihat pratinjau live →</a>
+      </p>
+      <p className="mt-1 text-center text-[11px] text-stone-500">Bergeser otomatis tiap 2 detik · ketuk titik untuk pindah model · data contoh Warung Demo</p>
+    </div>
+  );
+}
+
 function ShotFrame({
   src,
   alt,
@@ -885,58 +965,11 @@ export default function MarketingPage() {
               <ul className="mt-3 space-y-2 text-sm text-stone-700">
                 <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> pelanggan yang nemu di Google langsung percaya — resto kelihatan profesional, bukan sekadar akun medsos.</span></li>
                 <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Manfaat:</strong> menu & info bisa diubah kapan saja tanpa perlu programmer.</span></li>
-                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Pilihan:</strong> 7 model tampilan di samping bisa dibuka dulu sebagai pratinjau live sebelum deal.</span></li>
+                <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span><strong>Pilihan:</strong> Model tampilan di samping bergeser otomatis tiap 2 detik, bisa dibuka dulu sebagai pratinjau live sebelum deal.</span></li>
               </ul>
             </Reveal>
             <Reveal delay={120} from="left">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {([
-                  ["minimal", "Minimal", "bg-white", "bg-zinc-900 text-white"],
-                  ["dark", "Dark Elegant", "bg-zinc-950", "bg-amber-300 text-zinc-950"],
-                  ["bold", "Bold", "bg-yellow-300", "bg-zinc-950 text-white"],
-                  ["warm", "Warm", "bg-amber-50", "bg-[#1B5E3B] text-white"],
-                  ["amok", "Amok", "bg-[#14231a]", "bg-[#b08968] text-[#14231a]"],
-                  ["amak", "Amak", "bg-zinc-950", "bg-[#c9a87c] text-zinc-950"],
-                  ["patachou", "Patachou", "bg-white", "bg-[#f5c518] text-zinc-900"],
-                ] as const).map(([tpl, label, headBg, pillCls]) => (
-                  <a
-                    key={tpl}
-                    href={`/r/jardin-cafe-5/menu?tema=${tpl}`}
-                    className="group rounded-2xl border border-[#E7DCC8] bg-white p-3 shadow-[0_10px_24px_rgba(120,90,20,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(120,90,20,0.16)]"
-                  >
-                    <div className={`flex items-center gap-2 rounded-lg px-2 py-2 ${headBg}`}>
-                      <span className="h-5 w-5 shrink-0 rounded-full bg-white/80" />
-                      <span className="h-2.5 flex-1 rounded-full bg-black/10" />
-                    </div>
-                    <div className="mt-2.5 flex gap-1.5">
-                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${pillCls}`}>Semua</span>
-                      <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-medium text-zinc-500">Menu</span>
-                    </div>
-                    <div className="mt-2.5 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="h-9 w-9 shrink-0 rounded-lg bg-zinc-200" />
-                        <span className="flex-1 space-y-1.5">
-                          <span className="block h-2 w-3/4 rounded-full bg-zinc-300" />
-                          <span className="block h-2 w-1/2 rounded-full bg-zinc-200" />
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="h-9 w-9 shrink-0 rounded-lg bg-zinc-200" />
-                        <span className="flex-1 space-y-1.5">
-                          <span className="block h-2 w-2/3 rounded-full bg-zinc-300" />
-                          <span className="block h-2 w-1/3 rounded-full bg-zinc-200" />
-                        </span>
-                      </div>
-                    </div>
-                    <p className="mt-3 text-center text-sm font-bold text-stone-900">{label}</p>
-                    <p className="text-center text-[11px] font-semibold text-[#1B5E3B] group-hover:underline">Lihat model →</p>
-                  </a>
-                ))}
-                <div className="col-span-2 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#D9C48F] bg-[#FAF6EF] p-4 text-center sm:col-span-1">
-                  <p className="text-sm font-bold text-stone-900">7 model tampilan</p>
-                  <p className="mt-1 text-xs leading-relaxed text-stone-600">Ketuk model untuk pratinjau live dari data resto. Pratinjau tidak mengubah apa pun.</p>
-                </div>
-              </div>
+              <ThemeSlideshow />
             </Reveal>
           </div>
 
