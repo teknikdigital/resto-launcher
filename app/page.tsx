@@ -226,7 +226,7 @@ const PACKAGES = [
       "Rekap transaksi harian",
       "Bantuan setup & migrasi",
       "Prioritas dukungan",
-      "Bebas pilih semua 7 tema",
+      "Bebas pilih semua 8 tema",
     ],
     cta: "Pilih Premium",
     highlight: false,
@@ -833,7 +833,7 @@ export default function MarketingPage() {
           <dl className="relative mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-4 px-4 pb-12 text-center sm:px-6">
             <div>
               <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">
-                <CountUp to={7} />
+                <CountUp to={8} />
               </dt>
               <dd className="mt-1 text-xs leading-snug text-stone-500">Tema desain siap pakai</dd>
             </div>
