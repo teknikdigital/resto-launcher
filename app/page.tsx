@@ -72,13 +72,13 @@ function RoleLabel({ children }: { children: React.ReactNode }) {
 /* Bingkai foto tampilan asli: kertas miring + selotip di sudut, seperti ditempel di papan. */
 /* Satu foto yang bergeser tiap 2 detik: 7 model tema, data contoh Warung Demo. */
 const SLIDE_MODELS = [
-  ["minimal", "Minimal", "bg-white", "bg-zinc-900 text-white"],
-  ["dark", "Dark Elegant", "bg-zinc-950", "bg-amber-300 text-zinc-950"],
-  ["bold", "Bold", "bg-yellow-300", "bg-zinc-950 text-white"],
-  ["warm", "Warm", "bg-amber-50", "bg-[#1B5E3B] text-white"],
   ["amok", "Amok", "bg-[#14231a]", "bg-[#b08968] text-[#14231a]"],
   ["amak", "Amak", "bg-zinc-950", "bg-[#c9a87c] text-zinc-950"],
   ["patachou", "Patachou", "bg-white", "bg-[#f5c518] text-zinc-900"],
+  ["food-shop", "Food Shop", "bg-white", "bg-[#14532D] text-white"],
+  ["passion", "Passion", "bg-[#F6F1E3]", "bg-[#1E7A34] text-white"],
+  ["velora", "Velora", "bg-[#FAF5EC]", "bg-[#143C2B] text-white"],
+  ["noir", "Noir", "bg-zinc-950", "bg-[#FF7A00] text-white"],
 ] as const;
 const DUMMY_ITEMS = [
   { init: "NG", name: "Nasi Goreng Spesial", price: "Rp25.000" },
@@ -306,7 +306,7 @@ const PACKAGES = [
       "Rekap transaksi harian",
       "Bantuan setup & migrasi",
       "Prioritas dukungan",
-      "Bebas pilih semua 9 tema",
+      "Bebas pilih semua 7 tema",
     ],
     cta: "Pilih Premium",
     highlight: false,
@@ -913,7 +913,7 @@ export default function MarketingPage() {
           <dl className="relative mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-4 px-4 pb-12 text-center sm:px-6">
             <div>
               <dt className="font-display text-3xl font-semibold text-[#1B5E3B]">
-                <CountUp to={9} />
+                <CountUp to={7} />
               </dt>
               <dd className="mt-1 text-xs leading-snug text-stone-500">Tema desain siap pakai</dd>
             </div>
