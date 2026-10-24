@@ -105,6 +105,7 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
   const [notice, setNotice] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   // Info pembayaran QRIS dinamis setelah order dibuat (null = belum/tidak pakai QRIS).
   const [payInfo, setPayInfo] = useState<{ order: Order; qrUrl: string } | null>(null);
   const [payPaid, setPayPaid] = useState(false);
@@ -323,6 +324,14 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
 
   const count = lines.reduce((s, l) => s + l.qty, 0);
   const shown = activeCat ? grouped.filter(([c]) => c === activeCat) : grouped;
+  // Tema Elegan punya kolom cari (seperti referensi): saring menu per nama/keterangan.
+  const shownFiltered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return shown;
+    return shown
+      .map(([c, items]) => [c, items.filter((m) => `${m.name} ${m.description ?? ""}`.toLowerCase().includes(q))] as [string, MenuItem[]])
+      .filter(([, items]) => items.length > 0);
+  }, [shown, query]);
 
   function scrollTo(cat: string | null) {
     setActiveCat(cat);
@@ -383,6 +392,18 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
         </header>
       )}
 
+      {isMenu && template === "elegan" && (
+        <div className="mx-auto max-w-2xl px-4 pt-4">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Cari menu..."
+            aria-label="Cari menu"
+            className={`w-full rounded-full px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#E86A2C]/40 ${t.input}`}
+          />
+        </div>
+      )}
+
       {isMenu && grouped.length > 1 && (
         <nav className="sticky top-0 z-10 mt-3 px-3">
           <div className={`no-scrollbar ${t.navWrap}`}>
@@ -417,7 +438,10 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
             <p className={`mt-1 max-w-xs text-sm ${t.muted}`}>Kami sedang menyiapkan menu terbaik. Silakan kembali lagi sebentar lagi.</p>
           </div>
         )}
-        {shown.map(([category, items]) => (
+        {isMenu && template === "elegan" && query.trim() && shownFiltered.length === 0 && grouped.length > 0 && (
+          <p className={`py-10 text-center text-sm ${t.muted}`}>Menu &quot;{query.trim()}&quot; tidak ditemukan.</p>
+        )}
+        {shownFiltered.map(([category, items]) => (
           <section key={category} className="mb-8">
             <h2 className={t.catTitle}>{category}</h2>
             <ul className={t.list}>
