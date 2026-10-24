@@ -325,13 +325,16 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
   const count = lines.reduce((s, l) => s + l.qty, 0);
   const shown = activeCat ? grouped.filter(([c]) => c === activeCat) : grouped;
   // Tema Elegan punya kolom cari (seperti referensi): saring menu per nama/keterangan.
-  const shownFiltered = useMemo(() => {
+  // Sengaja TANPA useMemo: kode ini berada setelah early return (loading/error),
+  // dan hook di sini melanggar aturan urutan hook React sehingga halaman menu crash.
+  // Hitung biasa sudah cukup karena daftar menu kecil.
+  const shownFiltered = (() => {
     const q = query.trim().toLowerCase();
     if (!q) return shown;
     return shown
       .map(([c, items]) => [c, items.filter((m) => `${m.name} ${m.description ?? ""}`.toLowerCase().includes(q))] as [string, MenuItem[]])
       .filter(([, items]) => items.length > 0);
-  }, [shown, query]);
+  })();
 
   function scrollTo(cat: string | null) {
     setActiveCat(cat);
