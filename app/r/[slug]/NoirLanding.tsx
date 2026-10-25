@@ -1,385 +1,280 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatRupiah, instagramUrl, toWaNumber, type MenuItem, type Restaurant } from "@/lib/resto-types";
 import { CloseIcon, InstagramIcon, MenuIcon, PhoneIcon, PinIcon, WhatsappIcon } from "./icons";
 
-// Rombak total 25 Okt 2026 — struktur mengikuti kerangka template
-// referensi yang teramati: panel menu samping, hero gelap dengan nama
-// sangat besar + visual produk di sudut, cerita, produk unggulan 4
-// kartu, pernyataan besar, galeri geser horizontal, panel gabung
-// komunitas, footer dengan nama besar terpotong. Warna tetap identitas
-// Noir sendiri (hitam, putih serif, oranye), sesuai permintaan
-// "warna saya persis" — bukan palet referensi. Semua isi dari data
-// resto sendiri; tidak ada testimoni karangan, nama, menu, foto, atau
-// tulisan referensi yang disalin.
-const HITAM = "#0D0D0D";
-const HITAM2 = "#1A1A1A";
-const ORANYE = "#FF7A00";
-const unsplash = (id: string, w = 800) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
-const SAMPLES = [
+const unsplash = (id: string, w = 1000) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
+const SAMPLE_PHOTOS = [
+  unsplash("photo-1541167760496-1628856ab772", 800),
+  unsplash("photo-1509042239860-f550ce710b93", 800),
+  unsplash("photo-1540189549336-e6e99c429e9c", 800),
+  unsplash("photo-1565299624946-b28f40a0ae38", 800),
   unsplash("photo-1554118811-1e0d58224f24", 800),
-  unsplash("photo-1504754524776-8f4f37790ca0", 800),
-  unsplash("photo-1525351484163-7529414344d8", 800),
-  unsplash("photo-1495474472287-4d71bcdd2085", 800),
+  unsplash("photo-1521017432531-fbd92d768814", 800),
 ];
 
-const NAV_LINKS = [
-  { id: "beranda", label: "Beranda" },
-  { id: "menu", label: "Menu" },
-  { id: "tentang", label: "Tentang" },
-  { id: "lokasi", label: "Kunjungi Kami" },
-] as const;
-
-function Reveal({
-  children,
-  className = "",
-  delay = 0,
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-  style?: React.CSSProperties;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (typeof IntersectionObserver === "undefined") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setVisible(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setVisible(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return (
-    <div
-      ref={ref}
-      className={`reveal ${visible ? "is-visible" : ""} ${className}`}
-      style={{ "--reveal-delay": `${delay}ms`, ...style } as React.CSSProperties}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Foto({ src, name, className = "" }: { src: string | null; name: string; className?: string }) {
-  const [err, setErr] = useState(false);
-  if (!src || err) {
-    return (
-      <span className={`flex items-center justify-center bg-[#2A2A2A] font-display text-2xl font-bold text-white ${className}`}>
-        {name.charAt(0).toUpperCase()}
-      </span>
-    );
-  }
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={name} onError={() => setErr(true)} className={`object-cover ${className}`} />;
-}
+const NAVY = "#1B2A4A";
+const NAVY_TUA = "#121E36";
+const PINK = "#F9E5E8";
+const PINK_GELAP = "#E8C4CA";
 
 export default function NoirLanding({ restaurant: r, menu }: { restaurant: Restaurant; menu: MenuItem[] }) {
+  const previewing = useSearchParams().get("tema") === "noir";
+  const orderHref = `/r/${r.slug}/menu${previewing ? "?tema=noir" : ""}`;
   const [panelOpen, setPanelOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [setuju, setSetuju] = useState(false);
+  const [consent, setConsent] = useState(false);
   const galeriRef = useRef<HTMLDivElement | null>(null);
-  const previewing = useSearchParams().get("tema") === "noir";
 
   const wa = toWaNumber(r.whatsapp);
-  const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`Halo ${r.name}, saya ingin bertanya / memesan.`)}` : null;
+  const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`Halo ${r.name}, saya ingin memesan.`)}` : null;
   const ig = instagramUrl(r.instagram);
-  const orderHref = `/r/${r.slug}/menu${previewing ? "?tema=noir" : ""}`;
-  const about =
-    r.about_text?.trim() ||
-    r.description?.trim() ||
-    `${r.name} adalah tempat berkumpul dengan hidangan yang dibuat segar setiap hari, disajikan hangat dalam suasana yang tenang dan elegan.`;
-  const tagline = (r.description?.trim() || "Gelap, hangat, dan berkesan").slice(0, 80);
-  const fotoMenu = menu.filter((m) => m.image_url);
-  const sudut = [0, 1, 2, 3].map((i) => fotoMenu[i]?.image_url || SAMPLES[i]);
-  const unggulan = menu.slice(0, 4);
-  const galeri = fotoMenu.length > 0 ? fotoMenu.slice(0, 8) : SAMPLES.map((s, i) => ({ id: `s${i}`, image_url: s, name: r.name }));
+  const hours = (r.opening_hours?.trim() || "Setiap hari: 07.00 - 21.00").split("\n").map((l) => l.trim()).filter(Boolean);
+  const about = r.about_text?.trim() || r.description?.trim() || "";
+  const tagline = r.description?.trim() || r.name;
+  const featured = menu.slice(0, 4);
+  const cornerPhotos = [0, 1, 2, 3].map((i) => menu[i]?.image_url || SAMPLE_PHOTOS[i]);
+  const galeriPhotos = menu.map((m) => m.image_url).filter((u): u is string => !!u).slice(0, 6);
+  const galeri = galeriPhotos.length > 0 ? galeriPhotos : SAMPLE_PHOTOS.slice(0, 5);
 
-  const socials = [
-    { href: ig, label: "Instagram", icon: <InstagramIcon className="h-5 w-5" /> },
-    { href: waLink, label: "WhatsApp", icon: <WhatsappIcon className="h-5 w-5" /> },
-    { href: r.maps_url, label: "Google Maps", icon: <PinIcon className="h-5 w-5" /> },
-  ].filter((s) => s.href);
+  const joinCommunity = () => {
+    if (!consent) {
+      alert("Centang persetujuan dulu sebelum gabung.");
+      return;
+    }
+    if (!email.trim()) return;
+    if (waLink) {
+      window.open(`${waLink.split("?text=")[0]}?text=${encodeURIComponent(`Halo ${r.name}, saya mau gabung komunitas. Email saya: ${email.trim()}`)}`, "_blank");
+    } else {
+      alert("Nomor WhatsApp resto belum tersedia.");
+    }
+  };
 
-  const gabungHref = wa
-    ? `https://wa.me/${wa}?text=${encodeURIComponent(`Halo ${r.name}, saya ingin bergabung dengan komunitas.${email.trim() ? ` Email saya: ${email.trim()}` : ""}`)}`
-    : orderHref;
-
-  const serif = { fontFamily: "'Fraunces','Playfair Display',Georgia,serif" };
+  const panelLink = "block py-3 text-sm font-bold uppercase tracking-[0.18em] text-[#1B2A4A] transition hover:opacity-60";
 
   return (
-    <div className="min-h-screen text-white" style={{ backgroundColor: HITAM }}>
-      <style>{`@keyframes noir-melayang { 0%,100% { transform: translateY(0) rotate(var(--putar, 0deg)); } 50% { transform: translateY(-10px) rotate(var(--putar, 0deg)); } }`}</style>
+    <div className="min-h-screen text-white" style={{ backgroundColor: NAVY }}>
+      <style>{`@keyframes noir-melayang { 0%, 100% { transform: translateY(0) rotate(var(--putar, 0deg)); } 50% { transform: translateY(-12px) rotate(var(--putar, 0deg)); } } .noir-melayang { animation: noir-melayang 4s ease-in-out infinite; }`}</style>
 
-      {/* Header: logo kiri, hamburger tengah, pesan kanan */}
-      <header className="relative z-40 flex items-center px-4 py-4 sm:px-6" style={{ backgroundColor: HITAM }}>
-        <a href="#beranda" className="flex items-center gap-3 transition hover:opacity-80">
-          {r.logo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={r.logo_url} alt="" className="h-10 w-10 rounded-full object-contain" />
-          )}
-          <span className="text-xl font-bold italic sm:text-2xl" style={serif}>
-            {r.name}
-          </span>
+      {/* Header: logo kiri + hamburger tengah */}
+      <header className="relative flex items-center px-5 py-5 sm:px-8">
+        <a href="#beranda" className="font-serif text-2xl font-semibold tracking-wide">
+          {r.name}
         </a>
         <button
           type="button"
           onClick={() => setPanelOpen(true)}
           aria-label="Buka menu"
-          className="absolute left-1/2 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full text-white ring-1 ring-white/30 transition duration-300 hover:bg-white hover:text-black"
+          className="absolute left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#1B2A4A]"
         >
           <MenuIcon />
         </button>
-        <Link
-          href={orderHref}
-          className="ml-auto inline-flex items-center justify-center rounded-full px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white shadow transition duration-300 hover:-translate-y-0.5 hover:brightness-110 active:scale-95"
-          style={{ backgroundColor: ORANYE }}
-        >
-          Pesan
-        </Link>
+        <span className="ml-auto hidden text-xs uppercase tracking-[0.2em] text-white/60 sm:block">{hours[0]}</span>
       </header>
 
-      {/* Panel menu samping kanan */}
-      {panelOpen && (
-        <div className="fixed inset-0 z-50">
-          <button type="button" aria-label="Tutup menu" onClick={() => setPanelOpen(false)} className="absolute inset-0 bg-black/60" />
-          <div className="absolute right-0 top-0 flex h-full w-72 max-w-[85vw] flex-col p-6 shadow-2xl" style={{ backgroundColor: HITAM2 }}>
-            <div className="flex items-center justify-between">
-              <span className="text-lg font-bold italic" style={serif}>
-                {r.name}
-              </span>
-              <button type="button" onClick={() => setPanelOpen(false)} aria-label="Tutup menu" className="flex h-9 w-9 items-center justify-center rounded-full ring-1 ring-white/30 transition hover:bg-white hover:text-black">
-                <CloseIcon />
-              </button>
-            </div>
-            <nav className="mt-8 space-y-1">
-              {NAV_LINKS.map((l) => (
-                <a key={l.id} href={`#${l.id}`} onClick={() => setPanelOpen(false)} className="block rounded-xl px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] text-white/90 transition hover:bg-white/10 hover:text-white">
-                  {l.label}
-                </a>
-              ))}
-            </nav>
-            <div className="mt-auto flex flex-wrap gap-2">
-              {socials.map((s) => (
-                <a key={s.label} href={s.href ?? "#"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold ring-1 ring-white/25 transition hover:bg-white hover:text-black">
-                  {s.icon}
-                  {s.label}
-                </a>
-              ))}
-            </div>
-            {/* Tepi bawah bergelombang */}
-            <svg viewBox="0 0 288 24" preserveAspectRatio="none" className="absolute -bottom-px left-0 h-6 w-full" style={{ color: HITAM2 }} aria-hidden="true">
-              <path d="M0 24 Q 36 0 72 24 T 144 24 T 216 24 T 288 24 L 288 24 L 0 24 Z" fill="currentColor" />
-            </svg>
-          </div>
+      {/* Panel samping kanan: latar terang, tepi bawah bergelombang */}
+      {panelOpen && <button type="button" aria-label="Tutup menu" onClick={() => setPanelOpen(false)} className="fixed inset-0 z-40 bg-black/50" />}
+      <aside
+        className={`fixed right-0 top-0 z-50 flex h-full w-80 max-w-[85vw] flex-col px-7 pb-0 pt-6 shadow-2xl transition-transform duration-300 ${panelOpen ? "translate-x-0" : "translate-x-full"}`}
+        style={{ backgroundColor: PINK, color: NAVY }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-serif text-xl font-semibold">{r.name}</span>
+          <button type="button" onClick={() => setPanelOpen(false)} aria-label="Tutup menu" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1B2A4A]/30 transition hover:bg-[#1B2A4A] hover:text-white">
+            <CloseIcon />
+          </button>
         </div>
-      )}
+        <nav className="mt-8 flex flex-col">
+          <a href="#beranda" onClick={() => setPanelOpen(false)} className={panelLink}>Beranda</a>
+          <Link href={orderHref} onClick={() => setPanelOpen(false)} className={panelLink}>Menu</Link>
+          <a href="#tentang" onClick={() => setPanelOpen(false)} className={panelLink}>Tentang</a>
+          <a href="#lokasi" onClick={() => setPanelOpen(false)} className={panelLink}>Kunjungi Kami</a>
+        </nav>
+        <div className="mt-auto flex gap-3 pb-24">
+          {ig && (
+            <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1B2A4A]/30 transition hover:bg-[#1B2A4A] hover:text-white">
+              <InstagramIcon className="h-4 w-4" />
+            </a>
+          )}
+          {waLink && (
+            <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1B2A4A]/30 transition hover:bg-[#1B2A4A] hover:text-white">
+              <WhatsappIcon className="h-4 w-4" />
+            </a>
+          )}
+          {r.maps_url && (
+            <a href={r.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Google Maps" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1B2A4A]/30 transition hover:bg-[#1B2A4A] hover:text-white">
+              <PinIcon className="h-4 w-4" />
+            </a>
+          )}
+        </div>
+        <svg viewBox="0 0 320 40" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-10 w-full" style={{ color: NAVY }}>
+          <path d="M0 40 Q 80 0 160 20 T 320 20 V 40 Z" fill="currentColor" />
+        </svg>
+      </aside>
 
-      {/* Hero gelap: nama sangat besar + visual sudut melayang */}
-      <section id="beranda" className="relative overflow-visible px-4 pb-24 pt-16 text-center sm:pt-20">
-        <Foto src={sudut[0]} name={r.name} className="noir-sudut absolute left-2 top-6 hidden h-28 w-28 rounded-2xl shadow-xl [--putar:-8deg] sm:block" />
-        <Foto src={sudut[1]} name={r.name} className="noir-sudut absolute right-2 top-10 hidden h-32 w-32 rounded-2xl shadow-xl [--putar:7deg] sm:block" />
-        <Foto src={sudut[2]} name={r.name} className="noir-sudut absolute bottom-2 left-8 hidden h-24 w-24 rounded-2xl shadow-xl [--putar:6deg] md:block" />
-        <Foto src={sudut[3]} name={r.name} className="noir-sudut absolute bottom-8 right-8 hidden h-24 w-24 rounded-2xl shadow-xl [--putar:-6deg] md:block" />
-        <style>{`.noir-sudut { animation: noir-melayang 5s ease-in-out infinite; }`}</style>
-        <div className="relative mx-auto max-w-3xl">
-          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/70">{tagline}</p>
-          <h1 className="mt-4 break-words text-6xl font-bold italic leading-[0.95] sm:text-8xl" style={serif}>
-            {r.name}
-          </h1>
-          <p className="mx-auto mt-6 max-w-md text-sm leading-relaxed text-white/70">{about}</p>
-        </div>
-        <Link
-          href={orderHref}
-          className="absolute bottom-6 right-4 inline-flex -rotate-2 items-center justify-center rounded-full px-6 py-3 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-xl transition duration-300 hover:rotate-0 hover:brightness-110 active:scale-95 sm:right-10"
-          style={{ backgroundColor: ORANYE }}
-        >
+      {/* Hero gelap: nama sangat besar + foto sudut melayang + tombol miring */}
+      <section id="beranda" className="relative overflow-hidden px-5 pb-28 pt-20 text-center sm:pt-28">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={cornerPhotos[0]} alt="" className="noir-melayang absolute left-2 top-16 w-28 rotate-[-6deg] rounded-2xl object-cover shadow-xl sm:left-10 sm:w-44" style={{ ["--putar" as string]: "-6deg" }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={cornerPhotos[1]} alt="" className="noir-melayang absolute right-2 top-24 w-28 rotate-[5deg] rounded-2xl object-cover shadow-xl sm:right-10 sm:w-44" style={{ ["--putar" as string]: "5deg", animationDelay: "0.8s" }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={cornerPhotos[2]} alt="" className="noir-melayang absolute bottom-16 left-4 w-24 rotate-[4deg] rounded-2xl object-cover shadow-xl sm:left-16 sm:w-40" style={{ ["--putar" as string]: "4deg", animationDelay: "1.6s" }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={cornerPhotos[3]} alt="" className="noir-melayang absolute bottom-24 right-4 w-24 rotate-[-5deg] rounded-2xl object-cover shadow-xl sm:right-16 sm:w-40" style={{ ["--putar" as string]: "-5deg", animationDelay: "2.4s" }} />
+        <h1 className="relative mx-auto max-w-4xl break-words font-serif text-6xl font-semibold italic leading-[0.95] sm:text-8xl">
+          {r.name}
+        </h1>
+        {r.description && <p className="relative mx-auto mt-6 max-w-md leading-relaxed text-white/80">{r.description}</p>}
+        <Link href={orderHref} className="absolute bottom-8 right-6 rotate-[-2deg] rounded-md bg-white px-7 py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-[#1B2A4A] shadow-xl transition hover:-translate-y-0.5 sm:right-12">
           Lihat Menu
         </Link>
       </section>
 
-      {/* Cerita */}
-      <section id="tentang" className="scroll-mt-8 px-4 py-16 sm:px-6">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold italic sm:text-4xl" style={serif}>
-            Cerita {r.name}
-          </h2>
-          <p className="mt-5 text-sm leading-relaxed text-white/70 sm:text-base">{about}</p>
-          <a href="#menu" className="mt-6 inline-block text-xs font-bold uppercase tracking-[0.18em] text-white underline decoration-[#FF7A00] decoration-2 underline-offset-4 transition hover:text-[#FF7A00]">
-            Jelajahi Menu →
-          </a>
-        </Reveal>
+      {/* Cerita: judul script tengah + paragraf + tautan teks */}
+      <section id="tentang" className="scroll-mt-8 px-5 py-16 text-center sm:py-20">
+        <h2 className="font-serif text-4xl italic sm:text-5xl">Cerita Kami</h2>
+        {about && <p className="mx-auto mt-5 max-w-xl whitespace-pre-line leading-relaxed text-white/80">{about}</p>}
+        <Link href={orderHref} className="mt-6 inline-block border-b border-white/60 pb-1 text-sm font-bold uppercase tracking-[0.18em] transition hover:border-white hover:text-white">
+          Lihat Menu →
+        </Link>
       </section>
 
-      {/* Produk unggulan: panel terang dalam bingkai gelap */}
-      <section id="menu" className="scroll-mt-8 px-4 pb-16 sm:px-6">
-        <Reveal className="mx-auto max-w-6xl rounded-[2rem] bg-white p-6 text-zinc-900 shadow-2xl ring-1 ring-white/20 sm:p-10">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold sm:text-4xl" style={serif}>
-              Unggulan Kami
-            </h2>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-500">
-              Pilihan yang paling sering dipesan di {r.name}.
-            </p>
-          </div>
-          {menu.length === 0 ? (
-            <p className="mt-10 text-center text-sm text-zinc-500">Menu resto ini belum tersedia. Silakan hubungi resto lewat WhatsApp.</p>
-          ) : (
-            <>
-              <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {unggulan.map((m) => (
-                  <div key={m.id} className="overflow-hidden rounded-2xl bg-zinc-50 ring-1 ring-zinc-100 transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-                    <Foto src={m.image_url} name={m.name} className="aspect-square w-full" />
-                    <div className="p-3">
-                      <p className="truncate text-sm font-bold">{m.name}</p>
-                      <p className="mt-1 font-bold" style={{ color: ORANYE }}>
-                        {formatRupiah(m.price)}
-                      </p>
+      {/* Unggulan: panel terang di dalam bingkai gelap */}
+      <section className="px-5 pb-16 sm:pb-20">
+        <div className="mx-auto max-w-6xl rounded-[2rem] px-5 py-12 text-center sm:px-10" style={{ backgroundColor: PINK, color: NAVY }}>
+          <h2 className="font-serif text-3xl font-semibold sm:text-4xl">Unggulan Kami</h2>
+          {featured.length > 0 ? (
+            <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {featured.map((m) => (
+                <div key={m.id} className="overflow-hidden rounded-3xl bg-white text-left shadow-md">
+                  {m.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.image_url} alt={m.name} className="aspect-square w-full object-cover" />
+                  ) : (
+                    <div className="flex aspect-square w-full items-center justify-center font-serif text-5xl font-semibold" style={{ backgroundColor: PINK_GELAP, color: NAVY }}>
+                      {m.name.charAt(0)}
                     </div>
+                  )}
+                  <div className="p-4">
+                    <p className="break-words font-bold leading-snug">{m.name}</p>
+                    <p className="mt-1 font-black">{formatRupiah(Number(m.price))}</p>
                   </div>
-                ))}
-              </div>
-              <div className="mt-10 text-center">
-                <Link href={orderHref} className="inline-flex -rotate-1 items-center justify-center rounded-full px-7 py-3 text-xs font-bold uppercase tracking-[0.18em] text-white shadow transition duration-300 hover:rotate-0 hover:brightness-110 active:scale-95" style={{ backgroundColor: ORANYE }}>
-                  Ke Menu Lengkap
-                </Link>
-              </div>
-            </>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-8 text-zinc-600">Menu resto ini belum tersedia.</p>
           )}
-        </Reveal>
+          <Link href={orderHref} className="mt-10 inline-flex rotate-[-2deg] rounded-md px-8 py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5" style={{ backgroundColor: NAVY }}>
+            Lihat Menu Lengkap
+          </Link>
+        </div>
       </section>
 
-      {/* Pernyataan besar (bukan testimoni karangan) */}
-      <section className="relative overflow-hidden px-4 py-16 sm:px-6">
-        <Foto src={sudut[1]} name={r.name} className="absolute left-2 top-1/2 hidden h-28 w-28 -translate-y-1/2 rotate-[-8deg] rounded-2xl opacity-80 shadow-xl lg:block" />
-        <Foto src={sudut[0]} name={r.name} className="absolute right-2 top-1/2 hidden h-28 w-28 -translate-y-1/2 rotate-[7deg] rounded-2xl opacity-80 shadow-xl lg:block" />
-        <Reveal className="relative mx-auto max-w-2xl text-center">
-          <p className="text-sm font-bold italic text-white/60" style={serif}>
-            {r.name}
-          </p>
-          <p className="mt-5 text-2xl font-bold leading-snug sm:text-3xl" style={serif}>
-            “{tagline}”
-          </p>
-        </Reveal>
+      {/* Pernyataan besar (tanpa nama pengulas — bukan testimoni) */}
+      <section className="px-5 py-14 text-center sm:py-20">
+        <p className="mx-auto max-w-3xl font-serif text-2xl italic leading-snug text-white/90 sm:text-4xl">“{tagline}”</p>
       </section>
 
       {/* Galeri geser horizontal */}
-      <section className="px-4 pb-16 sm:px-6">
-        <Reveal className="mx-auto max-w-6xl">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold italic sm:text-3xl" style={serif}>
-              Suasana & Hidangan
-            </h2>
-            <div className="flex gap-2">
-              <button type="button" aria-label="Geser kiri" onClick={() => galeriRef.current?.scrollBy({ left: -320, behavior: "smooth" })} className="flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-white/30 transition hover:bg-white hover:text-black">
-                ←
-              </button>
-              <button type="button" aria-label="Geser kanan" onClick={() => galeriRef.current?.scrollBy({ left: 320, behavior: "smooth" })} className="flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-white/30 transition hover:bg-white hover:text-black">
-                →
-              </button>
-            </div>
-          </div>
-          <div ref={galeriRef} className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {galeri.map((g) => (
-              <Foto key={g.id} src={g.image_url} name={g.name ?? r.name} className="h-56 w-72 shrink-0 rounded-2xl shadow-lg" />
+      <section className="px-5 pb-16 sm:pb-20">
+        <h2 className="text-center font-serif text-3xl font-semibold sm:text-4xl">Suasana &amp; Hidangan</h2>
+        <div className="relative mx-auto mt-10 max-w-6xl">
+          <div ref={galeriRef} className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "thin" }}>
+            {galeri.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={`${src}-${i}`} src={src} alt={`Galeri ${i + 1}`} className="h-52 w-72 shrink-0 rounded-3xl object-cover shadow-md sm:h-64 sm:w-96" />
             ))}
           </div>
-        </Reveal>
+          <div className="mt-4 flex justify-center gap-3">
+            <button type="button" onClick={() => galeriRef.current?.scrollBy({ left: -320, behavior: "smooth" })} aria-label="Geser kiri" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#1B2A4A]">←</button>
+            <button type="button" onClick={() => galeriRef.current?.scrollBy({ left: 320, behavior: "smooth" })} aria-label="Geser kanan" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#1B2A4A]">→</button>
+          </div>
+        </div>
       </section>
 
-      {/* Panel gabung komunitas */}
-      <section className="px-4 pb-16 sm:px-6">
-        <Reveal className="mx-auto grid max-w-6xl gap-6 rounded-[2rem] bg-white p-8 text-zinc-900 shadow-2xl sm:p-10 md:grid-cols-2">
+      {/* Gabung komunitas: panel terang, email + centang + tombol */}
+      <section className="px-5 pb-16 sm:pb-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-6 rounded-[2rem] px-6 py-10 sm:px-10 lg:grid-cols-2" style={{ backgroundColor: PINK, color: NAVY }}>
           <div>
-            <h2 className="text-2xl font-bold sm:text-3xl" style={serif}>
-              Gabung Komunitas {r.name}
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-zinc-500">
-              Dapat kabar menu baru dan promo langsung lewat WhatsApp. Masukkan emailmu, lalu tekan Gabung — pesan akan terkirim ke WhatsApp resto.
-            </p>
+            <h2 className="font-serif text-3xl font-semibold sm:text-4xl">Gabung Komunitas</h2>
+            <p className="mt-2 text-zinc-700">Dapatkan kabar menu baru dan promo {r.name}.</p>
           </div>
-          <div>
-            <label className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500" htmlFor="noir-email">
-              Email
-            </label>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              joinCommunity();
+            }}
+          >
             <input
-              id="noir-email"
               type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama@email.com"
-              className="mt-2 w-full rounded-xl border border-zinc-300 px-4 py-3 text-sm outline-none transition focus:border-[#FF7A00] focus:ring-2 focus:ring-[#FF7A00]/30"
+              placeholder="Email kamu"
+              className="w-full rounded-full border border-[#1B2A4A]/20 bg-white px-5 py-3 text-sm outline-none"
             />
-            <label className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-zinc-500">
-              <input type="checkbox" checked={setuju} onChange={(e) => setSetuju(e.target.checked)} className="mt-0.5 accent-[#FF7A00]" />
-              Saya setuju dihubungi {r.name} soal kabar dan promo.
+            <label className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-zinc-700">
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" />
+              Saya setuju dihubungi {r.name} lewat email/WhatsApp soal kabar dan promo.
             </label>
-            <a
-              href={gabungHref}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => {
-                if (!setuju) {
-                  e.preventDefault();
-                  alert("Centang persetujuan dulu ya.");
-                }
-              }}
-              className="mt-5 inline-flex -rotate-1 items-center justify-center rounded-full px-7 py-3 text-xs font-bold uppercase tracking-[0.18em] text-white shadow transition duration-300 hover:rotate-0 hover:brightness-110 active:scale-95"
-              style={{ backgroundColor: ORANYE }}
-            >
+            <button type="submit" className="mt-4 rounded-full px-8 py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-white transition hover:opacity-90" style={{ backgroundColor: NAVY }}>
               Gabung
-            </a>
-          </div>
-        </Reveal>
+            </button>
+          </form>
+        </div>
       </section>
 
-      {/* Footer: alamat, navigasi, nama besar terpotong */}
-      <footer id="lokasi" className="relative overflow-hidden px-4 pb-0 pt-14 sm:px-6">
-        <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-2">
+      {/* Footer: kolom + nama besar terpotong di bawah */}
+      <footer id="lokasi" className="scroll-mt-8 px-5 pt-14" style={{ backgroundColor: NAVY_TUA }}>
+        <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-3">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/50">Alamat & Kontak</p>
-            {r.address && <p className="mt-3 flex gap-2 text-sm leading-relaxed text-white/70"><PinIcon className="mt-0.5 h-5 w-5 shrink-0" />{r.address}</p>}
-            {r.phone && <p className="mt-2 flex gap-2 text-sm text-white/70"><PhoneIcon className="h-5 w-5 shrink-0" />{r.phone}</p>}
-            <div className="mt-5 flex flex-wrap gap-2">
-              {socials.map((s) => (
-                <a key={s.label} href={s.href ?? "#"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold ring-1 ring-white/25 transition hover:bg-white hover:text-black">
-                  {s.icon}
-                  {s.label}
-                </a>
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/70">Alamat &amp; Kontak</h3>
+            <div className="mt-4 space-y-2 text-sm text-white/80">
+              {r.address && <p className="flex gap-2"><PinIcon className="mt-0.5 h-4 w-4 shrink-0" /> {r.address}</p>}
+              {r.phone && <p className="flex gap-2"><PhoneIcon className="mt-0.5 h-4 w-4 shrink-0" /> {r.phone}</p>}
+              {hours.map((h) => (
+                <p key={h}>{h}</p>
               ))}
             </div>
           </div>
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/50">Navigasi</p>
-            <ul className="mt-3 space-y-2">
-              {NAV_LINKS.map((l) => (
-                <li key={l.id}>
-                  <a href={`#${l.id}`} className="text-sm font-bold uppercase tracking-[0.14em] text-white/80 transition hover:text-[#FF7A00]">
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/70">Navigasi</h3>
+            <nav className="mt-4 flex flex-col gap-2 text-sm">
+              <a href="#beranda" className="transition hover:text-white">Beranda</a>
+              <Link href={orderHref} className="transition hover:text-white">Menu</Link>
+              <a href="#tentang" className="transition hover:text-white">Tentang</a>
+              <a href="#lokasi" className="transition hover:text-white">Kunjungi Kami</a>
+            </nav>
+          </div>
+          <div>
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/70">Ikuti Kami</h3>
+            <div className="mt-4 flex gap-3">
+              {ig && (
+                <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#1B2A4A]">
+                  <InstagramIcon className="h-4 w-4" />
+                </a>
+              )}
+              {waLink && (
+                <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#1B2A4A]">
+                  <WhatsappIcon className="h-4 w-4" />
+                </a>
+              )}
+              {r.maps_url && (
+                <a href={r.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Google Maps" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#1B2A4A]">
+                  <PinIcon className="h-4 w-4" />
+                </a>
+              )}
+            </div>
+            <p className="mt-5 text-xs text-white/50">© 2026 {r.name} · Dibuat dengan RestoLauncher</p>
           </div>
         </div>
-        <div className="pointer-events-none relative mt-10 select-none overflow-hidden" aria-hidden="true">
-          <p className="translate-y-1/3 whitespace-nowrap text-center text-[18vw] font-bold italic leading-none text-white/10 sm:text-[10rem]" style={serif}>
+        <div className="overflow-hidden" aria-hidden="true">
+          <p className="translate-y-1/3 whitespace-nowrap text-center font-serif text-[18vw] font-semibold leading-none text-white/10">
             {r.name}
           </p>
         </div>
