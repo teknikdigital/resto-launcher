@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fotoMelewatiBatas, ipDari } from "@/lib/keamanan";
 
 // Proxy foto Google Places. API key hanya dipakai di server dan tidak pernah
 // muncul di URL/respons ke browser.
@@ -8,6 +9,13 @@ const PHOTO_REF = /^places\/[\w-]+\/photos\/[\w-]+$/;
 const PLACE_ID = /^[\w-]+$/;
 
 export async function GET(request: Request) {
+  // Keamanan (25 Okt 2026): proxy ini sengaja TIDAK dikunci sesi admin
+  // karena foto sampul restoran ditampilkan di halaman publik. Sebagai
+  // gantinya dibatasi 60 foto/menit per IP — cukup menahan skrip yang
+  // membakar kuota Google Places, tidak mengganggu pengunjung normal.
+  if (fotoMelewatiBatas(ipDari(request))) {
+    return NextResponse.json({ error: "Terlalu banyak permintaan foto. Coba lagi sebentar." }, { status: 429 });
+  }
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "API key Google Places belum dikonfigurasi" }, { status: 500 });
