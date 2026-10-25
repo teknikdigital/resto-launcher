@@ -10,7 +10,7 @@ const unsplash = (id: string, w = 1200) => `https://images.unsplash.com/${id}?au
 const SAMPLE_COVER = unsplash("photo-1495474472287-4d71bcdd2085", 1800);
 const SAMPLE_CUP = unsplash("photo-1509042239860-f550ce710b93", 1000);
 const SAMPLE_BAR = unsplash("photo-1442512595331-e89e73853f31", 1000);
-const SAMPLE_FOOD = unsplash("photo-1540189549336-e6e99c429e9c", 1000);
+const SAMPLE_FOOD = unsplash("photo-1512058564366-18510be2db19", 1000);
 
 const MARUN = "#3F1D1D";
 const MARUN_TUA = "#2A1212";
