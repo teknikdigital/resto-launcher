@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { caughtErrorResponse, supabaseErrorResponse, supabaseRest } from "@/lib/supabase";
+import { buatSalt, hashPin, tanpaPin } from "@/lib/keamanan";
 import {
   fetchSubscriptions,
   findFreeSlug,
@@ -17,8 +18,11 @@ export async function GET() {
     const restaurants: Restaurant[] = await res.json();
     const subs = await fetchSubscriptions(restaurants.map((r) => r.id));
     const bySub = new Map(subs.map((s) => [s.restaurant_id, s]));
+    // Keamanan (25 Okt 2026): daftar ini dipakai halaman admin, portal
+    // owner, kasir, dan dapur — tidak satu pun butuh nilai PIN. PIN
+    // tidak pernah keluar dari server lewat rute ini lagi.
     return NextResponse.json({
-      restaurants: restaurants.map((r) => ({ ...r, subscription: bySub.get(r.id) ?? null })),
+      restaurants: restaurants.map((r) => ({ ...tanpaPin(r), subscription: bySub.get(r.id) ?? null })),
     });
   } catch (err) {
     return caughtErrorResponse(err);
@@ -33,6 +37,21 @@ export async function POST(request: Request) {
   if (!parsed.data.owner_pin) {
     parsed.data.owner_pin = String(Math.floor(100000 + Math.random() * 900000));
   }
+  // Keamanan (25 Okt 2026): PIN tidak pernah tersimpan sebagai teks
+  // biasa. Satu salt per resto, hash "v1$salt$hash" di kolom yang sama
+  // (tanpa migrasi). Nilai asli hanya dipakai di respons pembuatan ini
+  // untuk pesan serah-terima, tidak pernah ditulis ke database.
+  const pinOwnerAsli = parsed.data.owner_pin as string;
+  const salt = buatSalt();
+  const ubahKeHash = async (field: string) => {
+    const nilai = parsed.data[field];
+    if (typeof nilai === "string" && nilai) {
+      parsed.data[field] = `v1$${salt}$${await hashPin(salt, nilai)}`;
+    }
+  };
+  await ubahKeHash("owner_pin");
+  await ubahKeHash("kasir_pin");
+  await ubahKeHash("dapur_pin");
 
   try {
     // Slug otomatis unik: bila sudah dipakai, tambahkan -2, -3, dst.
@@ -70,7 +89,10 @@ export async function POST(request: Request) {
     const subscription = (await subRes.json())[0];
     return NextResponse.json(
       {
-        restaurant: { ...restaurant, subscription },
+        // owner_pin asli hanya muncul di respons pembuatan ini (untuk
+        // pesan serah-terima operator); di database yang tersimpan
+        // hanya hash-nya.
+        restaurant: { ...restaurant, subscription, owner_pin: pinOwnerAsli },
         slug: restaurant.slug,
         slug_changed: restaurant.slug !== requestedSlug,
         requested_slug: requestedSlug,
