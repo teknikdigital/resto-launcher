@@ -43,6 +43,9 @@ export default function RestaurantDashboard() {
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState("");
+  // Keamanan (25 Okt 2026): nilai PIN tidak lagi dikirim server, jadi
+  // halaman ini hanya tahu ada/tidak gerbang per peran.
+  const [pinAda, setPinAda] = useState({ kasir: false, dapur: false });
 
   function copyText(key: string, text: string) {
     try {
@@ -68,6 +71,18 @@ export default function RestaurantDashboard() {
       const found = (rD.restaurants as RestaurantWithSub[]).find((r) => r.id === id);
       if (!found) throw new Error("Restoran tidak ditemukan");
       setResto(found);
+      // Status gerbang staf (hanya ada/tidak, bukan nilainya).
+      try {
+        const [kRes, dRes] = await Promise.all([
+          fetch(`/api/staff/verify?restaurant_id=${encodeURIComponent(id)}&role=kasir`),
+          fetch(`/api/staff/verify?restaurant_id=${encodeURIComponent(id)}&role=dapur`),
+        ]);
+        const kD = await kRes.json().catch(() => ({}));
+        const dD = await dRes.json().catch(() => ({}));
+        setPinAda({ kasir: Boolean(kD.required), dapur: Boolean(dD.required) });
+      } catch {
+        /* abaikan */
+      }
       if (tRes.ok) {
         const tD = await tRes.json();
         setTableCount((tD.tables ?? []).length);
@@ -222,27 +237,26 @@ export default function RestaurantDashboard() {
       <ul className="space-y-1.5">
         {(
           [
-            ["Owner", resto.owner_pin],
-            ["Kasir", resto.kasir_pin],
-            ["Dapur", resto.dapur_pin],
+            // PIN owner selalu ada (dibuat otomatis saat resto dibuat).
+            ["Owner", true],
+            ["Kasir", pinAda.kasir],
+            ["Dapur", pinAda.dapur],
           ] as const
-        ).map(([label, pin]) => (
+        ).map(([label, ada]) => (
           <li key={label} className="flex items-center justify-between gap-2 text-sm">
             <span className="text-stone-500">{label}</span>
-            {pin ? (
-              <span className="flex items-center gap-2">
-                <span className="font-mono font-bold tracking-widest text-stone-800">{pin}</span>
-                <button onClick={() => copyText(label, pin)} className="text-xs font-semibold text-[#1B5E3B] hover:underline">
-                  {copied === label ? "Tersalin ✓" : "Salin"}
-                </button>
-              </span>
+            {ada ? (
+              <span className="text-xs font-semibold text-[#1B5E3B]">Terpasang</span>
             ) : (
               <span className="text-xs text-stone-400">— (halaman terbuka)</span>
             )}
           </li>
         ))}
       </ul>
-      <p className="mt-2 text-[11px] leading-snug text-stone-400">PIN diatur lewat Edit Resto. Kosong berarti halaman staf bisa dibuka tanpa PIN.</p>
+      <p className="mt-2 text-[11px] leading-snug text-stone-400">
+        PIN tidak lagi ditampilkan demi keamanan. PIN yang terlupa tidak bisa dilihat lagi — ganti lewat Edit Resto, lalu kirim yang baru ke
+        pemilik/staf.
+      </p>
     </>
   );
 
