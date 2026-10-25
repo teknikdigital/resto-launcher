@@ -6,11 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { formatRupiah, instagramUrl, toWaNumber, type MenuItem, type Restaurant } from "@/lib/resto-types";
 import { ClockIcon, CloseIcon, InstagramIcon, MenuIcon, PhoneIcon, PinIcon, WhatsappIcon } from "./icons";
 
-// Rombak total 25 Okt 2026 — struktur mengikuti alur situs referensi
-// (nav atas, hero foto, pernyataan pembuka, menu per kategori, lokasi
-// & jam, footer). Semua isi dari data resto sendiri; tidak ada nama,
-// menu, foto, atau tulisan referensi yang disalin.
-const MUSTARD = "#f5c518";
+// Teks & foto contoh tema Patachou. Ubah di sini atau lewat field restoran di admin.
 const DEFAULT_HOURS = "Setiap hari: 07.00 - 21.00";
 const CATERING_TEXT = "Acara kantor, arisan, atau pesta keluarga? Kami siapkan hidangan segar untuk dibawa ke tempatmu, dari 10 hingga ratusan porsi.";
 const unsplash = (id: string, w = 1000) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -21,24 +17,17 @@ const SAMPLE_SLIDES = [
   unsplash("photo-1525351484163-7529414344d8", 1800),
 ];
 const SAMPLE_ABOUT = unsplash("photo-1495474472287-4d71bcdd2085");
-
-// Nav mengikuti referensi: hanya Lokasi & Menu, plus tombol Pesan.
 const NAV_LINKS = [
-  { id: "lokasi", label: "Lokasi" },
-  { id: "menu", label: "Menu" },
+  { id: "hours", label: "Hours & Locations" },
+  { id: "menu", label: "Menus" },
+  { id: "catering", label: "Catering" },
+  { id: "about", label: "About" },
+  { id: "shop", label: "Shop" },
 ] as const;
 
-function Reveal({
-  children,
-  className = "",
-  delay = 0,
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-  style?: React.CSSProperties;
-}) {
+const MUSTARD = "#f5c518";
+
+function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -65,10 +54,19 @@ function Reveal({
     <div
       ref={ref}
       className={`reveal ${visible ? "is-visible" : ""} ${className}`}
-      style={{ "--reveal-delay": `${delay}ms`, ...style } as React.CSSProperties}
+      style={{ "--reveal-delay": `${delay}ms` } as React.CSSProperties}
     >
       {children}
     </div>
+  );
+}
+
+function CateringIcon({ className = "h-8 w-8" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M3 17h18M5 17a7 7 0 0 1 14 0M12 8V6M10 6h4" />
+      <path d="M2 20h20" />
+    </svg>
   );
 }
 
@@ -76,13 +74,11 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
   const [navOpen, setNavOpen] = useState(false);
   const [slide, setSlide] = useState(0);
   const [failed, setFailed] = useState<Record<number, boolean>>({});
-  const [kat, setKat] = useState("Semua");
-  const [jeda, setJeda] = useState(false);
-  const previewing = useSearchParams().get("tema") === "patachou";
 
   const wa = toWaNumber(r.whatsapp);
-  const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`Halo ${r.name}, saya ingin bertanya / memesan.`)}` : null;
+  const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`Halo ${r.name}, saya ingin bertanya soal catering.`)}` : null;
   const ig = instagramUrl(r.instagram);
+  const previewing = useSearchParams().get("tema") === "patachou";
   const orderHref = `/r/${r.slug}/menu${previewing ? "?tema=patachou" : ""}`;
 
   const slides = [
@@ -90,30 +86,14 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
     menu[0]?.image_url || SAMPLE_SLIDES[1],
     menu[1]?.image_url || SAMPLE_SLIDES[2],
   ].map((src, i) => (failed[i] ? SAMPLE_SLIDES[i] : src));
-  // Geser hero otomatis tiap 5 detik; berhenti saat kursor menempel.
-  useEffect(() => {
-    if (jeda) return;
-    const t = setInterval(() => setSlide((s) => (s + 1) % slides.length), 5000);
-    return () => clearInterval(t);
-  }, [jeda, slides.length]);
-
+  const items = menu;
   const aboutPhoto = menu.find((m) => m.image_url)?.image_url || SAMPLE_ABOUT;
   const hours = (r.opening_hours?.trim() || DEFAULT_HOURS).split("\n").map((l) => l.trim()).filter(Boolean);
   const about =
     r.about_text?.trim() ||
     r.description?.trim() ||
-    `${r.name} adalah tempat berkumpul yang nyaman: hidangan dibuat segar setiap hari, kopi diseduh dengan telaten, dan suasana yang membuatmu betah berlama-lama.`;
-  const tagline = (r.description?.trim() || "Kafe sepanjang hari").slice(0, 60);
-
-  const cats: { name: string; items: MenuItem[] }[] = [];
-  for (const m of menu) {
-    const c = m.category?.trim() || "Menu";
-    const g = cats.find((x) => x.name === c);
-    if (g) g.items.push(m);
-    else cats.push({ name: c, items: [m] });
-  }
-  const tampil = kat === "Semua" ? menu : (cats.find((c) => c.name === kat)?.items ?? []);
-
+    `${r.name} adalah tempat nongkrong favorit: sarapan sepanjang hari, kopi yang enak, dan suasana yang membuatmu betah berlama-lama.`;
+  const tagline = (r.description?.trim() || "Sejak 2020").slice(0, 60);
   const socials = [
     { href: ig, label: "Instagram", icon: <InstagramIcon className="h-5 w-5" /> },
     { href: waLink, label: "WhatsApp", icon: <WhatsappIcon className="h-5 w-5" /> },
@@ -124,49 +104,48 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
     "relative py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-800 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#f5c518] after:transition-all after:duration-300 hover:after:w-full";
   const orderBtn =
     "inline-flex items-center justify-center px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-950 transition duration-300 hover:-translate-y-0.5 hover:bg-zinc-950 hover:text-[#f5c518] hover:shadow-lg active:scale-95";
-  const heading = "font-display text-3xl font-bold text-zinc-950 sm:text-4xl";
-  const script = { fontFamily: "'Fraunces','Playfair Display',Georgia,serif" };
+  const heading = "text-3xl font-bold uppercase tracking-wide text-zinc-950 sm:text-4xl";
+  const script = { fontFamily: "'Segoe Script','Brush Script MT','Snell Roundhand','Apple Chancery',cursive" };
 
   return (
-    <div className="min-h-screen bg-[#FFFBF0] text-zinc-900 [background-image:radial-gradient(rgba(190,150,30,0.07)_1px,transparent_1.4px)] [background-size:22px_22px]">
-      {/* Nav atas menempel (struktur referensi: logo + Lokasi + Menu + Pesan) */}
-      <header className="sticky top-0 z-40 border-b-2 border-[#F0DFAE] bg-[#FFFBF0]/95 px-5 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <a href="#top" className="flex items-center gap-3 transition duration-300 hover:opacity-80">
-            {r.logo_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.logo_url} alt="" className="h-10 w-10 rounded-full object-contain" />
-            )}
-            <span className="break-words text-2xl italic leading-none text-zinc-950 sm:text-3xl" style={script}>
-              {r.name}
-            </span>
-          </a>
-          <nav className="flex items-center gap-5">
-            <ul className="hidden items-center gap-7 md:flex">
-              {NAV_LINKS.map((l) => (
-                <li key={l.id}>
-                  <a href={`#${l.id}`} className={navLink}>
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <Link href={orderHref} className={orderBtn} style={{ backgroundColor: MUSTARD }}>
-              Pesan Online
-            </Link>
-            <button
-              type="button"
-              onClick={() => setNavOpen((o) => !o)}
-              aria-label={navOpen ? "Tutup menu" : "Buka menu"}
-              aria-expanded={navOpen}
-              className="flex h-9 w-9 items-center justify-center text-zinc-800 transition duration-300 hover:text-zinc-500 md:hidden"
-            >
-              {navOpen ? <CloseIcon /> : <MenuIcon />}
-            </button>
-          </nav>
-        </div>
+    <div className="min-h-screen bg-white text-zinc-900">
+      {/* Header tengah */}
+      <header className="bg-white px-5 pb-4 pt-8 text-center">
+        <a href="#top" className="inline-flex flex-col items-center transition duration-300 hover:opacity-80">
+          {r.logo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={r.logo_url} alt="" className="mb-2 h-14 w-14 rounded-full object-contain" />
+          )}
+          <span className="break-words text-5xl italic leading-tight text-zinc-950 sm:text-7xl" style={script}>
+            {r.name}
+          </span>
+        </a>
+        <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-zinc-500">{tagline}</p>
+        <nav className="mt-6 flex items-center justify-center gap-4">
+          <ul className="hidden items-center gap-7 lg:flex">
+            {NAV_LINKS.map((l) => (
+              <li key={l.id}>
+                <a href={`#${l.id}`} className={navLink}>
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <Link href={orderHref} className={orderBtn} style={{ backgroundColor: MUSTARD }}>
+            Order Online
+          </Link>
+          <button
+            type="button"
+            onClick={() => setNavOpen((o) => !o)}
+            aria-label={navOpen ? "Tutup menu" : "Buka menu"}
+            aria-expanded={navOpen}
+            className="flex h-9 w-9 items-center justify-center text-zinc-800 transition duration-300 hover:text-zinc-500 lg:hidden"
+          >
+            {navOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
+        </nav>
         {navOpen && (
-          <ul className="mx-auto mt-3 max-w-xs border-t border-zinc-200 md:hidden">
+          <ul className="mx-auto mt-3 max-w-xs border-t border-zinc-200 lg:hidden">
             {NAV_LINKS.map((l) => (
               <li key={l.id}>
                 <a href={`#${l.id}`} onClick={() => setNavOpen(false)} className="block py-3 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-800 transition duration-300 hover:text-zinc-500">
@@ -178,9 +157,9 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
         )}
       </header>
 
-      {/* Hero + carousel geser otomatis */}
-      <section id="top" className="scroll-mt-24" onMouseEnter={() => setJeda(true)} onMouseLeave={() => setJeda(false)}>
-        <div className="relative mx-auto mt-4 h-[55vh] min-h-72 w-full max-w-6xl overflow-hidden bg-zinc-100 shadow-[0_18px_44px_rgba(120,85,5,0.20)] sm:h-[70vh] sm:rounded-[2rem]">
+      {/* Hero + carousel dots */}
+      <section id="top" className="scroll-mt-4">
+        <div className="relative h-[55vh] min-h-72 w-full overflow-hidden bg-zinc-100 sm:h-[70vh]">
           {slides.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -191,15 +170,6 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
               className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${slide === i ? "opacity-100" : "opacity-0"}`}
             />
           ))}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-6 pb-8 pt-20 text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/90">{tagline}</p>
-            <h1 className="mt-2 text-4xl font-bold text-white sm:text-5xl" style={script}>
-              {r.name}
-            </h1>
-            <Link href={orderHref} className={`${orderBtn} mt-5`} style={{ backgroundColor: MUSTARD }}>
-              Lihat Menu
-            </Link>
-          </div>
         </div>
         <div className="flex items-center justify-center gap-3 py-5" role="tablist" aria-label="Pilih foto">
           {slides.map((_, i) => (
@@ -216,134 +186,145 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
         </div>
       </section>
 
-      {/* Pernyataan pembuka */}
-      <section className="px-5 pb-4 pt-6 sm:pt-10">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <span className="mx-auto block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
-          <p className="mt-6 text-xl font-semibold leading-relaxed text-zinc-800 sm:text-2xl" style={script}>
-            {about}
-          </p>
-        </Reveal>
-      </section>
-
-      {/* Menu per kategori */}
-      <section id="menu" className="scroll-mt-24 px-5 py-16 sm:py-20">
+      {/* Menu */}
+      <section id="menu" className="scroll-mt-4 px-5 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
-          <Reveal className="mb-8 text-center">
-            <h2 className={heading}>Menu Kami</h2>
+          <Reveal className="mb-12 text-center">
+            <h2 className={heading}>Menus</h2>
             <span className="mx-auto mt-4 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
           </Reveal>
-          {menu.length === 0 ? (
-            <p className="text-center text-sm text-zinc-500">Menu resto ini belum tersedia. Silakan hubungi resto lewat WhatsApp.</p>
+          {items.length > 0 ? (
+          <ul className="grid gap-x-14 gap-y-7 md:grid-cols-2">
+            {items.slice(0, 12).map((m, i) => (
+              <li key={m.id} className="min-w-0">
+                <Reveal delay={(i % 2) * 100}>
+                  <div className="flex items-baseline gap-2">
+                    <span className="break-words text-sm font-bold uppercase tracking-wide text-zinc-950">{m.name}</span>
+                    <span className="min-w-4 flex-1 translate-y-[-3px] border-b-2 border-dotted border-zinc-400" aria-hidden="true" />
+                    <span className="shrink-0 text-sm font-bold text-zinc-950">{formatRupiah(Number(m.price))}</span>
+                  </div>
+                  {m.description && <p className="mt-1 text-sm text-zinc-500">{m.description}</p>}
+                </Reveal>
+              </li>
+            ))}
+          </ul>
           ) : (
-            <>
-              <div className="mb-10 flex flex-wrap justify-center gap-2">
-                {["Semua", ...cats.map((c) => c.name)].map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setKat(c)}
-                    className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] transition duration-300 active:scale-95 ${
-                      kat === c ? "text-zinc-950 shadow" : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:ring-zinc-400"
-                    }`}
-                    style={kat === c ? { backgroundColor: MUSTARD } : undefined}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-              <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
-                {tampil.map((m, i) => (
-                  <Reveal key={m.id} delay={(i % 4) * 80}>
-                    <div className="flex items-baseline gap-3 border-b border-dotted border-zinc-300 pb-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-zinc-900">{m.name}</p>
-                        {m.description && <p className="mt-1 text-sm leading-relaxed text-zinc-500">{m.description}</p>}
-                      </div>
-                      <p className="shrink-0 font-semibold text-zinc-900">{formatRupiah(m.price)}</p>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-              <div className="mt-12 text-center">
-                <Link href={orderHref} className={orderBtn} style={{ backgroundColor: MUSTARD }}>
-                  Pesan Online
-                </Link>
-              </div>
-            </>
+            <p className="py-8 text-center text-zinc-500">Menu resto ini belum tersedia.</p>
           )}
-        </div>
-      </section>
-
-      {/* Catering */}
-      <section className="scroll-mt-24 px-5 pb-16 sm:pb-20">
-        <Reveal className="mx-auto max-w-3xl rounded-3xl bg-white p-8 text-center shadow-[0_14px_36px_rgba(120,85,5,0.12)] ring-1 ring-[#F0DFAE] sm:p-10">
-          <h2 className={heading}>Catering</h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-zinc-600">{CATERING_TEXT}</p>
-          {waLink && (
-            <a href={waLink} target="_blank" rel="noreferrer" className={`${orderBtn} mt-6`} style={{ backgroundColor: MUSTARD }}>
-              Tanya via WhatsApp
-            </a>
-          )}
-        </Reveal>
-      </section>
-
-      {/* Tentang + foto */}
-      <section className="scroll-mt-24 bg-[#FFF3D6]/80 px-5 py-16 sm:py-24">
-        <div className="mx-auto grid max-w-5xl items-center gap-10 sm:grid-cols-2">
-          <Reveal>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={aboutPhoto} alt={`Suasana ${r.name}`} className="w-full rounded-3xl object-cover shadow-[0_18px_44px_rgba(120,85,5,0.20)]" />
-          </Reveal>
-          <Reveal delay={120}>
-            <h2 className={heading}>Tentang Kami</h2>
-            <span className="mt-4 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
-            <p className="mt-5 text-sm leading-relaxed text-zinc-800 sm:text-base">{about}</p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Lokasi & jam */}
-      <section id="lokasi" className="scroll-mt-24 px-5 py-16 sm:py-24">
-        <div className="mx-auto grid max-w-5xl gap-10 sm:grid-cols-2">
-          <Reveal>
-            <h2 className={heading}>Lokasi Kami</h2>
-            <span className="mt-4 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
-            {r.address && <p className="mt-5 flex gap-2 text-sm leading-relaxed text-zinc-600"><PinIcon className="mt-0.5 h-5 w-5 shrink-0" />{r.address}</p>}
-            {r.phone && <p className="mt-3 flex gap-2 text-sm text-zinc-600"><PhoneIcon className="h-5 w-5 shrink-0" />{r.phone}</p>}
-            <div className="mt-6 flex flex-wrap gap-3">
-              {socials.map((s) => (
-                <a key={s.label} href={s.href ?? "#"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold ring-1 ring-zinc-200 transition duration-300 hover:-translate-y-0.5 hover:shadow">
-                  {s.icon}
-                  {s.label}
-                </a>
-              ))}
-            </div>
-          </Reveal>
-          <Reveal delay={120}>
-            <h2 className={heading}>Jam Buka</h2>
-            <span className="mt-4 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
-            <ul className="mt-5 space-y-2">
-              {hours.map((h, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-zinc-600">
-                  <ClockIcon className="h-5 w-5 shrink-0" />
-                  {h}
-                </li>
-              ))}
-            </ul>
-            <Link href={orderHref} className={`${orderBtn} mt-8`} style={{ backgroundColor: MUSTARD }}>
-              Pesan Online
+          <Reveal className="mt-12 text-center">
+            <Link href={orderHref} className={orderBtn} style={{ backgroundColor: MUSTARD }}>
+              Lihat Menu Lengkap
             </Link>
           </Reveal>
         </div>
       </section>
 
-      <footer className="border-t-2 border-[#F0DFAE] bg-[#FFF3D6]/60 px-5 py-12 text-center">
-        <p className="text-2xl italic text-zinc-950" style={script}>
-          {r.name}
-        </p>
-        <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-zinc-500">{tagline}</p>
-        {r.address && <p className="mx-auto mt-4 max-w-md text-sm text-zinc-500">{r.address}</p>}
+      {/* Catering */}
+      <section id="catering" className="scroll-mt-4 px-5 pb-16 sm:pb-20">
+        <Reveal className="mx-auto max-w-5xl">
+          <div className="flex flex-col items-center gap-6 px-6 py-12 text-center sm:px-14 md:flex-row md:text-left" style={{ backgroundColor: MUSTARD }}>
+            <span className="shrink-0 text-zinc-950"><CateringIcon className="h-14 w-14" /></span>
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold uppercase tracking-wide text-zinc-950 sm:text-3xl">Catering</h2>
+              <p className="mt-2 text-zinc-900">{CATERING_TEXT}</p>
+            </div>
+            <a
+              href={waLink ?? orderHref}
+              {...(waLink ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              className="inline-flex shrink-0 items-center justify-center bg-zinc-950 px-6 py-3 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-zinc-950 hover:shadow-lg active:scale-95"
+            >
+              Tanya Catering
+            </a>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* About */}
+      <section id="about" className="scroll-mt-4 bg-zinc-50 px-5 py-16 sm:py-24">
+        <div className="mx-auto grid max-w-5xl items-center gap-12 md:grid-cols-2">
+          <Reveal>
+            <h2 className={`${heading} mb-4`}>About</h2>
+            <span className="mb-6 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
+            <p className="whitespace-pre-line text-lg leading-relaxed text-zinc-700">{about}</p>
+          </Reveal>
+          <Reveal delay={120}>
+            <div className="group overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={aboutPhoto} alt={`Suasana ${r.name}`} loading="lazy" className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105" />
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Hours & Locations */}
+      <section id="hours" className="scroll-mt-4 px-5 py-16 sm:py-24">
+        <div className="mx-auto max-w-4xl">
+          <Reveal className="mb-12 text-center">
+            <h2 className={heading}>Hours &amp; Locations</h2>
+            <span className="mx-auto mt-4 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
+          </Reveal>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Reveal>
+              <div className="h-full border border-zinc-200 p-7 transition duration-300 hover:border-[#f5c518] hover:shadow-lg">
+                <h3 className="mb-4 flex items-center gap-3 text-sm font-bold uppercase tracking-[0.18em] text-zinc-950">
+                  <ClockIcon className="h-5 w-5" />
+                  Jam Buka
+                </h3>
+                <ul className="space-y-2 text-sm text-zinc-700">
+                  {hours.map((h) => (
+                    <li key={h}>{h}</li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+            <Reveal delay={100}>
+              <div className="flex h-full flex-col border border-zinc-200 p-7 transition duration-300 hover:border-[#f5c518] hover:shadow-lg">
+                <h3 className="mb-4 flex items-center gap-3 text-sm font-bold uppercase tracking-[0.18em] text-zinc-950">
+                  <PinIcon className="h-5 w-5" />
+                  Alamat
+                </h3>
+                <p className="mb-4 text-sm text-zinc-700">{r.address || "Alamat segera diperbarui. Hubungi kami untuk petunjuk arah."}</p>
+                {(r.phone || r.whatsapp) && (
+                  <p className="mb-4 flex items-center gap-2 text-sm text-zinc-700">
+                    <PhoneIcon className="h-4 w-4 shrink-0" />
+                    {r.phone || r.whatsapp}
+                  </p>
+                )}
+                {r.maps_url && (
+                  <a href={r.maps_url} target="_blank" rel="noopener noreferrer" className={`${orderBtn} mt-auto`} style={{ backgroundColor: MUSTARD }}>
+                    <PinIcon className="mr-2 h-4 w-4" />
+                    Buka di Google Maps
+                  </a>
+                )}
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer terang */}
+      <footer id="shop" className="scroll-mt-4 border-t border-zinc-200 bg-white px-5 py-12 text-center">
+        <Reveal>
+          <p className="text-4xl italic text-zinc-950" style={script}>{r.name}</p>
+          {r.address && <p className="mt-2 text-sm text-zinc-500">{r.address}</p>}
+          {socials.length > 0 && (
+            <div className="mt-5 flex justify-center gap-3">
+              {socials.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className="flex h-11 w-11 items-center justify-center border border-zinc-300 text-zinc-800 transition duration-300 hover:-translate-y-1 hover:border-[#f5c518] hover:bg-[#f5c518]"
+                >
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+          )}
+          <p className="mt-8 text-xs text-zinc-400">&copy; {new Date().getFullYear()} {r.name}. Terima kasih sudah mampir.</p>
+        </Reveal>
       </footer>
     </div>
   );
