@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { caughtErrorResponse, supabaseErrorResponse, supabaseRest } from "@/lib/supabase";
 import { buildOrderLines, fetchTables, nextQueueNo } from "@/lib/resto-server";
+import { pesananMelewatiBatas } from "@/lib/keamanan";
 
 // GET: daftar pesanan. ?since=<ISO> hanya mengambil pesanan sejak waktu tersebut.
 export async function GET(request: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -31,6 +32,14 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
     return NextResponse.json({ error: "Nama dan nomor WA wajib diisi" }, { status: 400 });
   }
   const tableName = typeof body?.table === "string" ? body.table.trim() : "";
+
+  // Keamanan (25 Okt 2026): pesanan publik memang harus terbuka, tapi
+  // dibatasi 30/menit per resto supaya kasir/dapur tidak dibanjiri
+  // pesanan fiktif. Batas per resto (bukan per IP) karena banyak
+  // pelanggan satu resto memakai WiFi yang sama.
+  if (pesananMelewatiBatas(id)) {
+    return NextResponse.json({ error: "Resto sedang menerima banyak pesanan. Coba lagi sebentar." }, { status: 429 });
+  }
 
   try {
     const built = await buildOrderLines(id, body?.items);
