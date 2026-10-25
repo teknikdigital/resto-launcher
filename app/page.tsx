@@ -1120,7 +1120,7 @@ export default function MarketingPage() {
           <Reveal from="zoom" className="mx-auto mb-14 max-w-2xl text-center">
             <Eyebrow dark>Cara Kerja</Eyebrow>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Dari daftar sampai terima pesanan</h2>
-            <p className="mt-3 text-white/70">Tiga langkah. Tanpa istilah teknis yang membingungkan.</p>
+            <p className="mt-3 text-white/70">Empat langkah. Tanpa istilah teknis yang membingungkan.</p>
           </Reveal>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => (
