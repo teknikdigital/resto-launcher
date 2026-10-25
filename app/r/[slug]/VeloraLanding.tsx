@@ -42,7 +42,7 @@ function Stat({ value, label }: { value: number; label: string }) {
           raf = requestAnimationFrame(tick);
         }
       },
-      { threshold: 0.8 }
+      { rootMargin: "-30% 0px -30% 0px", threshold: 0.5 }
     );
     io.observe(el);
     return () => {
