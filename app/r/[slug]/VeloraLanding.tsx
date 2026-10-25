@@ -35,14 +35,14 @@ function Stat({ value, label }: { value: number; label: string }) {
           started = true;
           const t0 = performance.now();
           const tick = (t: number) => {
-            const p = Math.min(1, (t - t0) / 1200);
+            const p = Math.min(1, (t - t0) / 2000);
             setDisplay(Math.round(value * (1 - Math.pow(1 - p, 3))));
             if (p < 1) raf = requestAnimationFrame(tick);
           };
           raf = requestAnimationFrame(tick);
         }
       },
-      { threshold: 0.4 }
+      { threshold: 0.8 }
     );
     io.observe(el);
     return () => {
