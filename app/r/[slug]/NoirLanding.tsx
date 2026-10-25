@@ -16,10 +16,10 @@ const SAMPLE_PHOTOS = [
   unsplash("photo-1521017432531-fbd92d768814", 800),
 ];
 
-const NAVY = "#1B2A4A";
-const NAVY_TUA = "#121E36";
-const PINK = "#F9E5E8";
-const PINK_GELAP = "#E8C4CA";
+const NAVY = "#110983";
+const NAVY_TUA = "#0C065C";
+const PINK = "#FECFCF";
+const PINK_GELAP = "#F2B8B8";
 
 export default function NoirLanding({ restaurant: r, menu }: { restaurant: Restaurant; menu: MenuItem[] }) {
   const previewing = useSearchParams().get("tema") === "noir";
@@ -53,7 +53,7 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
     }
   };
 
-  const panelLink = "block py-3 text-sm font-bold uppercase tracking-[0.18em] text-[#1B2A4A] transition hover:opacity-60";
+  const panelLink = "block py-3 text-sm font-bold uppercase tracking-[0.18em] text-[#110983] transition hover:opacity-60";
 
   return (
     <div className="min-h-screen text-white" style={{ backgroundColor: NAVY }}>
@@ -68,7 +68,7 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
           type="button"
           onClick={() => setPanelOpen(true)}
           aria-label="Buka menu"
-          className="absolute left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#1B2A4A]"
+          className="absolute left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#110983]"
         >
           <MenuIcon />
         </button>
@@ -83,7 +83,7 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
       >
         <div className="flex items-center justify-between">
           <span className="font-serif text-xl font-semibold">{r.name}</span>
-          <button type="button" onClick={() => setPanelOpen(false)} aria-label="Tutup menu" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1B2A4A]/30 transition hover:bg-[#1B2A4A] hover:text-white">
+          <button type="button" onClick={() => setPanelOpen(false)} aria-label="Tutup menu" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#110983]/30 transition hover:bg-[#110983] hover:text-white">
             <CloseIcon />
           </button>
         </div>
@@ -95,17 +95,17 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
         </nav>
         <div className="mt-auto flex gap-3 pb-24">
           {ig && (
-            <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1B2A4A]/30 transition hover:bg-[#1B2A4A] hover:text-white">
+            <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#110983]/30 transition hover:bg-[#110983] hover:text-white">
               <InstagramIcon className="h-4 w-4" />
             </a>
           )}
           {waLink && (
-            <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1B2A4A]/30 transition hover:bg-[#1B2A4A] hover:text-white">
+            <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#110983]/30 transition hover:bg-[#110983] hover:text-white">
               <WhatsappIcon className="h-4 w-4" />
             </a>
           )}
           {r.maps_url && (
-            <a href={r.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Google Maps" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1B2A4A]/30 transition hover:bg-[#1B2A4A] hover:text-white">
+            <a href={r.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Google Maps" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#110983]/30 transition hover:bg-[#110983] hover:text-white">
               <PinIcon className="h-4 w-4" />
             </a>
           )}
@@ -118,25 +118,25 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
       {/* Hero gelap: nama sangat besar + foto sudut melayang + tombol miring */}
       <section id="beranda" className="relative overflow-hidden px-5 pb-28 pt-20 text-center sm:pt-28">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cornerPhotos[0]} alt="" className="noir-melayang absolute left-2 top-16 w-28 rotate-[-6deg] rounded-2xl object-cover shadow-xl sm:left-10 sm:w-44" style={{ ["--putar" as string]: "-6deg" }} />
+        <img src={cornerPhotos[0]} alt="" className="noir-melayang absolute -left-4 top-14 w-36 rotate-[-6deg] object-cover shadow-xl sm:-left-6 sm:w-56" style={{ ["--putar" as string]: "-6deg" }} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cornerPhotos[1]} alt="" className="noir-melayang absolute right-2 top-24 w-28 rotate-[5deg] rounded-2xl object-cover shadow-xl sm:right-10 sm:w-44" style={{ ["--putar" as string]: "5deg", animationDelay: "0.8s" }} />
+        <img src={cornerPhotos[1]} alt="" className="noir-melayang absolute -right-4 top-20 w-36 rotate-[5deg] object-cover shadow-xl sm:-right-6 sm:w-56" style={{ ["--putar" as string]: "5deg", animationDelay: "0.8s" }} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cornerPhotos[2]} alt="" className="noir-melayang absolute bottom-16 left-4 w-24 rotate-[4deg] rounded-2xl object-cover shadow-xl sm:left-16 sm:w-40" style={{ ["--putar" as string]: "4deg", animationDelay: "1.6s" }} />
+        <img src={cornerPhotos[2]} alt="" className="noir-melayang absolute bottom-10 -left-4 w-32 rotate-[4deg] object-cover shadow-xl sm:bottom-14 sm:-left-6 sm:w-52" style={{ ["--putar" as string]: "4deg", animationDelay: "1.6s" }} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cornerPhotos[3]} alt="" className="noir-melayang absolute bottom-24 right-4 w-24 rotate-[-5deg] rounded-2xl object-cover shadow-xl sm:right-16 sm:w-40" style={{ ["--putar" as string]: "-5deg", animationDelay: "2.4s" }} />
-        <h1 className="relative mx-auto max-w-4xl break-words font-serif text-6xl font-semibold italic leading-[0.95] sm:text-8xl">
+        <img src={cornerPhotos[3]} alt="" className="noir-melayang absolute bottom-20 -right-4 w-32 rotate-[-5deg] object-cover shadow-xl sm:bottom-24 sm:-right-6 sm:w-52" style={{ ["--putar" as string]: "-5deg", animationDelay: "2.4s" }} />
+        <h1 className="relative mx-auto max-w-5xl break-words text-7xl font-semibold leading-[0.95] sm:text-8xl lg:text-9xl" style={{ fontFamily: "'Segoe Script','Brush Script MT','Snell Roundhand','Apple Chancery', cursive", color: "#FECFCF" }}>
           {r.name}
         </h1>
         {r.description && <p className="relative mx-auto mt-6 max-w-md leading-relaxed text-white/80">{r.description}</p>}
-        <Link href={orderHref} className="absolute bottom-8 right-6 rotate-[-2deg] rounded-md bg-white px-7 py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-[#1B2A4A] shadow-xl transition hover:-translate-y-0.5 sm:right-12">
+        <Link href={orderHref} className="absolute bottom-8 right-6 rotate-[-2deg] rounded-md bg-white px-7 py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-[#110983] shadow-xl transition hover:-translate-y-0.5 sm:right-12">
           Lihat Menu
         </Link>
       </section>
 
       {/* Cerita: judul script tengah + paragraf + tautan teks */}
       <section id="tentang" className="scroll-mt-8 px-5 py-16 text-center sm:py-20">
-        <h2 className="font-serif text-4xl italic sm:text-5xl">Cerita Kami</h2>
+        <h2 className="text-4xl sm:text-5xl" style={{ fontFamily: "'Segoe Script','Brush Script MT','Snell Roundhand','Apple Chancery', cursive" }}>Cerita Kami</h2>
         {about && <p className="mx-auto mt-5 max-w-xl whitespace-pre-line leading-relaxed text-white/80">{about}</p>}
         <Link href={orderHref} className="mt-6 inline-block border-b border-white/60 pb-1 text-sm font-bold uppercase tracking-[0.18em] transition hover:border-white hover:text-white">
           Lihat Menu →
@@ -191,8 +191,8 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
             ))}
           </div>
           <div className="mt-4 flex justify-center gap-3">
-            <button type="button" onClick={() => galeriRef.current?.scrollBy({ left: -320, behavior: "smooth" })} aria-label="Geser kiri" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#1B2A4A]">←</button>
-            <button type="button" onClick={() => galeriRef.current?.scrollBy({ left: 320, behavior: "smooth" })} aria-label="Geser kanan" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#1B2A4A]">→</button>
+            <button type="button" onClick={() => galeriRef.current?.scrollBy({ left: -320, behavior: "smooth" })} aria-label="Geser kiri" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#110983]">←</button>
+            <button type="button" onClick={() => galeriRef.current?.scrollBy({ left: 320, behavior: "smooth" })} aria-label="Geser kanan" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 transition hover:bg-white hover:text-[#110983]">→</button>
           </div>
         </div>
       </section>
@@ -216,7 +216,7 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email kamu"
-              className="w-full rounded-full border border-[#1B2A4A]/20 bg-white px-5 py-3 text-sm outline-none"
+              className="w-full rounded-full border border-[#110983]/20 bg-white px-5 py-3 text-sm outline-none"
             />
             <label className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-zinc-700">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" />
@@ -255,17 +255,17 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
             <h3 className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/70">Ikuti Kami</h3>
             <div className="mt-4 flex gap-3">
               {ig && (
-                <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#1B2A4A]">
+                <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#110983]">
                   <InstagramIcon className="h-4 w-4" />
                 </a>
               )}
               {waLink && (
-                <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#1B2A4A]">
+                <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#110983]">
                   <WhatsappIcon className="h-4 w-4" />
                 </a>
               )}
               {r.maps_url && (
-                <a href={r.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Google Maps" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#1B2A4A]">
+                <a href={r.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Google Maps" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 transition hover:bg-white hover:text-[#110983]">
                   <PinIcon className="h-4 w-4" />
                 </a>
               )}
@@ -274,7 +274,7 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
           </div>
         </div>
         <div className="overflow-hidden" aria-hidden="true">
-          <p className="translate-y-1/3 whitespace-nowrap text-center font-serif text-[18vw] font-semibold leading-none text-white/10">
+          <p className="translate-y-1/3 whitespace-nowrap text-center font-serif text-[18vw] font-semibold leading-none text-[#FECFCF]/10">
             {r.name}
           </p>
         </div>
