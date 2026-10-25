@@ -113,7 +113,7 @@ export default function VeloraLanding({ restaurant: r, menu }: { restaurant: Res
 
       {/* Hero: spanduk peach full-bleed, teks kiri + dua visual kanan mentok tepi */}
       <section id="promo" className="w-full" style={{ backgroundColor: PEACH }}>
-        <div className="mx-auto grid max-w-[1440px] items-stretch lg:grid-cols-2">
+        <div className="grid w-full items-stretch lg:grid-cols-2">
           <div className="flex flex-col justify-center px-6 py-14 text-center sm:px-10 lg:py-20 lg:text-left">
             <h1 className="font-serif text-4xl font-medium leading-tight text-[#3E2723] sm:text-5xl">{heroTitle}</h1>
             {heroText && <p className="mx-auto mt-4 max-w-md leading-relaxed text-[#4E342E] lg:mx-0">{heroText}</p>}
