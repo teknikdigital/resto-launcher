@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Great_Vibes } from "next/font/google";
 import { formatRupiah, instagramUrl, toWaNumber, type MenuItem, type Restaurant } from "@/lib/resto-types";
 import { CloseIcon, InstagramIcon, MenuIcon, PhoneIcon, PinIcon, WhatsappIcon } from "./icons";
 
@@ -20,6 +21,8 @@ const NAVY = "#110983";
 const NAVY_TUA = "#0C065C";
 const PINK = "#FECFCF";
 const PINK_GELAP = "#F2B8B8";
+
+const scriptFont = Great_Vibes({ weight: "400", subsets: ["latin"] });
 
 export default function NoirLanding({ restaurant: r, menu }: { restaurant: Restaurant; menu: MenuItem[] }) {
   const previewing = useSearchParams().get("tema") === "noir";
@@ -125,7 +128,7 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
         <img src={cornerPhotos[2]} alt="" className="noir-melayang absolute bottom-10 -left-4 w-32 rotate-[4deg] object-cover shadow-xl sm:bottom-14 sm:-left-6 sm:w-52" style={{ ["--putar" as string]: "4deg", animationDelay: "1.6s" }} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={cornerPhotos[3]} alt="" className="noir-melayang absolute bottom-20 -right-4 w-32 rotate-[-5deg] object-cover shadow-xl sm:bottom-24 sm:-right-6 sm:w-52" style={{ ["--putar" as string]: "-5deg", animationDelay: "2.4s" }} />
-        <h1 className="relative mx-auto max-w-5xl break-words text-7xl font-semibold leading-[0.95] sm:text-8xl lg:text-9xl" style={{ fontFamily: "'Segoe Script','Brush Script MT','Snell Roundhand','Apple Chancery', cursive", color: "#FECFCF" }}>
+        <h1 className={`relative mx-auto max-w-5xl break-words text-7xl font-semibold leading-[0.95] text-[#FECFCF] sm:text-8xl lg:text-9xl ${scriptFont.className}`}>
           {r.name}
         </h1>
         {r.description && <p className="relative mx-auto mt-6 max-w-md leading-relaxed text-white/80">{r.description}</p>}
@@ -136,7 +139,7 @@ export default function NoirLanding({ restaurant: r, menu }: { restaurant: Resta
 
       {/* Cerita: judul script tengah + paragraf + tautan teks */}
       <section id="tentang" className="scroll-mt-8 px-5 py-16 text-center sm:py-20">
-        <h2 className="text-4xl sm:text-5xl" style={{ fontFamily: "'Segoe Script','Brush Script MT','Snell Roundhand','Apple Chancery', cursive" }}>Cerita Kami</h2>
+        <h2 className={`text-4xl sm:text-5xl ${scriptFont.className}`}>Cerita Kami</h2>
         {about && <p className="mx-auto mt-5 max-w-xl whitespace-pre-line leading-relaxed text-white/80">{about}</p>}
         <Link href={orderHref} className="mt-6 inline-block border-b border-white/60 pb-1 text-sm font-bold uppercase tracking-[0.18em] transition hover:border-white hover:text-white">
           Lihat Menu →
