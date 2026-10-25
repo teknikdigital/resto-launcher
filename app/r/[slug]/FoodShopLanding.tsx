@@ -14,7 +14,7 @@ const SAMPLE_INTERIOR = [
 ];
 const SAMPLE_FOOD = [
   unsplash("photo-1504674900247-0877df9cc836", 1000),
-  unsplash("photo-1540189549336-e6e99c429e9c", 1000),
+  unsplash("photo-1512058564366-18510be2db19", 1000),
   unsplash("photo-1565299624946-b28f40a0ae38", 1000),
 ];
 
