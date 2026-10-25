@@ -22,21 +22,24 @@ export default function VeloraLanding({ restaurant: r, menu }: { restaurant: Res
   const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`Halo ${r.name}, saya ingin memesan.`)}` : null;
   const ig = instagramUrl(r.instagram);
   const hours = (r.opening_hours?.trim() || "Setiap hari: 07.00 - 21.00").split("\n").map((l) => l.trim()).filter(Boolean);
-  const cats = [...new Set(menu.map((m) => m.category || "Lainnya"))];
+  const catsWithItems = [...new Set(menu.map((m) => m.category || "Lainnya"))].map((cat) => ({
+    cat,
+    items: menu.filter((m) => (m.category || "Lainnya") === cat).slice(0, 4),
+  }));
   const cover = r.cover_url || SAMPLE_DRINK;
   const secondPhoto = menu.find((m) => m.image_url)?.image_url || SAMPLE_CUP;
   const heroTitle = r.promo_title?.trim() || r.name;
   const heroText = r.promo_text?.trim() || r.description?.trim() || "";
 
-  const navItem = "px-3 py-2 text-[12px] font-bold uppercase tracking-[0.16em] text-zinc-950 transition hover:bg-zinc-950 hover:text-white";
+  const navItem = "flex items-center px-4 py-3 text-[13px] font-medium uppercase tracking-[0.22em] text-zinc-800 transition hover:bg-zinc-950 hover:text-white";
 
   return (
     <div className="min-h-screen bg-white text-zinc-950">
       {/* Garis hijau tipis + header putih (tidak menempel) */}
-      <div className="h-1.5 w-full" style={{ backgroundColor: HIJAU }} />
-      <header className="bg-white px-4 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-4">
-          <a href="#top" className="flex shrink-0 items-center" aria-label={r.name}>
+      <div className="h-2.5 w-full" style={{ backgroundColor: HIJAU }} />
+      <header className="relative bg-white px-4 sm:px-6">
+        <div className="mx-auto flex h-[88px] max-w-7xl items-stretch justify-between gap-4">
+          <a href="#top" className="flex shrink-0 items-center self-center" aria-label={r.name}>
             {r.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={r.logo_url} alt="" className="h-11 w-11 rounded-full object-cover" />
@@ -46,28 +49,45 @@ export default function VeloraLanding({ restaurant: r, menu }: { restaurant: Res
               </span>
             )}
           </a>
-          <nav className="hidden flex-1 items-center gap-1 lg:flex">
-            <div className="group relative">
-              <Link href={orderHref} className={navItem}>
-                Menu
-              </Link>
-              <div className="invisible absolute left-0 top-full z-50 w-64 pt-1 opacity-0 transition group-hover:visible group-hover:opacity-100">
-                <div className="grid grid-cols-2 gap-x-6 bg-[#1C1C1C] px-6 py-5 shadow-xl">
-                  {cats.map((cat) => (
-                    <Link key={cat} href={orderHref} className="py-1.5 text-sm text-white transition hover:text-zinc-300">
-                      {cat}
-                    </Link>
+          <nav className="hidden flex-1 items-stretch gap-1 lg:flex">
+            <div className="group flex h-full items-center">
+            <Link href={orderHref} className={`${navItem} group-hover:bg-zinc-950 group-hover:text-white`}>
+              Menu
+            </Link>
+            <div className="invisible absolute left-[-1rem] right-[-1rem] top-full z-50 opacity-0 transition group-hover:visible group-hover:opacity-100 sm:left-[-1.5rem] sm:right-[-1.5rem]">
+              <div className="bg-[#1C1C1C] px-6 py-8 shadow-xl">
+                <div className="mx-auto grid max-w-7xl gap-8" style={{ gridTemplateColumns: `repeat(${catsWithItems.length || 1}, minmax(0, 1fr))` }}>
+                  {catsWithItems.map(({ cat, items }) => (
+                    <div key={cat}>
+                      <p className="font-bold text-white">{cat}</p>
+                      <ul className="mt-3 space-y-2">
+                        {items.map((m) => (
+                          <li key={m.id}>
+                            <Link href={orderHref} className="text-sm text-zinc-300 transition hover:text-white">
+                              {m.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
                 </div>
+                <div className="mx-auto mt-8 flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/20 pt-5 text-sm">
+                  <span className="text-zinc-400">Butuh yang lain?</span>
+                  <Link href={orderHref} className="text-white transition hover:text-zinc-300">Pesan Online</Link>
+                  <a href="#lokasi" className="text-white transition hover:text-zinc-300">Lokasi Gerai</a>
+                  <a href="#kontak" className="text-white transition hover:text-zinc-300">Kontak</a>
+                </div>
               </div>
+            </div>
             </div>
             <a href="#promo" className={navItem}>Promo</a>
             <a href="#lokasi" className={navItem}>Lokasi</a>
             <a href="#kontak" className={navItem}>Kontak</a>
           </nav>
-          <div className="hidden items-center gap-2 lg:flex">
+          <div className="hidden items-center gap-2 self-center lg:flex">
             {r.maps_url && (
-              <a href={r.maps_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[0.14em] transition hover:opacity-60">
+              <a href={r.maps_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[13px] font-medium uppercase tracking-[0.2em] transition hover:opacity-60">
                 <span style={{ color: HIJAU }}><PinIcon className="h-4 w-4" /></span> Cari Gerai
               </a>
             )}
@@ -76,7 +96,7 @@ export default function VeloraLanding({ restaurant: r, menu }: { restaurant: Res
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
-            className="flex h-10 w-10 items-center justify-center lg:hidden"
+            className="flex h-10 w-10 items-center justify-center self-center lg:hidden"
           >
             {mobileOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -91,21 +111,21 @@ export default function VeloraLanding({ restaurant: r, menu }: { restaurant: Res
         )}
       </header>
 
-      {/* Hero: spanduk peach penuh, teks kiri + dua visual kanan */}
-      <section id="promo" className="w-full px-4 py-10 sm:px-6 sm:py-14" style={{ backgroundColor: PEACH }}>
-        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
-          <div className="text-center lg:text-left">
-            <h1 className="text-4xl font-bold leading-tight text-[#3E2723] sm:text-5xl">{heroTitle}</h1>
+      {/* Hero: spanduk peach full-bleed, teks kiri + dua visual kanan mentok tepi */}
+      <section id="promo" className="w-full" style={{ backgroundColor: PEACH }}>
+        <div className="mx-auto grid max-w-[1440px] items-stretch lg:grid-cols-2">
+          <div className="flex flex-col justify-center px-6 py-14 text-center sm:px-10 lg:py-20 lg:text-left">
+            <h1 className="font-serif text-4xl font-medium leading-tight text-[#3E2723] sm:text-5xl">{heroTitle}</h1>
             {heroText && <p className="mx-auto mt-4 max-w-md leading-relaxed text-[#4E342E] lg:mx-0">{heroText}</p>}
-            <Link href={orderHref} className="mt-7 inline-flex bg-[#3E2723] px-8 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-white transition hover:opacity-90">
+            <Link href={orderHref} className="mt-7 inline-flex self-center bg-[#3E2723] px-8 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-white transition hover:opacity-90 lg:self-start">
               Pesan Sekarang
             </Link>
           </div>
-          <div className="grid grid-cols-2 items-end gap-4">
+          <div className="grid grid-cols-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={cover} alt={`Foto ${r.name}`} className="aspect-[3/4] w-full rounded-lg object-cover shadow-lg" />
+            <img src={cover} alt={`Foto ${r.name}`} className="h-72 w-full object-cover lg:h-full" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={secondPhoto} alt="Menu andalan" className="mb-8 aspect-[3/4] w-full rounded-lg object-cover shadow-lg" />
+            <img src={secondPhoto} alt="Menu andalan" className="h-72 w-full object-cover lg:h-full" />
           </div>
         </div>
       </section>
