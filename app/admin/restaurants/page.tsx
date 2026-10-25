@@ -5,7 +5,7 @@ import { faWandMagicSparkles, faCheck, faUtensils } from "@fortawesome/free-soli
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   subStatus,
   PICKER_TEMPLATES,
@@ -173,7 +173,23 @@ function AdminRestaurants() {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
+  // Keamanan (25 Okt 2026): nilai PIN tersimpan tidak pernah dikirim
+  // server ke form lagi (sudah hash / dibuang dari respons). Karena itu
+  // kolom PIN kosong di form berarti "tidak diubah" — kecuali operator
+  // memang mengetik/mengacaknya, baru dikirim. Ini mencegah gerbang
+  // terhapus tanpa sengaja saat menyimpan resto yang PIN-nya sudah ada.
+  const pinDisentuh = useRef<Set<string>>(new Set());
+  function tampilPin(v: string | null | undefined): string {
+    if (!v) return "";
+    return v.startsWith("v1$") ? "" : v;
+  }
+  function setPin(k: "owner_pin" | "kasir_pin" | "dapur_pin", v: string) {
+    pinDisentuh.current.add(k);
+    set(k, v);
+  }
+
   function edit(r: RestaurantWithSub) {
+    pinDisentuh.current = new Set();
     setEditingId(r.id);
     setForm({
       slug: r.slug,
@@ -193,9 +209,9 @@ function AdminRestaurants() {
       template: toTemplate(r.template),
       qris_payload: r.qris_payload ?? "",
       package: (r.package as Package) ?? "basic",
-      owner_pin: r.owner_pin ?? "",
-      kasir_pin: r.kasir_pin ?? "",
-      dapur_pin: r.dapur_pin ?? "",
+      owner_pin: tampilPin(r.owner_pin),
+      kasir_pin: tampilPin(r.kasir_pin),
+      dapur_pin: tampilPin(r.dapur_pin),
       promo_title: r.promo_title ?? "",
       promo_text: r.promo_text ?? "",
       promo_image_url: r.promo_image_url ?? "",
@@ -217,6 +233,7 @@ function AdminRestaurants() {
     setEditingId(null);
     setForm(EMPTY);
     setCategory("");
+    pinDisentuh.current = new Set();
   }
 
   async function generateDescription() {
@@ -274,10 +291,16 @@ function AdminRestaurants() {
     setError("");
     setSuccess("");
     try {
+      // PIN yang tidak disentuh tidak ikut dikirim, supaya gerbang yang
+      // sudah ada tidak tertimpa kosong (lihat setPin di atas).
+      const payload: Record<string, unknown> = { ...form };
+      for (const f of ["owner_pin", "kasir_pin", "dapur_pin"] as const) {
+        if (!pinDisentuh.current.has(f)) delete payload[f];
+      }
       const res = await fetch(editingId ? `/api/restaurants/${editingId}` : "/api/restaurants", {
         method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -288,10 +311,14 @@ function AdminRestaurants() {
         );
       }
       reset();
+      // PIN owner baru hanya muncul di respons pembuatan ini (untuk
+      // pesan serah-terima) — sesudah itu tidak bisa dilihat lagi.
+      const pinBaru =
+        !editingId && d.restaurant?.owner_pin ? ` PIN owner: ${d.restaurant.owner_pin} — salin untuk pesan serah-terima.` : "";
       if (!editingId && d.slug_changed) {
-        setSuccess(`Slug '${d.requested_slug}' sudah dipakai, jadi restoran disimpan dengan slug '${d.slug}' (/r/${d.slug}).`);
+        setSuccess(`Slug '${d.requested_slug}' sudah dipakai, jadi restoran disimpan dengan slug '${d.slug}' (/r/${d.slug}).${pinBaru}`);
       } else if (!editingId && d.slug) {
-        setSuccess(`Restoran disimpan dengan slug '${d.slug}' (/r/${d.slug}).`);
+        setSuccess(`Restoran disimpan dengan slug '${d.slug}' (/r/${d.slug}).${pinBaru}`);
       }
       await load();
     } catch (err) {
@@ -357,11 +384,11 @@ function AdminRestaurants() {
             inputMode="numeric"
             maxLength={8}
             value={form.owner_pin}
-            onChange={(e) => set("owner_pin", e.target.value.replace(/\D/g, ""))}
+            onChange={(e) => setPin("owner_pin", e.target.value.replace(/\D/g, ""))}
           />
           <button
             type="button"
-            onClick={() => set("owner_pin", String(Math.floor(100000 + Math.random() * 900000)))}
+            onClick={() => setPin("owner_pin", String(Math.floor(100000 + Math.random() * 900000)))}
             className="btn-secondary btn-sm"
           >
             Acak
@@ -375,11 +402,11 @@ function AdminRestaurants() {
             inputMode="numeric"
             maxLength={8}
             value={form.kasir_pin}
-            onChange={(e) => set("kasir_pin", e.target.value.replace(/\D/g, ""))}
+            onChange={(e) => setPin("kasir_pin", e.target.value.replace(/\D/g, ""))}
           />
           <button
             type="button"
-            onClick={() => set("kasir_pin", String(Math.floor(100000 + Math.random() * 900000)))}
+            onClick={() => setPin("kasir_pin", String(Math.floor(100000 + Math.random() * 900000)))}
             className="btn-secondary btn-sm"
           >
             Acak
@@ -394,11 +421,11 @@ function AdminRestaurants() {
             inputMode="numeric"
             maxLength={8}
             value={form.dapur_pin}
-            onChange={(e) => set("dapur_pin", e.target.value.replace(/\D/g, ""))}
+            onChange={(e) => setPin("dapur_pin", e.target.value.replace(/\D/g, ""))}
           />
           <button
             type="button"
-            onClick={() => set("dapur_pin", String(Math.floor(100000 + Math.random() * 900000)))}
+            onClick={() => setPin("dapur_pin", String(Math.floor(100000 + Math.random() * 900000)))}
             className="btn-secondary btn-sm"
           >
             Acak
