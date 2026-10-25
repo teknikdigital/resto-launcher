@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatRupiah, instagramUrl, toWaNumber, type MenuItem, type Restaurant } from "@/lib/resto-types";
 import { ClockIcon, CloseIcon, InstagramIcon, MenuIcon, PhoneIcon, PinIcon, WhatsappIcon } from "./icons";
@@ -29,10 +29,12 @@ const NAV_LINKS = [
   { id: "lokasi", label: "Lokasi" },
 ] as const;
 
+// Halaman referensi yang teramati bersifat statis (tanpa animasi
+// masuk/fade/slide), jadi Reveal di tema ini sengaja dibuat pasif:
+// konten langsung tampil, tanpa gerakan. Hover tombol & foto tetap ada.
 function Reveal({
   children,
   className = "",
-  delay = 0,
   style,
 }: {
   children: React.ReactNode;
@@ -40,34 +42,8 @@ function Reveal({
   delay?: number;
   style?: React.CSSProperties;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (typeof IntersectionObserver === "undefined") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setVisible(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setVisible(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
   return (
-    <div
-      ref={ref}
-      className={`reveal ${visible ? "is-visible" : ""} ${className}`}
-      style={{ "--reveal-delay": `${delay}ms`, ...style } as React.CSSProperties}
-    >
+    <div className={className} style={style}>
       {children}
     </div>
   );
