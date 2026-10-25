@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
+import { adminSesiValid } from "@/lib/keamanan";
 
 export const maxDuration = 30;
 
 // POST { name, address?, category? } -> { description } (2-3 kalimat promosi, Bahasa Indonesia).
 export async function POST(request: Request) {
+  // Keamanan (25 Okt 2026): sama seperti ekstrak menu — hanya operator
+  // bergelang sesi admin yang boleh memakai model berbayar.
+  if (!(await adminSesiValid(request))) {
+    return NextResponse.json({ error: "Hanya operator yang boleh memakai fitur ini" }, { status: 401 });
+  }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
