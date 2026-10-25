@@ -1,34 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { formatRupiah, initials, instagramUrl, toWaNumber, type MenuItem, type Restaurant } from "@/lib/resto-types";
+import { useSearchParams } from "next/navigation";
+import { formatRupiah, instagramUrl, toWaNumber, type MenuItem, type Restaurant } from "@/lib/resto-types";
 import { ClockIcon, CloseIcon, InstagramIcon, MenuIcon, PhoneIcon, PinIcon, WhatsappIcon } from "./icons";
 
-// Halaman utama tema Food Shop — gaya klasik ala tema WordPress Restaurant
-// Food Shop (header nempel, hero foto sampul, kartu menu, daftar menu klasik).
-// Isi dari data resto sendiri. Yang sengaja TIDAK dijiplak: formulir
-// reservasi (tidak ada fitur reservasi), testimoni, koki, dan berita.
-const DEFAULT_HOURS = "Setiap hari: 10.00 - 21.00";
+// Rombak total 25 Okt 2026 — alur mengikuti struktur situs referensi
+// (hero nama resto, strip jam buka, cerita, promo, menu, lokasi &
+// kontak, footer). Semua isi dari data resto sendiri; tidak ada nama,
+// menu, ulasan, atau tulisan referensi yang disalin.
 const GREEN = "#14532D";
+const DEFAULT_HOURS = "Setiap hari: 10.00 - 21.00";
+const unsplash = (id: string, w = 1000) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
+const SAMPLE_COVER = unsplash("photo-1517248135467-4c7edcad34c4", 1800);
 
 const NAV_LINKS = [
-  { id: "beranda", label: "Beranda" },
-  { id: "menu-andalan", label: "Menu Andalan" },
-  { id: "menu", label: "Menu" },
   { id: "tentang", label: "Tentang" },
-  { id: "jam-lokasi", label: "Jam & Lokasi" },
+  { id: "promo", label: "Promo" },
+  { id: "menu", label: "Menu" },
+  { id: "lokasi", label: "Lokasi" },
 ] as const;
 
-const STRENGTHS = [
-  { no: "01", title: "Pesan dari Meja", desc: "Scan QR di meja, pilih menu, tanpa antre di kasir." },
-  { no: "02", title: "Bayar QRIS", desc: "Nominal terkunci per pesanan, langsung ke rekening resto." },
-  { no: "03", title: "Langsung ke Dapur", desc: "Pesanan yang sudah dibayar diteruskan ke dapur." },
-  { no: "04", title: "Menu Selalu Update", desc: "Harga dan stok diperbarui pemilik dari portalnya." },
-] as const;
-
-function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+function Reveal({
+  children,
+  className = "",
+  delay = 0,
+  style,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  style?: React.CSSProperties;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -55,7 +59,7 @@ function Reveal({ children, className = "", delay = 0 }: { children: React.React
     <div
       ref={ref}
       className={`reveal ${visible ? "is-visible" : ""} ${className}`}
-      style={{ "--reveal-delay": `${delay}ms` } as React.CSSProperties}
+      style={{ "--reveal-delay": `${delay}ms`, ...style } as React.CSSProperties}
     >
       {children}
     </div>
@@ -64,34 +68,36 @@ function Reveal({ children, className = "", delay = 0 }: { children: React.React
 
 function MenuPhoto({ src, name, className = "h-20 w-20" }: { src: string | null; name: string; className?: string }) {
   const [err, setErr] = useState(false);
-  if (src && !err) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={name} onError={() => setErr(true)} className={`${className} shrink-0 rounded-lg object-cover shadow-sm`} />;
+  if (!src || err) {
+    return (
+      <span className={`flex shrink-0 items-center justify-center rounded-xl bg-[#EAF2EC] font-display text-xl font-bold text-[#14532D] ${className}`}>
+        {name.charAt(0).toUpperCase()}
+      </span>
+    );
   }
-  return (
-    <div aria-hidden="true" className={`${className} flex shrink-0 items-center justify-center rounded-lg text-2xl font-bold text-white shadow-sm`} style={{ backgroundColor: GREEN }}>
-      {initials(name)}
-    </div>
-  );
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={name} onError={() => setErr(true)} className={`shrink-0 rounded-xl object-cover ${className}`} />;
 }
 
 export default function FoodShopLanding({ restaurant: r, menu }: { restaurant: Restaurant; menu: MenuItem[] }) {
   const [navOpen, setNavOpen] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
+  const [kat, setKat] = useState("Semua");
   const previewing = useSearchParams().get("tema") === "food-shop";
 
   const wa = toWaNumber(r.whatsapp);
   const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`Halo ${r.name}, saya ingin bertanya / memesan.`)}` : null;
   const ig = instagramUrl(r.instagram);
   const orderHref = `/r/${r.slug}/menu${previewing ? "?tema=food-shop" : ""}`;
-  const hasCover = !!r.cover_url && !coverFailed;
-  const featured = menu.slice(0, 6);
+  const cover = !coverFailed && r.cover_url ? r.cover_url : SAMPLE_COVER;
   const hasPromo = !!(r.promo_title?.trim() || r.promo_text?.trim());
   const hours = (r.opening_hours?.trim() || DEFAULT_HOURS).split("\n").map((l) => l.trim()).filter(Boolean);
   const about =
     r.about_text?.trim() ||
     r.description?.trim() ||
-    `${r.name} hadir untuk menemani hari Anda dengan hidangan yang dibuat dengan sepenuh hati.`;
+    `${r.name} menyajikan hidangan rumahan dengan bahan segar pilihan, dimasak setiap hari dan disajikan dengan hangat.`;
+  const tagline = (r.description?.trim() || "Masakan rumahan, rasa juara").slice(0, 80);
+
   const cats: { name: string; items: MenuItem[] }[] = [];
   for (const m of menu) {
     const c = m.category?.trim() || "Menu";
@@ -99,239 +105,291 @@ export default function FoodShopLanding({ restaurant: r, menu }: { restaurant: R
     if (g) g.items.push(m);
     else cats.push({ name: c, items: [m] });
   }
+  const tampil = kat === "Semua" ? menu : (cats.find((c) => c.name === kat)?.items ?? []);
+  const unggulan = menu.slice(0, 3);
+
   const socials = [
     { href: ig, label: "Instagram", icon: <InstagramIcon className="h-5 w-5" /> },
     { href: waLink, label: "WhatsApp", icon: <WhatsappIcon className="h-5 w-5" /> },
     { href: r.maps_url, label: "Google Maps", icon: <PinIcon className="h-5 w-5" /> },
   ].filter((s) => s.href);
 
+  const serif = { fontFamily: "'Fraunces','Playfair Display',Georgia,serif" };
   const navLink = "text-xs font-bold uppercase tracking-[0.18em] text-zinc-700 transition hover:text-[#14532D]";
-  const orderBtn = "inline-flex items-center justify-center rounded-md px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-md transition duration-300 hover:-translate-y-0.5 hover:brightness-110 active:scale-95";
-  const heading = "font-serif text-3xl font-bold text-zinc-900 sm:text-4xl";
+  const orderBtn =
+    "inline-flex items-center justify-center rounded-md px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-md transition duration-300 hover:-translate-y-0.5 hover:brightness-110 active:scale-95";
 
   return (
     <div className="min-h-screen bg-white text-zinc-900">
-      <header className="sticky top-0 z-50 border-b-4 bg-white/95 backdrop-blur" style={{ borderColor: GREEN }}>
-        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <a href="#beranda" className="flex min-w-0 items-center gap-2.5 transition hover:opacity-80">
-            {r.logo_url ? (
+      {/* Nav atas */}
+      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <a href="#top" className="flex items-center gap-3 transition hover:opacity-80">
+            {r.logo_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.logo_url} alt="" className="h-10 w-10 shrink-0 rounded-full bg-white object-contain ring-2 ring-[#14532D]" />
-            ) : (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-serif text-base font-bold text-white" style={{ backgroundColor: GREEN }}>
-                {initials(r.name)}
-              </span>
+              <img src={r.logo_url} alt="" className="h-10 w-10 rounded-full object-contain" />
             )}
-            <span className="truncate font-serif text-xl font-bold text-zinc-900">{r.name}</span>
+            <span className="text-xl font-bold sm:text-2xl" style={{ ...serif, color: GREEN }}>
+              {r.name}
+            </span>
           </a>
-          <ul className="hidden items-center gap-6 lg:flex">
-            {NAV_LINKS.map((l) => (
-              <li key={l.id}>
-                <a href={`#${l.id}`} className={navLink}>
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div className="flex items-center gap-2">
-            <Link href={orderHref} className={`${orderBtn} hidden !px-5 sm:inline-flex`} style={{ backgroundColor: GREEN }}>
-              Pesan Sekarang
+          <nav className="flex items-center gap-5">
+            <ul className="hidden items-center gap-7 md:flex">
+              {NAV_LINKS.map((l) => (
+                <li key={l.id}>
+                  <a href={`#${l.id}`} className={navLink}>
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <Link href={orderHref} className={orderBtn} style={{ backgroundColor: GREEN }}>
+              Pesan
             </Link>
             <button
               type="button"
               onClick={() => setNavOpen((o) => !o)}
               aria-label={navOpen ? "Tutup menu" : "Buka menu"}
               aria-expanded={navOpen}
-              className="flex h-10 w-10 items-center justify-center rounded-md border text-zinc-800 transition hover:text-[#14532D] lg:hidden"
+              className="flex h-9 w-9 items-center justify-center text-zinc-800 hover:text-[#14532D] md:hidden"
             >
               {navOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
-          </div>
-        </nav>
+          </nav>
+        </div>
         {navOpen && (
-          <ul className="border-t px-6 py-2 lg:hidden">
+          <ul className="border-t border-zinc-200 px-4 md:hidden">
             {NAV_LINKS.map((l) => (
               <li key={l.id}>
-                <a href={`#${l.id}`} onClick={() => setNavOpen(false)} className="block py-3 text-xs font-bold uppercase tracking-[0.18em] text-zinc-800 transition hover:text-[#14532D]">
+                <a href={`#${l.id}`} onClick={() => setNavOpen(false)} className="block py-3 text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">
                   {l.label}
                 </a>
               </li>
             ))}
-            <li>
-              <Link href={orderHref} onClick={() => setNavOpen(false)} className="my-2 block rounded-md py-3 text-center text-xs font-bold uppercase tracking-[0.18em] text-white" style={{ backgroundColor: GREEN }}>
-                Pesan Sekarang
-              </Link>
-            </li>
           </ul>
         )}
       </header>
 
-      <section id="beranda" className="relative scroll-mt-24 overflow-hidden">
-        {hasCover ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={r.cover_url!} alt={`Suasana ${r.name}`} onError={() => setCoverFailed(true)} className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-black/55" />
-          </>
-        ) : (
-          <div className="absolute inset-0" style={{ backgroundColor: GREEN }} />
-        )}
-        <div className="relative mx-auto max-w-6xl px-4 py-20 text-center text-white sm:px-6 sm:py-28">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/80">Selamat datang di</p>
-          <h1 className="mx-auto mt-3 max-w-3xl break-words font-serif text-5xl font-bold leading-[1.05] sm:text-6xl">{r.name}</h1>
-          <p className="mx-auto mt-5 max-w-xl leading-relaxed text-white/90">{r.description?.trim() || about}</p>
-          {hasPromo && r.promo_title && (
-            <p className="mx-auto mt-5 inline-block rounded-full bg-white px-4 py-1.5 text-xs font-bold text-zinc-900 shadow-lg">{r.promo_title}</p>
-          )}
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href={orderHref} className={orderBtn} style={{ backgroundColor: GREEN }}>
-              Lihat Menu →
-            </Link>
-            {waLink && (
-              <a href={waLink} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-md border-2 border-white px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-white hover:text-zinc-900">
-                Chat WhatsApp
+      {/* Hero: foto membesar pelan + nama resto */}
+      <section id="top" className="relative overflow-hidden">
+        <div className="relative h-[62vh] min-h-96 w-full overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={cover}
+            alt={`Foto ${r.name}`}
+            onError={() => setCoverFailed(true)}
+            className="h-full w-full object-cover"
+            style={{ animation: "fs-zoom 14s ease-out forwards" }}
+          />
+          <style>{`@keyframes fs-zoom { from { transform: scale(1.12); } to { transform: scale(1); } }`}</style>
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/90">{tagline}</p>
+            <h1 className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-white sm:text-6xl" style={serif}>
+              {r.name}
+            </h1>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <Link href={orderHref} className={orderBtn} style={{ backgroundColor: GREEN }}>
+                Lihat Menu
+              </Link>
+              <a href="#lokasi" className="inline-flex items-center justify-center rounded-md bg-white px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-zinc-900 shadow-md transition duration-300 hover:-translate-y-0.5 active:scale-95">
+                Lokasi Kami
               </a>
-            )}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-10 sm:px-6">
-        <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STRENGTHS.map((s) => (
-            <div key={s.no} className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-              <span className="font-serif text-2xl font-bold" style={{ color: GREEN }}>{s.no}</span>
-              <p className="mt-2 font-bold text-zinc-900">{s.title}</p>
-              <p className="mt-1 text-sm leading-relaxed text-zinc-500">{s.desc}</p>
-            </div>
+      {/* Strip jam buka */}
+      <section className="px-4 py-6 sm:px-6" style={{ backgroundColor: GREEN }}>
+        <Reveal className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-2 text-center">
+          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-white">
+            <ClockIcon className="h-5 w-5" />
+            Jam Buka
+          </span>
+          {hours.map((h, i) => (
+            <span key={i} className="text-sm text-white/90">
+              {h}
+            </span>
           ))}
-        </div>
-      </section>
-
-      <section id="menu-andalan" className="scroll-mt-24 bg-stone-50 px-4 py-12 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em]" style={{ color: GREEN }}>Menu Andalan</p>
-              <h2 className={heading}>Favorit di {r.name}</h2>
-            </div>
-            <Link href={orderHref} className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700 underline decoration-[#14532D] decoration-2 underline-offset-4 transition hover:text-[#14532D]">
-              Lihat Menu Lengkap →
-            </Link>
-          </Reveal>
-          {featured.length === 0 ? (
-            <p className="py-6 text-center text-sm text-zinc-500">Menu sedang disiapkan. Silakan kembali lagi sebentar lagi.</p>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {featured.map((m, i) => (
-                <li key={m.id} className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md">
-                  <Reveal delay={(i % 3) * 100}>
-                    <Link href={orderHref} className="block">
-                      <MenuPhoto src={m.image_url} name={m.name} className="h-44 w-full !rounded-none" />
-                      <div className="p-4">
-                        <p className="break-words font-serif text-lg font-bold leading-snug text-zinc-900">{m.name}</p>
-                        {m.description && <p className="mt-1 line-clamp-2 text-sm text-zinc-500">{m.description}</p>}
-                        <p className="mt-3 text-base font-bold" style={{ color: GREEN }}>{formatRupiah(Number(m.price))}</p>
-                      </div>
-                    </Link>
-                  </Reveal>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
-      {cats.length > 0 && (
-        <section id="menu" className="scroll-mt-24 px-4 py-12 sm:px-6">
-          <div className="mx-auto max-w-4xl">
-            <Reveal className="mb-10 text-center">
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em]" style={{ color: GREEN }}>Daftar Menu</p>
-              <h2 className={heading}>Menu Kami</h2>
-            </Reveal>
-            {cats.map((c) => (
-              <div key={c.name} className="mb-10">
-                <h3 className="border-b-2 pb-2 font-serif text-2xl font-bold text-zinc-900" style={{ borderColor: GREEN }}>{c.name}</h3>
-                <ul className="mt-2 divide-y divide-dotted divide-zinc-300">
-                  {c.items.map((m) => (
-                    <li key={m.id}>
-                      <Link href={orderHref} className="flex items-baseline justify-between gap-4 py-3 transition hover:text-[#14532D]">
-                        <span>
-                          <span className="font-semibold text-zinc-900">{m.name}</span>
-                          {m.description && <span className="mt-0.5 block text-sm text-zinc-500">{m.description}</span>}
-                        </span>
-                        <span className="shrink-0 font-bold" style={{ color: GREEN }}>{formatRupiah(Number(m.price))}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section id="tentang" className="scroll-mt-24 bg-stone-50 px-4 py-12 sm:px-6">
-        <div className="mx-auto max-w-3xl text-center">
-          <Reveal>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em]" style={{ color: GREEN }}>Tentang Kami</p>
-            <h2 className={heading}>Cerita {r.name}</h2>
-            <p className="mt-5 leading-relaxed text-zinc-600">{about}</p>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="px-4 py-12 sm:px-6">
-        <Reveal className="mx-auto max-w-6xl">
-          <div className="rounded-lg px-6 py-10 text-center text-white shadow-xl" style={{ backgroundColor: GREEN }}>
-            <h2 className="font-serif text-3xl font-bold">Lapar? Pesan sekarang.</h2>
-            <p className="mx-auto mt-3 max-w-md text-white/85">Pilih menu, pesan dari HP, bayar QRIS. Pesananmu langsung diteruskan ke dapur.</p>
-            <Link href={orderHref} className="mt-6 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-xs font-bold uppercase tracking-[0.18em] text-zinc-900 shadow-md transition hover:-translate-y-0.5">
-              Pesan Sekarang →
-            </Link>
-          </div>
         </Reveal>
       </section>
 
-      <section id="jam-lokasi" className="scroll-mt-24 px-4 pb-12 sm:px-6">
-        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2">
-          <Reveal className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-            <h3 className="flex items-center gap-2 font-serif text-xl font-bold text-zinc-900"><ClockIcon className="h-5 w-5" /> Jam Buka</h3>
-            <ul className="mt-4 space-y-2 text-sm text-zinc-600">
-              {hours.map((h) => (
-                <li key={h}>{h}</li>
-              ))}
-            </ul>
-          </Reveal>
-          <Reveal delay={100} className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-            <h3 className="flex items-center gap-2 font-serif text-xl font-bold text-zinc-900"><PinIcon className="h-5 w-5" /> Lokasi & Kontak</h3>
-            {r.address && <p className="mt-4 text-sm leading-relaxed text-zinc-600">{r.address}</p>}
-            <div className="mt-4 space-y-2 text-sm">
-              {r.phone && (
-                <p className="flex items-center gap-2 text-zinc-600"><PhoneIcon className="h-4 w-4" /> {r.phone}</p>
-              )}
-              {r.maps_url && (
-                <a href={r.maps_url} target="_blank" rel="noreferrer" className="font-bold underline decoration-[#14532D] decoration-2 underline-offset-4" style={{ color: GREEN }}>
-                  Buka di Google Maps →
+      {/* Cerita resto */}
+      <section id="tentang" className="scroll-mt-24 px-4 py-16 sm:px-6 sm:py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2">
+          <Reveal>
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em]" style={{ color: GREEN }}>
+              Tentang Kami
+            </p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl" style={serif}>
+              {r.name}
+            </h2>
+            <p className="mt-5 text-sm leading-relaxed text-zinc-600 sm:text-base">{about}</p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href={orderHref} className={orderBtn} style={{ backgroundColor: GREEN }}>
+                Pesan Sekarang
+              </Link>
+              {waLink && (
+                <a href={waLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-zinc-800 ring-1 ring-zinc-300 transition duration-300 hover:-translate-y-0.5 hover:shadow active:scale-95">
+                  <WhatsappIcon className="h-4 w-4" />
+                  WhatsApp
                 </a>
               )}
             </div>
           </Reveal>
+          <Reveal delay={120}>
+            <div className="grid grid-cols-3 gap-3">
+              {unggulan.map((m) => (
+                <div key={m.id} className="overflow-hidden rounded-2xl shadow transition duration-300 hover:-translate-y-1 hover:shadow-lg">
+                  <MenuPhoto src={m.image_url} name={m.name} className="aspect-square h-auto w-full rounded-none" />
+                  <p className="truncate px-2 py-2 text-center text-xs font-bold">{m.name}</p>
+                </div>
+              ))}
+              {unggulan.length === 0 && (
+                <p className="col-span-3 rounded-2xl bg-[#F3F7F4] p-6 text-center text-sm text-zinc-500">
+                  Foto hidangan akan tampil di sini begitu menu resto diisi.
+                </p>
+              )}
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      <footer className="px-5 py-12 text-white" style={{ backgroundColor: GREEN }}>
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 text-center">
-          <p className="font-serif text-2xl font-bold">{r.name}</p>
-          <div className="flex gap-3">
-            {socials.map((s) => (
-              <a key={s.label} href={s.href!} target="_blank" rel="noreferrer" aria-label={s.label} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/30">
-                {s.icon}
-              </a>
-            ))}
-          </div>
-          <p className="text-xs text-white/70">© {new Date().getFullYear()} {r.name}. Dibuat dengan RestoLauncher.</p>
+      {/* Promo resto (hanya bila ada di data resto) */}
+      {hasPromo && (
+        <section id="promo" className="scroll-mt-24 px-4 pb-16 sm:px-6">
+          <Reveal className="mx-auto max-w-6xl overflow-hidden rounded-3xl shadow-lg" style={{ backgroundColor: GREEN }}>
+            <div className="grid sm:grid-cols-2">
+              {r.promo_image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={r.promo_image_url} alt={r.promo_title ?? "Promo"} className="h-56 w-full object-cover sm:h-full" />
+              )}
+              <div className="p-8 text-white sm:p-10">
+                <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/80">Promo</p>
+                {r.promo_title && (
+                  <h2 className="mt-3 text-2xl font-bold sm:text-3xl" style={serif}>
+                    {r.promo_title}
+                  </h2>
+                )}
+                {r.promo_text && <p className="mt-4 text-sm leading-relaxed text-white/90">{r.promo_text}</p>}
+                <Link href={orderHref} className="mt-7 inline-flex items-center justify-center rounded-md bg-white px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-zinc-900 shadow transition duration-300 hover:-translate-y-0.5 active:scale-95">
+                  Pesan Sekarang
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+        </section>
+      )}
+
+      {/* Menu per kategori */}
+      <section id="menu" className="scroll-mt-24 bg-[#F7F5F0] px-4 py-16 sm:px-6 sm:py-20">
+        <div className="mx-auto max-w-6xl">
+          <Reveal className="mb-8 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em]" style={{ color: GREEN }}>
+              Menu
+            </p>
+            <h2 className="mt-3 text-3xl font-bold sm:text-4xl" style={serif}>
+              Pilihan di {r.name}
+            </h2>
+          </Reveal>
+          {menu.length === 0 ? (
+            <p className="text-center text-sm text-zinc-500">Menu resto ini belum tersedia. Silakan hubungi resto lewat WhatsApp.</p>
+          ) : (
+            <>
+              <div className="mb-10 flex flex-wrap justify-center gap-2">
+                {["Semua", ...cats.map((c) => c.name)].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setKat(c)}
+                    className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] transition duration-300 active:scale-95 ${
+                      kat === c ? "text-white shadow" : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:ring-zinc-400"
+                    }`}
+                    style={kat === c ? { backgroundColor: GREEN } : undefined}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {tampil.map((m, i) => (
+                  <Reveal key={m.id} delay={(i % 3) * 90}>
+                    <div className="flex h-full gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-100 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+                      <MenuPhoto src={m.image_url} name={m.name} />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-zinc-900">{m.name}</p>
+                        {m.description && <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-zinc-500">{m.description}</p>}
+                        <p className="mt-2 font-bold" style={{ color: GREEN }}>
+                          {formatRupiah(m.price)}
+                        </p>
+                      </div>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+              <div className="mt-12 text-center">
+                <Link href={orderHref} className={orderBtn} style={{ backgroundColor: GREEN }}>
+                  Pesan Sekarang
+                </Link>
+              </div>
+            </>
+          )}
         </div>
+      </section>
+
+      {/* Lokasi & kontak */}
+      <section id="lokasi" className="scroll-mt-24 px-4 py-16 sm:px-6 sm:py-20">
+        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-3">
+          <Reveal>
+            <h3 className="text-lg font-bold" style={serif}>
+              Alamat
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-600">{r.address || "Alamat resto belum diisi."}</p>
+            {r.maps_url && (
+              <a href={r.maps_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] transition hover:underline" style={{ color: GREEN }}>
+                <PinIcon className="h-4 w-4" />
+                Buka di Google Maps
+              </a>
+            )}
+          </Reveal>
+          <Reveal delay={90}>
+            <h3 className="text-lg font-bold" style={serif}>
+              Kontak
+            </h3>
+            <div className="mt-3 space-y-2 text-sm text-zinc-600">
+              {r.phone && <p className="flex items-center gap-2"><PhoneIcon className="h-4 w-4 shrink-0" />{r.phone}</p>}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {socials.map((s) => (
+                  <a key={s.label} href={s.href ?? "#"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold ring-1 ring-zinc-200 transition duration-300 hover:-translate-y-0.5 hover:shadow">
+                    {s.icon}
+                    {s.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+          <Reveal delay={180}>
+            <h3 className="text-lg font-bold" style={serif}>
+              Jam Operasional
+            </h3>
+            <ul className="mt-3 space-y-1.5">
+              {hours.map((h, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-zinc-600">
+                  <ClockIcon className="h-4 w-4 shrink-0" />
+                  {h}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </div>
+      </section>
+
+      <footer className="px-4 py-10 text-center text-white sm:px-6" style={{ backgroundColor: GREEN }}>
+        <p className="text-xl font-bold" style={serif}>
+          {r.name}
+        </p>
+        <p className="mt-2 text-xs text-white/80">{tagline}</p>
       </footer>
     </div>
   );
