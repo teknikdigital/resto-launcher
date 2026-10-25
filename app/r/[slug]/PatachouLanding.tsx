@@ -298,7 +298,7 @@ export default function PatachouLanding({ restaurant: r, menu }: { restaurant: R
           <Reveal delay={120}>
             <h2 className={heading}>Tentang Kami</h2>
             <span className="mt-4 block h-1 w-16" style={{ backgroundColor: MUSTARD }} />
-            <p className="mt-5 text-sm leading-relaxed text-zinc-600 sm:text-base">{about}</p>
+            <p className="mt-5 text-sm leading-relaxed text-zinc-800 sm:text-base">{about}</p>
           </Reveal>
         </div>
       </section>
