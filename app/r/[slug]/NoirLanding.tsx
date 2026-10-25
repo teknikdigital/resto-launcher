@@ -10,7 +10,7 @@ const unsplash = (id: string, w = 1000) => `https://images.unsplash.com/${id}?au
 const SAMPLE_PHOTOS = [
   unsplash("photo-1541167760496-1628856ab772", 800),
   unsplash("photo-1509042239860-f550ce710b93", 800),
-  unsplash("photo-1540189549336-e6e99c429e9c", 800),
+  unsplash("photo-1512058564366-18510be2db19", 800),
   unsplash("photo-1565299624946-b28f40a0ae38", 800),
   unsplash("photo-1554118811-1e0d58224f24", 800),
   unsplash("photo-1521017432531-fbd92d768814", 800),
