@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminSesiValid } from "@/lib/keamanan";
 
 export const maxDuration = 60;
 
@@ -33,6 +34,12 @@ function normalize(raw: unknown): Extracted[] {
 }
 
 export async function POST(request: Request) {
+  // Keamanan (25 Okt 2026): endpoint berbayar hanya untuk operator
+  // yang sudah lewat gerbang PIN admin (cookie sesi). Tanpa ini siapa
+  // pun bisa membakar biaya OpenAI dari luar.
+  if (!(await adminSesiValid(request))) {
+    return NextResponse.json({ error: "Hanya operator yang boleh memakai fitur ini" }, { status: 401 });
+  }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "OPENAI_API_KEY belum dikonfigurasi" }, { status: 500 });
 
