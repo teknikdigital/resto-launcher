@@ -12,8 +12,8 @@ function OwnerTablesInner() {
   return (
     <OwnerGate slug={slug}>
       {(auth) => (
-        <main className="mx-auto w-full max-w-4xl px-4 py-8">
-          <TablesManager restaurantId={auth.id} backHref={`/owner/${slug}`} backLabel="← Portal Owner" />
+        <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
+          <TablesManager restaurantId={auth.id} backHref={`/owner/${slug}`} backLabel="← Portal Pemilik" />
         </main>
       )}
     </OwnerGate>
