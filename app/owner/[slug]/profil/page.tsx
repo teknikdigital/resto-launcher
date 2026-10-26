@@ -94,11 +94,11 @@ function ProfilForm({ restaurantId, slug }: { restaurantId: string; slug: string
     }
   }
 
-  if (loading) return <main className="mx-auto max-w-2xl px-4 py-10"><p className="text-zinc-500">Memuat…</p></main>;
+  if (loading) return <main className="mx-auto max-w-2xl px-4 py-6 sm:py-8"><p className="text-zinc-500">Memuat…</p></main>;
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-8">
-      <a href={`/owner/${slug}`} className="back-link">← Portal Owner</a>
+    <main className="mx-auto w-full max-w-2xl px-4 py-6 sm:py-8">
+      <a href={`/owner/${slug}`} className="back-link">← Portal Pemilik</a>
       <h1 className="page-title mt-2">Profil Resto</h1>
       <p className="mt-1 text-sm text-zinc-500">Ubah tulisan & info yang tampil di website restomu.</p>
       <form onSubmit={save} className="panel mt-5 space-y-4">
