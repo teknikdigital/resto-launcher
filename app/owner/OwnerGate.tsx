@@ -57,7 +57,7 @@ export default function OwnerGate({
           <p className="flex h-12 w-12 mx-auto items-center justify-center rounded-2xl bg-[#1B5E3B] font-display text-xl font-bold text-white">
             R
           </p>
-          <h1 className="page-title mt-4">Portal Owner</h1>
+          <h1 className="page-title mt-4">Portal Pemilik</h1>
           <p className="mt-1 text-sm text-zinc-500">
             Masukkan PIN restoramu untuk mengelola meja & menu.
           </p>
