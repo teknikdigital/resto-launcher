@@ -49,7 +49,7 @@ function TemaInner({ restaurantId, slug }: { restaurantId: string; slug: string 
   };
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-8">
+    <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
       <Link href={`/owner/${slug}`} className="back-link">
         ← Portal Pemilik
       </Link>
