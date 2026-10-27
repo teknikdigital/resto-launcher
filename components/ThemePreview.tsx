@@ -17,18 +17,29 @@ export default function ThemePreview({
   canApply = false,
   onApply,
   requestHrefFor,
+  allowed,
 }: {
   slug: string;
   current: RestaurantTemplate;
   canApply?: boolean;
   onApply?: (t: RestaurantTemplate) => Promise<void> | void;
   requestHrefFor?: (t: RestaurantTemplate) => string | null;
+  // Bila diisi, hanya tema ini yang ditampilkan (pembatasan per paket).
+  allowed?: readonly RestaurantTemplate[];
 }) {
   const [selected, setSelected] = useState<RestaurantTemplate>(current);
   const [view, setView] = useState<"website" | "menu">("website");
   const [device, setDevice] = useState<"hp" | "laptop">("hp");
   const [applying, setApplying] = useState(false);
   const [note, setNote] = useState("");
+
+  // Tema aktif lama yang sudah tidak ada di daftar tetap ditampilkan
+  // supaya pratinjau tidak kehilangan tema yang sedang aktif.
+  const list: readonly RestaurantTemplate[] = allowed
+    ? allowed.includes(current)
+      ? allowed
+      : [...allowed, current]
+    : PICKER_TEMPLATES;
 
   const src = view === "website" ? `/r/${slug}?tema=${selected}` : `/r/${slug}/menu?tema=${selected}`;
   const changed = selected !== current;
@@ -52,7 +63,7 @@ export default function ThemePreview({
     <div>
       {/* Pilihan tema */}
       <div className="mb-4 flex flex-wrap gap-2">
-        {PICKER_TEMPLATES.map((t) => {
+        {list.map((t) => {
           const on = selected === t;
           return (
             <button
@@ -165,3 +176,4 @@ export default function ThemePreview({
     </div>
   );
 }
+
