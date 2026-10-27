@@ -22,6 +22,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import {
   PACKAGE_LABELS,
+  templatesForPackage,
   TEMPLATE_LABELS,
   toTemplate,
   type Package,
@@ -427,7 +428,7 @@ export default function RestaurantDashboard() {
                 Aktif: <strong className="text-zinc-700">{TEMPLATE_LABELS[toTemplate(resto.template)]}</strong>
               </span>
             </div>
-            <ThemePreview slug={resto.slug} current={toTemplate(resto.template)} canApply onApply={applyTemplate} />
+            <ThemePreview slug={resto.slug} current={toTemplate(resto.template)} canApply onApply={applyTemplate} allowed={templatesForPackage(pkg)} />
           </section>
 
           {!fullKasir && (
@@ -440,3 +441,4 @@ export default function RestaurantDashboard() {
     </main>
   );
 }
+
