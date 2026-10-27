@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   subStatus,
-  PICKER_TEMPLATES,
+  templatesForPackage,
   TEMPLATE_DESCRIPTIONS,
   TEMPLATE_LABELS,
   toTemplate,
@@ -366,7 +366,13 @@ function AdminRestaurants() {
           <span className="font-medium">Paket:</span>
           <select
             value={form.package}
-            onChange={(e) => set("package", e.target.value as Package)}
+            onChange={(e) => {
+              const pk = e.target.value as Package;
+              set("package", pk);
+              // Bila tema terpilih tidak tersedia untuk paket baru,
+              // pindahkan ke tema pertama paket itu.
+              if (!templatesForPackage(pk).includes(form.template)) set("template", templatesForPackage(pk)[0]);
+            }}
             className={`${inputCls} w-auto`}
           >
             {(Object.keys(PACKAGE_LABELS) as Package[]).map((pk) => (
@@ -512,7 +518,7 @@ function AdminRestaurants() {
         <fieldset className="sm:col-span-2">
           <legend className="mb-2 text-sm font-medium text-zinc-700">Tema desain</legend>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-            {PICKER_TEMPLATES.map((tpl) => (
+            {templatesForPackage(form.package).map((tpl) => (
               <label
                 key={tpl}
                 className={`cursor-pointer rounded-xl border-2 p-1.5 transition hover:border-blue-300 ${form.template === tpl ? "border-blue-600 bg-blue-50" : "border-transparent"}`}
@@ -532,6 +538,12 @@ function AdminRestaurants() {
               </label>
             ))}
           </div>
+          {!templatesForPackage(form.package).includes(form.template) && (
+            <p className="mt-2 text-xs text-amber-700">
+              Tema aktif resto ini ({TEMPLATE_LABELS[form.template]}) di luar paket {PACKAGE_LABELS[form.package]} — pilih
+              salah satu tema di atas untuk menggantinya.
+            </p>
+          )}
         </fieldset>
         {editingId && form.slug && (
           <div className="sm:col-span-2">
@@ -688,3 +700,4 @@ export default function Page() {
     </Suspense>
   );
 }
+
