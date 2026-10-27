@@ -82,6 +82,20 @@ export const PACKAGE_LABELS: Record<Package, string> = {
   premium: "Premium",
 };
 
+// Pembagian tema per paket (diputuskan user 27 Okt 2026):
+// Basic 3 tema, Plus 6 tema, Premium semua 7 tema.
+export const PACKAGE_TEMPLATES: Record<Package, readonly RestaurantTemplate[]> = {
+  basic: ["amok", "amak", "patachou"],
+  plus: ["amok", "amak", "patachou", "food-shop", "passion", "velora"],
+  premium: ["amok", "amak", "patachou", "food-shop", "passion", "velora", "noir"],
+};
+
+// Daftar tema yang boleh dipilih untuk satu paket. Paket tak dikenal
+// (mis. resto lama tanpa paket) memakai semua tema pemilih.
+export function templatesForPackage(pkg: Package | null | undefined): readonly RestaurantTemplate[] {
+  return pkg ? PACKAGE_TEMPLATES[pkg] : PICKER_TEMPLATES;
+}
+
 export type RestaurantTable = {
   id: string;
   restaurant_id: string;
@@ -210,3 +224,4 @@ export function toWaNumber(phone: string | null | undefined): string | null {
 export function formatRupiah(n: number): string {
   return "Rp" + Math.round(n).toLocaleString("id-ID");
 }
+
