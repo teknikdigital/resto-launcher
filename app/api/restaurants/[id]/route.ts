@@ -8,7 +8,7 @@ import {
   parseRestaurantBody,
   type SupabaseErrorBody,
 } from "@/lib/resto-server";
-import { subStatus, type MenuItem, type Restaurant } from "@/lib/resto-types";
+import { subStatus, PACKAGE_TEMPLATES, PICKER_TEMPLATES, type MenuItem, type Package, type Restaurant, type RestaurantTemplate } from "@/lib/resto-types";
 
 // GET: detail publik berdasarkan SLUG (segmen [id] dipakai ulang karena Next
 // tidak mengizinkan nama segmen dinamis berbeda pada level yang sama).
@@ -63,6 +63,28 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
       parsed.data[f] = await simpanPin(nilai);
     }
   }
+  // Pembatasan per paket untuk ganti tema dari dashboard (body hanya berisi
+  // template): ambil paket resto saat ini. Bila paket tidak bisa dibaca,
+  // biarkan lewat supaya ganti tema tidak rusak karena galat baca.
+  if (parsed.data.template && !("package" in parsed.data)) {
+    try {
+      const cur = await supabaseRest(`restaurants?id=eq.${encodeURIComponent(id)}&select=package`);
+      if (cur.ok) {
+        const row = (await cur.json())[0] as { package?: string } | undefined;
+        const pkg = row?.package;
+        if (
+          pkg &&
+          (["basic", "plus", "premium"] as const).includes(pkg as Package) &&
+          PICKER_TEMPLATES.includes(parsed.data.template as RestaurantTemplate) &&
+          !PACKAGE_TEMPLATES[pkg as Package].includes(parsed.data.template as RestaurantTemplate)
+        ) {
+          return NextResponse.json({ error: "Tema tidak tersedia untuk paket ini" }, { status: 400 });
+        }
+      }
+    } catch {
+      /* abaikan: validasi di antarmuka tetap berlaku */
+    }
+  }
   try {
     const res = await supabaseRest(`restaurants?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -87,3 +109,4 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     return caughtErrorResponse(err);
   }
 }
+
