@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import ThemePreview from "@/components/ThemePreview";
-import { toTemplate, TEMPLATE_LABELS, type Restaurant, type RestaurantTemplate } from "@/lib/resto-types";
+import { toTemplate, templatesForPackage, TEMPLATE_LABELS, type Restaurant, type RestaurantTemplate } from "@/lib/resto-types";
 import OwnerGate from "../../OwnerGate";
 
 // Halaman tema: pemilik bisa mempratinjau semua tema dengan data restonya sendiri.
@@ -61,7 +61,7 @@ function TemaInner({ restaurantId, slug }: { restaurantId: string; slug: string 
       </p>
       {resto ? (
         <div className="panel">
-          <ThemePreview slug={slug} current={toTemplate(resto.template)} requestHrefFor={requestHrefFor} />
+          <ThemePreview slug={slug} current={toTemplate(resto.template)} requestHrefFor={requestHrefFor} allowed={templatesForPackage(resto.package)} />
         </div>
       ) : (
         <p className="text-sm text-stone-500">Memuat data restoran…</p>
@@ -69,3 +69,4 @@ function TemaInner({ restaurantId, slug }: { restaurantId: string; slug: string 
     </main>
   );
 }
+
