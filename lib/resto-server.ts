@@ -2,6 +2,8 @@
 import { supabaseRest } from "./supabase";
 import {
   subStatus,
+  PACKAGE_TEMPLATES,
+  PICKER_TEMPLATES,
   TEMPLATES,
   TRIAL_DAYS,
   type MenuItem,
@@ -10,6 +12,7 @@ import {
   type RestaurantTable,
   type RestaurantTemplate,
   type Subscription,
+  type Package,
 } from "./resto-types";
 
 const q = encodeURIComponent;
@@ -68,6 +71,16 @@ export function parseRestaurantBody(
   if ("template" in data) {
     if (!data.template) delete data.template;
     else if (!TEMPLATES.includes(data.template as RestaurantTemplate)) return { error: "Tema tidak valid" };
+    // Pembatasan per paket (27 Okt 2026): hanya berlaku bila paket ikut
+    // dikirim di body yang sama (buat resto / edit form). Tema lama di luar
+    // pemilih tetap lolos supaya resto lama tidak rusak.
+    else if (
+      PICKER_TEMPLATES.includes(data.template as RestaurantTemplate) &&
+      data.package &&
+      (["basic", "plus", "premium"] as const).includes(data.package as Package) &&
+      !PACKAGE_TEMPLATES[data.package as Package].includes(data.template as RestaurantTemplate)
+    )
+      return { error: "Tema tidak tersedia untuk paket ini" };
   }
   if (data.maps_url &&!/^https?:\/\//i.test(data.maps_url)) {
     return { error: "Link Google Maps harus diawali http:// atau https://" };
@@ -337,3 +350,4 @@ export function parseTableBody(
 export function newTrial(restaurantId: string) {
   return { restaurant_id: restaurantId, plan: "trial", trial_ends_at: addDays(new Date(), TRIAL_DAYS) };
 }
+
