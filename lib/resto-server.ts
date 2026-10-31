@@ -75,7 +75,7 @@ export function parseRestaurantBody(
     // dikirim di body yang sama (buat resto / edit form). Tema lama di luar
     // pemilih tetap lolos supaya resto lama tidak rusak.
     else if (
-      PICKER_TEMPLATES.includes(data.template as RestaurantTemplate) &&
+      (PICKER_TEMPLATES as readonly RestaurantTemplate[]).includes(data.template as RestaurantTemplate) &&
       data.package &&
       (["basic", "plus", "premium"] as const).includes(data.package as Package) &&
       !PACKAGE_TEMPLATES[data.package as Package].includes(data.template as RestaurantTemplate)
