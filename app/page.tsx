@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faCircleDot, faLocationDot, faMobileScreen, faCashRegister, faKitchenSet, faStore, faCreditCard, faQrcode, faChartLine, faPalette, faUserGear, faClipboardList, faCalculator, faPen, faClock, faUsers, faFileLines, faTag, faComments, faHeadset, faWrench } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faCircleDot, faLocationDot, faMobileScreen, faCashRegister, faKitchenSet, faStore, faCreditCard, faQrcode, faChartLine, faPalette, faUserGear, faClipboardList, faCalculator, faPen, faClock, faUsers, faFileLines, faTag, faComments, faHeadset, faWrench, faBolt, faMugHot, faUtensils, faMotorcycle, faNetworkWired, faTableCells } from "@fortawesome/free-solid-svg-icons";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -472,6 +472,21 @@ const WHY = [
   { icon: faHeadset, title: "Dukungan lewat WhatsApp", text: "Tanya jawab langsung dengan orang, bukan antrean tiket." },
 ];
 
+const SEGMENTS = [
+  { id: "warung", label: "Warung & Cepat Saji", icon: faBolt, desc: "Antrean cepat, pesan langsung dari meja tanpa panggil pelayan.", pkg: "Basic", themes: ["Amok", "Amak", "Patachou"], feats: ["Menu QR dibuka dari HP", "QR tiap meja, nomor terbaca otomatis", "Kasir simpel, tandai lunas"] },
+  { id: "kafe", label: "Kafe & Bakery", icon: faMugHot, desc: "Menu cantik yang gampang diubah saat ada menu musiman.", pkg: "Plus", themes: ["Food Shop", "Passion", "Velora"], feats: ["Website resto sendiri", "Menu QR + QRIS dinamis", "Kasir POS + layar dapur"] },
+  { id: "keluarga", label: "Resto Keluarga", icon: faUtensils, desc: "Dine-in ramai, pesanan tetap rapi sampai ke dapur.", pkg: "Plus", themes: ["Velora", "Patachou"], feats: ["Kasir POS untuk konter", "Layar dapur real-time", "Rekap harian + unduh laporan"] },
+  { id: "cloud", label: "Cloud Kitchen", icon: faMotorcycle, desc: "Fokus antar tanpa ruang makan, pesanan masuk dari HP pelanggan.", pkg: "Plus", themes: ["Food Shop", "Amok"], feats: ["Website + menu digital", "Pesan takeaway dari HP", "Kasir POS + QRIS dinamis"] },
+  { id: "minuman", label: "Kedai Minuman", icon: faStore, desc: "Varian jelas, pesan cepat, antrean tidak menumpuk.", pkg: "Basic", themes: ["Amak", "Amok"], feats: ["Menu QR + foto menu", "QR tiap meja", "Kasir simpel"] },
+  { id: "franchise", label: "Franchise & Multi-Cabang", icon: faNetworkWired, desc: "Tiap cabang punya website dan portal sendiri, dipantau operator dari satu admin.", pkg: "Premium", themes: ["Noir", "Velora"], feats: ["Domain sendiri per cabang", "Semua 7 tema", "Portal pemilik per cabang"] },
+];
+
+const ROADMAP = [
+  { icon: faMotorcycle, title: "Integrasi Aggregator", text: "Pesanan GrabFood, GoFood, dan ShopeeFood masuk ke satu layar kasir. Ini butuh kemitraan resmi, jadi kami kerjakan lewat jalur partner." },
+  { icon: faMobileScreen, title: "Kiosk Layanan Mandiri", text: "Pelanggan pesan sendiri dari tablet di dekat kasir, tanpa antre. Pakai menu dan keranjang yang sama." },
+  { icon: faTableCells, title: "Table Management", text: "Denah meja visual dengan status kosong, terisi, dan dipesan, plus reservasi sederhana." },
+];
+
 const ROLES = [
   {
     icon: faMobileScreen,
@@ -789,6 +804,7 @@ function OrderModal({ pkg, onClose }: { pkg: PackageId; onClose: () => void }) {
 
 export default function MarketingPage() {
   const [modalPkg, setModalPkg] = useState<PackageId | null>(null);
+  const [segmen, setSegmen] = useState("warung");
   const [benefitPkg, setBenefitPkg] = useState<PackageId | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
@@ -1027,6 +1043,88 @@ export default function MarketingPage() {
         </Reveal>
       </section>
 
+
+      {/* Segmentasi: satu sistem, diatur sesuai tipe resto */}
+      <section id="segmen" className="scroll-mt-24 bg-[#FAF6EF] py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal className="mx-auto mb-10 max-w-2xl text-center" from="zoom">
+            <Eyebrow>Untuk Tipe Resto Apa Saja</Eyebrow>
+            <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">Satu sistem, diatur sesuai tipe restomu.</h2>
+            <p className="mt-3 text-zinc-600">Pilih tipenya. Paket dan tema yang disarankan langsung terlihat.</p>
+          </Reveal>
+          <Reveal from="up">
+            <div className="mb-6 flex flex-wrap justify-center gap-2">
+              {SEGMENTS.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setSegmen(s.id)}
+                  className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                    segmen === s.id
+                      ? "bg-[#1B5E3B] text-white"
+                      : "border border-zinc-300 bg-white text-zinc-700 hover:border-[#1B5E3B] hover:text-[#1B5E3B]"
+                  }`}
+                >
+                  <FontAwesomeIcon icon={s.icon} className="mr-2" />
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            {SEGMENTS.filter((s) => s.id === segmen).map((s) => (
+              <div key={s.id} className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
+                <div className="flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#EAF3EC] text-xl text-[#1B5E3B]">
+                    <FontAwesomeIcon icon={s.icon} />
+                  </span>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-zinc-900">{s.label}</h3>
+                    <p className="mt-1 leading-relaxed text-zinc-600">{s.desc}</p>
+                  </div>
+                </div>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-[#1B5E3B] px-3 py-1 text-xs font-bold text-white">Paket disarankan: {s.pkg}</span>
+                  {s.themes.map((t) => (
+                    <span key={t} className="rounded-full bg-[#EAF3EC] px-3 py-1 text-xs font-bold text-[#1B5E3B]">{t}</span>
+                  ))}
+                </div>
+                <ul className="mt-6 space-y-2">
+                  {s.feats.map((f) => (
+                    <li key={f} className="flex gap-2 text-sm text-zinc-700">
+                      <FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a href="#harga" className="mt-6 inline-block rounded-lg bg-[#1B5E3B] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#14492e]">
+                  Lihat Paket Harga
+                </a>
+              </div>
+            ))}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Roadmap: gambar dikosongkan dulu, bukan foto karangan */}
+      <section className="bg-white py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal className="mx-auto mb-10 max-w-2xl text-center" from="zoom">
+            <Eyebrow>Roadmap</Eyebrow>
+            <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">Sedang kami siapkan berikutnya.</h2>
+            <p className="mt-3 text-zinc-600">Tiga hal ini belum bisa dipesan sekarang. Gambarnya menyusul begitu sudah bisa dicoba.</p>
+          </Reveal>
+          <div className="grid gap-5 sm:grid-cols-3">
+            {ROADMAP.map((r) => (
+              <div key={r.title} className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+                <div className="flex h-40 items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50">
+                  <span className="text-xs font-bold tracking-wide text-zinc-400 uppercase">Gambar menyusul</span>
+                </div>
+                <span className="mt-4 inline-block rounded-full bg-[#EAF3EC] px-3 py-1 text-xs font-bold text-[#1B5E3B]">Rencana berikutnya</span>
+                <h3 className="mt-3 text-lg font-extrabold text-zinc-900">{r.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{r.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Fitur lengkap */}
       <section id="fitur" className="scroll-mt-24 py-20 sm:py-28">
