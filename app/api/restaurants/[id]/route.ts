@@ -75,7 +75,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
         if (
           pkg &&
           (["basic", "plus", "premium"] as const).includes(pkg as Package) &&
-          PICKER_TEMPLATES.includes(parsed.data.template as RestaurantTemplate) &&
+          (PICKER_TEMPLATES as readonly RestaurantTemplate[]).includes(parsed.data.template as RestaurantTemplate) &&
           !PACKAGE_TEMPLATES[pkg as Package].includes(parsed.data.template as RestaurantTemplate)
         ) {
           return NextResponse.json({ error: "Tema tidak tersedia untuk paket ini" }, { status: 400 });
