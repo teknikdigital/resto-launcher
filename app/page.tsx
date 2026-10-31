@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faCircleDot, faLocationDot, faMobileScreen, faCashRegister, faKitchenSet, faStore } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faCircleDot, faLocationDot, faMobileScreen, faCashRegister, faKitchenSet, faStore, faCreditCard, faQrcode, faChartLine, faPalette, faUserGear, faClipboardList, faCalculator, faPen, faClock, faUsers, faFileLines, faTag, faComments, faHeadset, faWrench } from "@fortawesome/free-solid-svg-icons";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -423,6 +423,42 @@ const STEPS = [
   },
 ];
 
+
+const PROBLEMS = [
+  { icon: faClipboardList, title: "Pesanan tercecer", text: "Pesanan masuk lewat chat dan catatan kertas. Ada yang kelewat, ada yang salah tulis." },
+  { icon: faCalculator, title: "Hitung manual", text: "Kasir menghitung pakai kalkulator. Selisih baru ketahuan saat tutup shift." },
+  { icon: faPen, title: "Menu susah diubah", text: "Harga berubah, menu cetak harus dibuat ulang. Info di medsos dan di resto jadi beda." },
+  { icon: faClock, title: "Dapur menunggu kabar", text: "Pesanan disampaikan lisan. Koki salah dengar, hidangan salah antar." },
+  { icon: faFileLines, title: "Laporan akhir bulan", text: "Omzet dihitung dari tumpukan struk. Menu terlaris cuma kira-kira." },
+  { icon: faUsers, title: "Pelanggan antre di kasir", text: "Pesan dan bayar harus antre. Meja kosong lebih lama, pelanggan keburu pergi." },
+];
+
+const MODULES = [
+  { icon: faStore, title: "Website Resto", text: "Profil, foto, jam buka, dan lokasi dalam satu alamat sendiri." },
+  { icon: faMobileScreen, title: "Menu QR", text: "Menu digital yang dibuka pelanggan dari HP, lengkap dengan keranjang." },
+  { icon: faCashRegister, title: "Kasir POS", text: "Pesanan konter dan online tercatat rapi di satu layar." },
+  { icon: faKitchenSet, title: "Layar Dapur", text: "Antrean masak tampil real-time di tablet, tanpa teriakan." },
+  { icon: faQrcode, title: "QR Tiap Meja", text: "Tiap meja punya QR-nya sendiri, nomor meja terbaca otomatis." },
+  { icon: faCreditCard, title: "QRIS Dinamis", text: "Nominal terkunci per pesanan, uang langsung ke rekening resto." },
+  { icon: faChartLine, title: "Rekap Harian", text: "Omzet dan menu terlaris tercatat, bisa diunduh laporannya." },
+  { icon: faPalette, title: "7 Tema Desain", text: "Tujuh tampilan siap pakai, dipilih sesuai paket." },
+  { icon: faUserGear, title: "Portal Pemilik", text: "Ubah menu, harga, dan promo sendiri, cukup PIN." },
+];
+
+const STEP_PILLS = [
+  ["Form pemesanan", "WhatsApp"],
+  ["Website resto", "Menu digital", "QR meja"],
+  ["QR meja", "Menu QR"],
+  ["Kasir", "Layar dapur", "Rekap", "QRIS"],
+];
+
+const WHY = [
+  { icon: faWrench, title: "Setup dibantu sampai aktif", text: "Kami yang buatkan website, menu, dan QR mejanya. Resto tinggal tempel QR dan terima pesanan. Tanpa perlu programmer." },
+  { icon: faTag, title: "Harga jelas per resto", text: "Bayar per resto, bukan per pengguna. Tambah staf tanpa biaya tambahan." },
+  { icon: faComments, title: "Dibuat dari kebutuhan resto", text: "Masukan pemilik resto lewat WhatsApp jadi bahan pengembangan fitur berikutnya." },
+  { icon: faHeadset, title: "Dukungan lewat WhatsApp", text: "Tanya jawab langsung dengan orang, bukan antrean tiket." },
+];
+
 const ROLES = [
   {
     icon: faMobileScreen,
@@ -765,6 +801,7 @@ export default function MarketingPage() {
           </a>
           <nav className="hidden items-center gap-7 text-sm font-medium text-zinc-600 md:flex">
             <a href="#fitur" className="hover:text-zinc-900">Fitur</a>
+            <a href="#platform" className="hover:text-zinc-900">Modul</a>
             <a href="#cara-kerja" className="hover:text-zinc-900">Cara Kerja</a>
             <a href="#harga" className="hover:text-zinc-900">Harga</a>
             <a href="#faq" className="hover:text-zinc-900">FAQ</a>
@@ -822,28 +859,45 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* Bukti produk: tampilan asli website resto */}
+      {/* Bukti produk: kolase tampilan asli (website + kasir + dapur) */}
       <div className="bg-white">
-        <div className="mx-auto max-w-4xl px-4 pb-4 sm:px-6">
-          <Reveal delay={150} from="zoom">
-            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl shadow-zinc-900/10">
-              <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                <span className="ml-2 rounded-md bg-white px-2.5 py-0.5 font-mono text-[11px] text-stone-500 shadow-sm">warungbutini.com</span>
+        <div className="relative mx-auto max-w-5xl px-4 pb-4 sm:px-6">
+          <div className="relative">
+            <div aria-hidden="true" className="absolute top-10 -left-2 z-0 hidden w-60 lg:block">
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl shadow-zinc-900/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/fitur/pos.png" alt="" className="block w-full" loading="lazy" />
               </div>
-              {/* Foto tampilan asli website resto (bukan ilustrasi) */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/fitur/menu.png"
-                alt="Tampilan asli website resto: halaman profil dan menu digital"
-                className="block w-full"
-                loading="eager"
-              />
+              <p className="mt-2 text-center text-xs font-semibold text-zinc-500">Kasir POS</p>
             </div>
-          </Reveal>
+            <div aria-hidden="true" className="absolute top-24 -right-2 z-0 hidden w-60 lg:block">
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl shadow-zinc-900/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/fitur/dapur.png" alt="" className="block w-full" loading="lazy" />
+              </div>
+              <p className="mt-2 text-center text-xs font-semibold text-zinc-500">Layar dapur</p>
+            </div>
+            <Reveal delay={150} from="zoom" className="relative z-10 mx-auto max-w-3xl">
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl shadow-zinc-900/10">
+                <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                  <span className="ml-2 rounded-md bg-white px-2.5 py-0.5 font-mono text-[11px] text-stone-500 shadow-sm">warungbutini.com</span>
+                </div>
+                {/* Foto tampilan asli website resto (bukan ilustrasi) */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/fitur/menu.png"
+                  alt="Tampilan asli website resto: halaman profil dan menu digital"
+                  className="block w-full"
+                  loading="eager"
+                />
+              </div>
+            </Reveal>
+          </div>
         </div>
+
 
         {/* Angka ringkas */}
         <Reveal delay={100}>
@@ -867,6 +921,121 @@ export default function MarketingPage() {
           </dl>
         </Reveal>
       </div>
+
+      {/* Kenalan dulu: foto kasir asli + penjelasan singkat */}
+      <section className="bg-zinc-50 py-20 sm:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2">
+          <Reveal from="right">
+            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg shadow-zinc-900/10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/fitur/kasir.png" alt="Tampilan asli kasir RestoLauncher" className="block w-full" loading="lazy" />
+            </div>
+          </Reveal>
+          <Reveal delay={120} from="left">
+            <Eyebrow>Kenalan Dulu</Eyebrow>
+            <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">Satu sistem, dari meja sampai laporan</h2>
+            <p className="mt-3 leading-relaxed text-zinc-600">
+              Pelanggan pesan dari QR di meja. Kasir mengonfirmasi. Dapur memasak dari layar. Laporan tercatat sendiri.
+              Semua jalan dalam satu sistem, tanpa aplikasi tambahan dan tanpa alat baru.
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-zinc-700">
+              <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span>Website, menu QR, kasir, dan dapur dalam satu paket.</span></li>
+              <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span>Tanpa install aplikasi, cukup browser HP.</span></li>
+              <li className="flex gap-2"><FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-xs text-[#1B5E3B]" /> <span>Uang QRIS langsung ke rekening resto.</span></li>
+            </ul>
+            <a href="#harga" className="mt-6 inline-block rounded-lg bg-[#1B5E3B] px-6 py-3 font-semibold text-white transition hover:bg-[#14492e]">
+              Lihat Paket Harga
+            </a>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Masalah umum: blok gelap inset */}
+      <section className="bg-white py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="rounded-3xl bg-zinc-950 px-6 py-14 text-white sm:px-12 sm:py-16">
+            <Reveal from="zoom" className="mx-auto mb-12 max-w-2xl text-center">
+              <Eyebrow dark>Masalah Umum</Eyebrow>
+              <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Operasional masih tercecer?</h2>
+              <p className="mt-3 text-white/70">Terlalu banyak cara manual membuat kerja lambat dan uang bocor tanpa ketahuan.</p>
+            </Reveal>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {PROBLEMS.map((pb, i) => (
+                <Reveal key={pb.title} delay={i * 80} from="up">
+                  <div className="h-full rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-lg text-green-300">
+                      <FontAwesomeIcon icon={pb.icon} />
+                    </span>
+                    <h3 className="mt-4 text-lg font-extrabold">{pb.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-white/70">{pb.text}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+            <Reveal className="mt-10 text-center">
+              <p className="text-lg font-bold">Satu sistem membereskan semuanya.</p>
+              <a href="#cara-kerja" className="mt-2 inline-block font-semibold text-green-300 hover:underline">Lihat cara kerjanya →</a>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* Cara kerja: garis waktu vertikal */}
+      <section id="cara-kerja" className="scroll-mt-24 bg-white py-20 sm:py-24">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <Reveal from="zoom" className="mx-auto mb-14 max-w-2xl text-center">
+            <Eyebrow>Cara Kerja</Eyebrow>
+            <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">Dari daftar sampai terima pesanan</h2>
+            <p className="mt-3 text-zinc-500">Empat langkah. Tanpa istilah teknis yang membingungkan.</p>
+          </Reveal>
+          <div className="relative">
+            <div aria-hidden="true" className="absolute top-2 bottom-2 left-[19px] w-px bg-zinc-200 sm:left-[23px]" />
+            <div className="space-y-10">
+              {STEPS.map((s, i) => (
+                <Reveal key={s.no} delay={i * 100} from="up">
+                  <div className="relative flex gap-5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1B5E3B] text-base font-extrabold text-white ring-4 ring-white sm:h-12 sm:w-12">{s.no}</span>
+                    <div>
+                      <h3 className="pt-1 text-xl font-extrabold text-zinc-900">{s.title}</h3>
+                      <p className="mt-2 leading-relaxed text-zinc-600">{s.text}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {STEP_PILLS[i].map((pl) => (
+                          <span key={pl} className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700">{pl}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Platform lengkap: deretan modul geser */}
+      <section id="platform" className="scroll-mt-24 bg-zinc-50 py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal className="mx-auto mb-10 max-w-2xl text-center" from="zoom">
+            <Eyebrow>Platform Lengkap</Eyebrow>
+            <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">Semua yang kamu butuhkan. Tidak lebih, tidak kurang.</h2>
+            <p className="mt-3 text-zinc-600">Setiap modul dibuat untuk resto, dan saling terhubung. Geser untuk melihat semuanya.</p>
+          </Reveal>
+        </div>
+        <Reveal from="up">
+          <div className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:px-6 lg:justify-center">
+            {MODULES.map((m) => (
+              <div key={m.title} className="w-64 shrink-0 snap-start rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:w-72">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1B5E3B]/10 text-lg text-[#1B5E3B]">
+                  <FontAwesomeIcon icon={m.icon} />
+                </span>
+                <h3 className="mt-4 text-lg font-extrabold text-zinc-900">{m.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{m.text}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
 
       {/* Fitur lengkap */}
       <section id="fitur" className="py-20 sm:py-28">
@@ -1039,28 +1208,6 @@ export default function MarketingPage() {
       </section>
 
       {/* Cara kerja */}
-      <section id="cara-kerja" className="scroll-mt-24 bg-white py-20 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="rounded-3xl bg-zinc-950 px-6 py-14 text-white sm:px-12 sm:py-16">
-          <Reveal from="zoom" className="mx-auto mb-14 max-w-2xl text-center">
-            <Eyebrow dark>Cara Kerja</Eyebrow>
-            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Dari daftar sampai terima pesanan</h2>
-            <p className="mt-3 text-white/70">Empat langkah. Tanpa istilah teknis yang membingungkan.</p>
-          </Reveal>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s, i) => (
-              <Reveal key={s.no} delay={i * 140} from="up">
-                <div className="h-full rounded-2xl bg-white/5 p-7 ring-1 ring-white/10">
-                  <p className="text-5xl font-extrabold text-green-300">{s.no}</p>
-                  <h3 className="mt-4 text-xl font-extrabold">{s.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/75">{s.text}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-        </div>
-      </section>
 
       {/* Harga */}
       <section id="harga" className="scroll-mt-24 bg-white py-20 sm:py-24">
@@ -1204,6 +1351,31 @@ export default function MarketingPage() {
         </div>
       </section>
 
+      {/* Kenapa RestoLauncher */}
+      <section className="bg-zinc-50 py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal className="mx-auto mb-12 max-w-2xl text-center" from="zoom">
+            <Eyebrow>Kenapa RestoLauncher</Eyebrow>
+            <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">Kenapa resto memilih RestoLauncher</h2>
+            <p className="mt-3 text-zinc-600">Produknya penting. Cara kami mengantarkannya sama pentingnya.</p>
+          </Reveal>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {WHY.map((w, i) => (
+              <Reveal key={w.title} delay={i * 100} from="up" className="h-full">
+                <div className="flex h-full flex-col rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1B5E3B]/10 text-lg text-[#1B5E3B]">
+                    <FontAwesomeIcon icon={w.icon} />
+                  </span>
+                  <h3 className="mt-4 text-lg font-extrabold text-zinc-900">{w.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-600">{w.text}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
       {/* CTA akhir */}
       <section className="py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -1220,12 +1392,20 @@ export default function MarketingPage() {
                   <FontAwesomeIcon icon={faLocationDot} />
                   Khusus area Bandung: bisa diskusi one-to-one untuk custom website sebelum deal.
                 </p>
-                <button
-                  onClick={() => setModalPkg("plus")}
-                  className="mt-8 rounded-lg bg-white px-8 py-4 font-semibold text-[#1B5E3B] transition hover:bg-zinc-100"
-                >
-                  Mulai dari Paket Plus — Rp99.000/bulan
-                </button>
+                <div className="mt-8 flex flex-wrap justify-center gap-3">
+                  <button
+                    onClick={() => setModalPkg("plus")}
+                    className="rounded-lg bg-white px-8 py-4 font-semibold text-[#1B5E3B] transition hover:bg-zinc-100"
+                  >
+                    Mulai dari Paket Plus — Rp99.000/bulan
+                  </button>
+                  <a
+                    href="#cara-kerja"
+                    className="rounded-lg border border-white/40 px-8 py-4 font-semibold text-white transition hover:bg-white/10"
+                  >
+                    Cara Kerja
+                  </a>
+                </div>
               </div>
             </div>
           </Reveal>
@@ -1234,7 +1414,30 @@ export default function MarketingPage() {
 
       {/* Footer */}
       <footer className="border-t border-zinc-200 bg-zinc-50 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-stone-500 sm:flex-row sm:px-6">
+        <div className="mx-auto mb-8 grid max-w-6xl gap-8 px-4 text-sm sm:grid-cols-3 sm:px-6">
+          <div>
+            <p className="font-extrabold text-zinc-900">RestoLauncher</p>
+            <p className="mt-2 leading-relaxed text-zinc-500">Website dan sistem pemesanan untuk restoran Indonesia.</p>
+          </div>
+          <div>
+            <p className="font-extrabold text-zinc-900">Produk</p>
+            <ul className="mt-2 space-y-2 text-zinc-500">
+              <li><a href="#fitur" className="hover:text-zinc-900 hover:underline">Fitur</a></li>
+              <li><a href="#platform" className="hover:text-zinc-900 hover:underline">Modul</a></li>
+              <li><a href="#harga" className="hover:text-zinc-900 hover:underline">Harga</a></li>
+              <li><a href="#faq" className="hover:text-zinc-900 hover:underline">FAQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-extrabold text-zinc-900">Bantuan</p>
+            <ul className="mt-2 space-y-2 text-zinc-500">
+              <li><a href="/panduan" className="hover:text-zinc-900 hover:underline">Panduan Penggunaan</a></li>
+              <li><a href="/privasi" className="hover:text-zinc-900 hover:underline">Kebijakan Privasi</a></li>
+              <li><a href="/syarat" className="hover:text-zinc-900 hover:underline">Syarat dan Ketentuan</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 border-t border-zinc-200 px-4 pt-6 text-sm text-stone-500 sm:flex-row sm:px-6">
           <p className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1B5E3B] text-sm font-extrabold text-white">R</span>
             <span className="font-extrabold text-stone-800">RestoLauncher</span> — website & sistem pemesanan untuk restoran Indonesia.
