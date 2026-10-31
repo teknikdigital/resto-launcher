@@ -64,6 +64,19 @@ function Eyebrow({ children, dark = false, className = "" }: { children: React.R
   );
 }
 
+/* Ikon logo: kotak hijau + tudung saji + kursor, terpisah dari tulisan. */
+function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" className={className} aria-hidden="true">
+      <rect width="48" height="48" rx="11" fill="#1B5E3B" />
+      <path d="M10 23A11 13 0 0 1 32 23Z" fill="#fff" />
+      <rect x="8" y="23" width="26" height="3" rx="1.5" fill="#fff" />
+      <circle cx="21" cy="9" r="1.8" fill="#fff" />
+      <path d="M32 28 32 43 35 39 37 44 40 43 38 38 43 38Z" fill="#fff" />
+    </svg>
+  );
+}
+
 /* Label peran di atas judul fitur (tanpa nomor urut). */
 function RoleLabel({ children }: { children: React.ReactNode }) {
   return <p className="text-xs font-bold tracking-[0.2em] text-[#1B5E3B] uppercase">{children}</p>;
@@ -796,8 +809,11 @@ export default function MarketingPage() {
         className={`fixed inset-x-0 top-0 z-40 border-b border-zinc-200/80 bg-white/90 backdrop-blur ${scrolled ? "shadow-sm" : ""}`}
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <a href="#beranda" className="flex items-center">
-            <img src="/logo.png" alt="RestoLauncher" className="h-9 w-auto rounded-lg" />
+          <a href="#beranda" className="flex items-center gap-2.5" aria-label="RestoLauncher">
+            <LogoMark className="h-9 w-9 shrink-0" />
+            <span className="text-xl font-extrabold tracking-tight text-zinc-900">
+              Resto<span className="text-[#1B5E3B]">Launcher</span>
+            </span>
           </a>
           <nav className="hidden items-center gap-7 text-sm font-medium text-zinc-600 md:flex">
             <a href="#fitur" className="hover:text-zinc-900">Fitur</a>
@@ -1391,7 +1407,12 @@ export default function MarketingPage() {
       <footer className="border-t border-zinc-200 bg-zinc-50 py-10">
         <div className="mx-auto mb-8 grid max-w-6xl gap-8 px-4 text-sm sm:grid-cols-3 sm:px-6">
           <div>
-            <p className="font-extrabold text-zinc-900">RestoLauncher</p>
+            <p className="flex items-center gap-2">
+              <LogoMark className="h-8 w-8 shrink-0" />
+              <span className="text-base font-extrabold tracking-tight text-zinc-900">
+                Resto<span className="text-[#1B5E3B]">Launcher</span>
+              </span>
+            </p>
             <p className="mt-2 leading-relaxed text-zinc-500">Website dan sistem pemesanan untuk restoran Indonesia.</p>
           </div>
           <div>
@@ -1414,8 +1435,8 @@ export default function MarketingPage() {
         </div>
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 border-t border-zinc-200 px-4 pt-6 text-sm text-stone-500 sm:flex-row sm:px-6">
           <p className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1B5E3B] text-sm font-extrabold text-white">R</span>
-            <span className="font-extrabold text-stone-800">RestoLauncher</span> — website & sistem pemesanan untuk restoran Indonesia.
+            <LogoMark className="h-7 w-7 shrink-0" />
+            <span className="font-extrabold text-stone-800">Resto<span className="text-[#1B5E3B]">Launcher</span></span> — website &amp; sistem pemesanan untuk restoran Indonesia.
           </p>
           <div className="flex items-center gap-4">
             <a href="/panduan" className="hover:text-stone-800 hover:underline">Panduan Penggunaan</a>
