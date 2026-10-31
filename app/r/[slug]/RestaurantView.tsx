@@ -447,18 +447,18 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
         {shownFiltered.map(([category, items]) => (
           <section key={category} className="mb-8">
             <h2 className={t.catTitle}>{category}</h2>
-            <ul className={t.list}>
+            <ul className={isMenu ? "grid grid-cols-2 gap-3" : t.list}>
               {items.map((m) => {
                 const plainQty = lines.find((l) => l.key === m.id)?.qty ?? 0;
                 const itemQty = lines.filter((l) => l.item.id === m.id).reduce((s, l) => s + l.qty, 0);
                 const optioned = hasOptions(m);
                 return (
-                  <li key={m.id} className={t.card}>
-                    <ItemImg src={m.image_url} name={m.name} className={t.img} color={color} />
-                    <div className="flex min-w-0 flex-1 flex-col">
+                  <li key={m.id} className={isMenu ? `${t.gridCard} flex flex-col` : t.card}>
+                    <ItemImg src={m.image_url} name={m.name} className={isMenu ? "h-36 w-full object-cover" : t.img} color={color} />
+                    <div className={isMenu ? "flex min-w-0 flex-1 flex-col p-3" : "flex min-w-0 flex-1 flex-col"}>
                       <p className={`break-words ${t.name}`}>{m.name}</p>
-                      {m.description && <p className={t.itemDesc}>{m.description}</p>}
-                      <div className="mt-auto flex items-center justify-between pt-2">
+                      {!isMenu && m.description && <p className={t.itemDesc}>{m.description}</p>}
+                      <div className="mt-auto flex items-center justify-between gap-2 pt-2">
                         <p className={t.price} style={t.priceStyle}>
                           {formatRupiah(Number(m.price))}
                         </p>
@@ -497,13 +497,13 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
         {isMenu && (data.sold_out?.length ?? 0) > 0 && (
           <section className="mb-8">
             <h2 className={t.catTitle}>Sedang Habis</h2>
-            <ul className={t.list}>
+            <ul className={isMenu ? "grid grid-cols-2 gap-3" : t.list}>
               {data.sold_out!.map((m) => (
-                <li key={m.id} className={`${t.card} opacity-60`}>
-                  <ItemImg src={m.image_url} name={m.name} className={t.img} color={color} gray />
-                  <div className="flex min-w-0 flex-1 flex-col">
+                <li key={m.id} className={isMenu ? `${t.gridCard} flex flex-col opacity-60` : `${t.card} opacity-60`}>
+                  <ItemImg src={m.image_url} name={m.name} className={isMenu ? "h-36 w-full object-cover" : t.img} color={color} gray />
+                  <div className={isMenu ? "flex min-w-0 flex-1 flex-col p-3" : "flex min-w-0 flex-1 flex-col"}>
                     <p className={`break-words ${t.name}`}>{m.name}</p>
-                    <div className="mt-auto flex items-center justify-between pt-2">
+                    <div className="mt-auto flex items-center justify-between gap-2 pt-2">
                       <p className={t.price} style={t.priceStyle}>
                         {formatRupiah(Number(m.price))}
                       </p>
