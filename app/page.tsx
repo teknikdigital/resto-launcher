@@ -859,41 +859,18 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* Bukti produk: kolase tampilan asli (website + kasir + dapur) */}
+      {/* Bukti produk: gambar kolase hero (laptop + kasir + dapur, screenshot asli) */}
       <div className="bg-white">
-        <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 pb-4 sm:px-6 lg:grid-cols-12">
-          <div className="hidden lg:col-span-3 lg:block">
-            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg shadow-zinc-900/10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/fitur/pos.png" alt="Tampilan asli kasir POS" className="block w-full" loading="lazy" />
-            </div>
-            <p className="mt-2 text-center text-xs font-semibold text-zinc-500">Kasir POS</p>
-          </div>
-          <Reveal delay={150} from="zoom" className="lg:col-span-6">
-            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl shadow-zinc-900/10">
-              <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                <span className="ml-2 rounded-md bg-white px-2.5 py-0.5 font-mono text-[11px] text-stone-500 shadow-sm">warungbutini.com</span>
-              </div>
-              {/* Foto tampilan asli website resto (bukan ilustrasi) */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/fitur/menu.png"
-                alt="Tampilan asli website resto: halaman profil dan menu digital"
-                className="block w-full"
-                loading="eager"
-              />
-            </div>
+        <div className="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
+          <Reveal delay={150} from="zoom">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/fitur/hero-collage.png"
+              alt="Tampilan asli sistem RestoLauncher: laporan di laptop, kasir POS, dan pesanan"
+              className="mx-auto block w-full"
+              loading="eager"
+            />
           </Reveal>
-          <div className="hidden lg:col-span-3 lg:block">
-            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg shadow-zinc-900/10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/fitur/dapur.png" alt="Tampilan asli layar dapur" className="block w-full" loading="lazy" />
-            </div>
-            <p className="mt-2 text-center text-xs font-semibold text-zinc-500">Layar dapur</p>
-          </div>
         </div>
 
 
