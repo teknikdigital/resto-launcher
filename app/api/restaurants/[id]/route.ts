@@ -26,7 +26,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     // qris_payload tetap dikirim karena halaman checkout pelanggan
     // membangun QRIS dinamis dari sana di browser; itu alamat bayar
     // merchant (sama seperti QR yang ditempel di kasir), bukan rahasia.
-    if (!active) return NextResponse.json({ restaurant: tanpaPin(restaurant), active: false, menu: [] });
+    if (!active) return NextResponse.json({ restaurant: tanpaPin(restaurant), active: false, menu: [], favorites: [] });
 
     const menuRes = await supabaseRest(
       `menu_items?restaurant_id=eq.${restaurant.id}&is_available=eq.true&order=sort_order.asc,name.asc`,
@@ -38,7 +38,32 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       `menu_items?restaurant_id=eq.${restaurant.id}&is_available=eq.false&select=id,category,name,price,image_url&order=sort_order.asc,name.asc`,
     );
     const soldOut = soldOutRes.ok ? await soldOutRes.json() : [];
-    return NextResponse.json({ restaurant: tanpaPin(restaurant), active: true, menu, sold_out: soldOut });
+    // Favorite: item terlaris dari pesanan (jumlah terbanyak, tanpa pesanan batal).
+    // Dihitung dari 1000 pesanan terbaru; hanya item yang masih tersedia.
+    let favorites: MenuItem[] = [];
+    try {
+      const ordRes = await supabaseRest(
+        `orders?restaurant_id=eq.${restaurant.id}&status=neq.batal&select=items&order=created_at.desc&limit=1000`,
+      );
+      if (ordRes.ok) {
+        const qty = new Map<string, number>();
+        const orders = (await ordRes.json()) as { items?: { item_id?: string; qty?: number }[] }[];
+        for (const o of orders)
+          for (const it of o.items ?? []) {
+            if (!it.item_id) continue;
+            qty.set(it.item_id, (qty.get(it.item_id) ?? 0) + (Number(it.qty) || 0));
+          }
+        const byId = new Map(menu.map((m) => [m.id, m]));
+        favorites = [...qty.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 8)
+          .map(([id]) => byId.get(id))
+          .filter((m): m is MenuItem => Boolean(m));
+      }
+    } catch {
+      favorites = [];
+    }
+    return NextResponse.json({ restaurant: tanpaPin(restaurant), active: true, menu, sold_out: soldOut, favorites });
   } catch (err) {
     return caughtErrorResponse(err);
   }
