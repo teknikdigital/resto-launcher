@@ -118,13 +118,13 @@ export default function RestaurantDashboard() {
 
   if (loading)
     return (
-      <main className="mx-auto w-full max-w-6xl px-4 py-8">
+      <main className="min-h-screen w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
         <p className="text-sm text-zinc-500">Memuat…</p>
       </main>
     );
   if (error || !resto)
     return (
-      <main className="mx-auto w-full max-w-6xl px-4 py-8">
+      <main className="min-h-screen w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
         <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error || "Tidak ditemukan"}</p>
         <Link href="/admin/restaurants" className="back-link mt-4 inline-block">← Daftar restoran</Link>
       </main>
@@ -262,7 +262,7 @@ export default function RestaurantDashboard() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:py-10">
+    <main className="min-h-screen w-full bg-white px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <div className="grid items-start gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         {/* ===== Sidebar ===== */}
         <aside className="min-w-0 space-y-4 lg:sticky lg:top-6">
