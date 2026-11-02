@@ -172,6 +172,7 @@ export type MenuItem = {
   id: string;
   restaurant_id: string;
   category: string | null;
+  subcategory: string | null;
   name: string;
   description: string | null;
   price: number;
