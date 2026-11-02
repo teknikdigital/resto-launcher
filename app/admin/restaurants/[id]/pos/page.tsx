@@ -35,7 +35,7 @@ const hasOptions = (m: MenuItem) => (m.variants?.length ?? 0) > 0 || (m.addons?.
 // tampilkan ubin huruf awal berwarna agar kartu tetap mudah dipindai.
 function MenuThumb({ m }: { m: MenuItem }) {
   const [err, setErr] = useState(false);
-  const TINTS = ["bg-[#1B5E3B]/10 text-[#1B5E3B]", "bg-[#C9A227]/15 text-[#8a6d1c]", "bg-[#B4552D]/10 text-[#B4552D]", "bg-[#38618C]/10 text-[#38618C]"];
+  const TINTS = ["bg-[#1B5E3B]/10 text-[#1B5E3B]", "bg-zinc-100 text-zinc-500", "bg-[#B4552D]/10 text-[#B4552D]", "bg-[#38618C]/10 text-[#38618C]"];
   let hash = 0;
   for (const ch of m.name ?? "?") hash += ch.charCodeAt(0);
   const tint = TINTS[hash % TINTS.length];
@@ -56,7 +56,7 @@ function MenuThumb({ m }: { m: MenuItem }) {
 // -> ubin huruf awal besar berwarna.
 function MenuPhoto({ m }: { m: MenuItem }) {
   const [err, setErr] = useState(false);
-  const TINTS = ["bg-[#1B5E3B]/10 text-[#1B5E3B]", "bg-[#C9A227]/15 text-[#8a6d1c]", "bg-[#B4552D]/10 text-[#B4552D]", "bg-[#38618C]/10 text-[#38618C]"];
+  const TINTS = ["bg-[#1B5E3B]/10 text-[#1B5E3B]", "bg-zinc-100 text-zinc-500", "bg-[#B4552D]/10 text-[#B4552D]", "bg-[#38618C]/10 text-[#38618C]"];
   let hash = 0;
   for (const ch of m.name ?? "?") hash += ch.charCodeAt(0);
   const tint = TINTS[hash % TINTS.length];
@@ -102,6 +102,18 @@ function PosInner({ id }: { id: string }) {
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("Semua");
   const [restoName, setRestoName] = useState("");
+  const [panelFull, setPanelFull] = useState(false);
+
+  // Mode fullscreen panel pesanan (tombol Kembali / Esc menutupnya). Data pesanan
+  // tidak berubah karena yang berganti hanya wadah tampilannya, bukan state-nya.
+  useEffect(() => {
+    if (!panelFull) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPanelFull(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [panelFull]);
 
   useEffect(() => {
     (async () => {
@@ -223,7 +235,7 @@ function PosInner({ id }: { id: string }) {
   ];
 
   return (
-    <main className="mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-4">
+    <main className="min-h-screen w-full bg-white px-3 py-4 sm:px-4">
       <div className="flex items-start gap-3 sm:gap-4">
         {/* Rel navigasi samping (khas POS RestoLauncher) */}
         <nav className="sticky top-4 hidden w-[76px] shrink-0 flex-col gap-1.5 md:flex" aria-label="Navigasi kasir">
@@ -231,7 +243,7 @@ function PosInner({ id }: { id: string }) {
             <Link
               key={r.label}
               href={r.href}
-              className={`flex flex-col items-center gap-1 rounded-2xl px-1 py-3 text-[11px] font-semibold transition ${
+              className={`flex flex-col items-center gap-1 rounded-2xl px-1 py-3 text-xs font-semibold transition ${
                 r.active
                   ? "bg-[#1B5E3B] text-white shadow-[0_4px_14px_rgba(27,94,59,0.35)]"
                   : "text-stone-500 hover:bg-[#1B5E3B]/10 hover:text-[#1B5E3B]"
@@ -245,12 +257,12 @@ function PosInner({ id }: { id: string }) {
 
         <div className="min-w-0 flex-1">
           {/* Bilah atas: identitas resto + cari menu */}
-          <div className="panel mb-4 flex flex-wrap items-center gap-3 !py-3">
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-sm">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#1B5E3B] text-lg text-white">
               <FontAwesomeIcon icon={faCashRegister} />
             </span>
             <div className="min-w-0">
-              <h1 className="font-display truncate text-xl leading-tight font-bold text-stone-900">
+              <h1 className="font-display truncate text-lg leading-tight font-bold text-stone-900">
                 {restoName || "Kasir POS"}
               </h1>
               <p className="truncate text-xs text-stone-500">Kasir POS · buat pesanan di konter, lunas, terkirim ke dapur</p>
@@ -297,10 +309,10 @@ function PosInner({ id }: { id: string }) {
               <button
                 key={c}
                 onClick={() => setCat(c)}
-                className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${
+                className={`rounded-full border px-3 py-1.5 text-[13px] font-semibold transition ${
                   cat === c
                     ? "border-[#1B5E3B] bg-[#1B5E3B] text-white"
-                    : "border-[#E0D5BE] bg-[#FFFDF8] text-stone-600 hover:border-[#C9A227]"
+                    : "border-zinc-200 bg-white text-stone-600 hover:border-[#1B5E3B]"
                 }`}
               >
                 {c}
@@ -308,28 +320,28 @@ function PosInner({ id }: { id: string }) {
             ))}
             <span className="ml-auto text-xs text-stone-400">{shownMenu.length} menu</span>
           </div>
-          <div className="grid grid-cols-2 content-start gap-3 lg:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid grid-cols-2 content-start gap-3 md:grid-cols-3 lg:grid-cols-4">
             {shownMenu.map((m) => {
               const inCart = lines.filter((l) => l.item_id === m.id).reduce((s, l) => s + l.qty, 0);
               return (
                 <button
                   key={m.id}
                   onClick={() => tapItem(m)}
-                  className="panel relative !p-3 text-left transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(101,80,30,0.14)]"
+                  className="relative rounded-2xl border border-zinc-200 bg-white p-2.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <span className="relative block">
                     <MenuPhoto m={m} />
                     {inCart > 0 && (
-                      <span className="absolute -top-2 -right-2 flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-[#FAF6EF] bg-[#C9A227] px-1 text-sm font-bold text-white">
+                      <span className="absolute -top-2 -right-2 flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-white bg-[#1B5E3B] px-1 text-xs font-bold text-white">
                         {inCart}
                       </span>
                     )}
                   </span>
                   <span className="mt-2.5 block">
-                    <span className="block truncate font-semibold text-stone-900">{m.name}</span>
+                    <span className="block truncate text-sm font-semibold text-stone-900">{m.name}</span>
                     <span className="mt-0.5 block text-sm">
                       <span className="font-bold text-[#1B5E3B]">{rupiah(Number(m.price))}</span>
-                      {hasOptions(m) && <span className="font-medium text-[#8a6d1c]"> · ada pilihan</span>}
+                      {hasOptions(m) && <span className="font-medium text-zinc-500"> · ada pilihan</span>}
                     </span>
                   </span>
                 </button>
@@ -343,16 +355,26 @@ function PosInner({ id }: { id: string }) {
         </div>
 
         {/* Ringkasan pesanan */}
-        <div className="panel h-fit space-y-4 xl:sticky xl:top-4">
-          <div className="flex items-center justify-between">
+        <div className={panelFull ? "fixed inset-0 z-50 overflow-y-auto bg-white [animation:posFade_.25s_ease]" : "h-fit xl:sticky xl:top-4"}>
+        {panelFull && <style>{`@keyframes posFade { from { opacity: 0; } to { opacity: 1; } }`}</style>}
+        <div className={panelFull ? "mx-auto w-full max-w-2xl space-y-4 p-4 sm:p-6" : "space-y-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm"}>
+          <div className="flex items-center justify-between gap-2">
             <h2 className="font-display text-lg font-bold text-stone-900">Pesanan Baru</h2>
-            <button
-              onClick={clearCart}
-              disabled={!lines.length && !customer && !discValue && !cashReceived}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 transition hover:text-red-700 disabled:opacity-40"
-            >
-              <FontAwesomeIcon icon={faTrashCan} className="text-xs" /> Kosongkan
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPanelFull((v) => !v)}
+                className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-600 hover:bg-zinc-50"
+              >
+                {panelFull ? "Kembali ke POS" : "Perbesar"}
+              </button>
+              <button
+                onClick={clearCart}
+                disabled={!lines.length && !customer && !discValue && !cashReceived}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 transition hover:text-red-700 disabled:opacity-40"
+              >
+                <FontAwesomeIcon icon={faTrashCan} className="text-xs" /> Kosongkan
+              </button>
+            </div>
           </div>
           <div>
             <p className="mb-1.5 text-xs font-medium text-zinc-500">Tipe pesanan</p>
@@ -411,7 +433,7 @@ function PosInner({ id }: { id: string }) {
                 {discount > 0 && (
                   <div className="flex justify-between font-medium text-green-700"><span>Diskon</span><span>−{rupiah(discount)}</span></div>
                 )}
-                <div className="flex justify-between text-base font-bold"><span>Total</span><span>{rupiah(total)}</span></div>
+                <div className="flex justify-between text-[15px] font-bold"><span>Total</span><span>{rupiah(total)}</span></div>
               </div>
             )}
           </div>
@@ -468,9 +490,10 @@ function PosInner({ id }: { id: string }) {
             </div>
           )}
           <button onClick={bayar} disabled={busy || !lines.length}
-            className="w-full rounded-xl bg-[#1B5E3B] py-3.5 text-base font-bold text-white shadow-[0_6px_18px_rgba(27,94,59,0.35)] hover:bg-[#14492e] disabled:opacity-50 disabled:shadow-none">
+            className="w-full rounded-xl bg-[#1B5E3B] py-3 text-[15px] font-bold text-white shadow-[0_6px_18px_rgba(27,94,59,0.35)] hover:bg-[#14492e] disabled:opacity-50 disabled:shadow-none">
             {busy ? "Menyimpan…" : `Bayar · ${rupiah(total)}`}
           </button>
+        </div>
         </div>
       </div>
 
@@ -526,7 +549,7 @@ function ItemConfigurator({
       <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-1 flex items-start justify-between">
           <div>
-            <h2 className="font-display text-xl font-semibold">{item.name}</h2>
+            <h2 className="font-display text-lg font-semibold">{item.name}</h2>
             <p className="text-sm text-zinc-500">Harga dasar {rupiah(Number(item.price))}</p>
           </div>
           <button onClick={onClose} className="rounded-full p-2 text-zinc-400 hover:bg-zinc-100" aria-label="Tutup">
@@ -597,7 +620,7 @@ function ItemConfigurator({
               qty,
             )
           }
-          className="mt-5 w-full rounded-xl bg-[#1B5E3B] py-3.5 font-bold text-white hover:bg-[#14492e]"
+          className="mt-5 w-full rounded-xl bg-[#1B5E3B] py-3 text-[15px] font-bold text-white hover:bg-[#14492e]"
         >
           Tambahkan — {rupiah(unit * qty)}
         </button>
@@ -699,8 +722,8 @@ function ShiftPanel({ restaurantId }: { restaurantId: string }) {
   if (closedSummary && !shift) {
     const diff = closedSummary.closing - closedSummary.expected;
     return (
-      <div className="panel mb-6 border-green-200 bg-green-50/60">
-        <p className="font-semibold text-green-800">Shift ditutup.</p>
+      <div className="mb-6 rounded-2xl border border-green-200 bg-green-50/60 p-4 shadow-sm sm:p-5">
+        <p className="text-sm font-semibold text-green-800">Shift ditutup.</p>
         <p className="mt-1 text-sm text-green-700">
           Seharusnya di laci: {rupiah(closedSummary.expected)} · Uang akhir: {rupiah(closedSummary.closing)} ·{" "}
           <strong>Selisih: {diff === 0 ? "pas ✓" : `${diff > 0 ? "+" : "−"}${rupiah(Math.abs(diff))}`}</strong>
@@ -711,9 +734,9 @@ function ShiftPanel({ restaurantId }: { restaurantId: string }) {
 
   if (!shift) {
     return (
-      <div className="panel mb-6 flex flex-wrap items-end gap-3">
+      <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
         <div>
-          <p className="font-semibold">Shift kasir belum dibuka</p>
+          <p className="text-sm font-semibold">Shift kasir belum dibuka</p>
           <p className="text-sm text-zinc-500">Buka shift untuk mencatat modal awal &amp; selisih kas di akhir.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -724,7 +747,7 @@ function ShiftPanel({ restaurantId }: { restaurantId: string }) {
             value={opening}
             onChange={(e) => setOpening(e.target.value.replace(/[^\d]/g, ""))}
           />
-          <button onClick={openShift} className="rounded-xl bg-[#1B5E3B] px-4 py-2.5 font-semibold text-white hover:bg-[#14492e]">
+          <button onClick={openShift} className="rounded-xl bg-[#1B5E3B] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#14492e]">
             Buka Shift
           </button>
         </div>
@@ -735,7 +758,7 @@ function ShiftPanel({ restaurantId }: { restaurantId: string }) {
 
   const expected = Number(shift.opening_cash) + Number(shift.cash_in) - Number(shift.cash_out) + cashSales;
   return (
-    <div className="panel mb-6">
+    <div className="mb-6 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
         <p className="font-semibold">
           Shift berjalan · sejak {new Date(shift.opened_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
