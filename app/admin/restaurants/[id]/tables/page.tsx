@@ -6,7 +6,7 @@ import { faChair } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import type { Restaurant, RestaurantTable } from "@/lib/resto-types";
+import type { Order, Restaurant, RestaurantTable } from "@/lib/resto-types";
 
 const inputCls = "field";
 
@@ -26,6 +26,11 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState("");
   const [qrMap, setQrMap] = useState<Record<string, string>>({});
+  // Batch 2 Table Management, irisan 1: status meja live dari pesanan aktif.
+  // Meja "Terisi" = punya pesanan berstatus baru/dikonfirmasi (belum selesai/batal).
+  // Tanpa migrasi database: status dihitung dari tabel orders yang sudah ada.
+  const [activeCounts, setActiveCounts] = useState<Record<string, number> | null>(null);
+  const [statusFailed, setStatusFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -39,6 +44,23 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
       setError(e instanceof Error ? e.message : "Gagal memuat meja");
     } finally {
       setLoading(false);
+    }
+    // Status meja: gagal memuat pesanan tidak boleh merusak daftar meja.
+    try {
+      const oRes = await fetch(`/api/restaurants/${id}/orders`);
+      const o = await oRes.json();
+      if (!oRes.ok) throw new Error(o.error ?? "Gagal memuat pesanan");
+      const counts: Record<string, number> = {};
+      for (const order of o.orders as Order[]) {
+        if ((order.status === "baru" || order.status === "dikonfirmasi") && order.table_id) {
+          counts[order.table_id] = (counts[order.table_id] ?? 0) + 1;
+        }
+      }
+      setActiveCounts(counts);
+      setStatusFailed(false);
+    } catch {
+      setActiveCounts(null);
+      setStatusFailed(true);
     }
   }, [id]);
 
@@ -146,6 +168,27 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
       </form>
 
       {error && <p className="alert-error">{error}</p>}
+      {tables.length > 0 && (
+        <div className="panel mb-6 flex flex-wrap items-center justify-between gap-3">
+          {activeCounts ? (
+            <p className="text-sm text-zinc-700">
+              <span className="font-semibold text-zinc-900">
+                {tables.filter((t) => (activeCounts[t.id] ?? 0) > 0).length} dari {tables.length} meja terisi
+              </span>
+              {" · "}
+              {Object.values(activeCounts).reduce((a, b) => a + b, 0)} pesanan aktif
+              <span className="text-zinc-500"> (status dihitung dari pesanan yang belum selesai/batal)</span>
+            </p>
+          ) : statusFailed ? (
+            <p className="text-sm text-zinc-500">Status meja belum bisa dimuat — daftar meja tetap bisa dikelola.</p>
+          ) : (
+            <p className="text-sm text-zinc-500">Memuat status meja…</p>
+          )}
+          <button onClick={() => void load()} className="btn-secondary btn-sm">
+            Perbarui status
+          </button>
+        </div>
+      )}
       {loading ? (
         <div className="space-y-3" aria-busy="true" aria-label="Memuat">
           <div className="skeleton h-16 w-full" />
@@ -164,6 +207,15 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-base font-semibold text-zinc-900">
                   Meja {t.name} <span className="text-sm font-normal text-zinc-500">{t.seats ? `· ${t.seats} kursi` : ""}</span>
+                  {activeCounts && (
+                    <span
+                      className={`ml-2 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        (activeCounts[t.id] ?? 0) > 0 ? "bg-emerald-100 text-emerald-800" : "bg-zinc-100 text-zinc-600"
+                      }`}
+                    >
+                      {(activeCounts[t.id] ?? 0) > 0 ? `Terisi · ${activeCounts[t.id]} pesanan aktif` : "Kosong"}
+                    </span>
+                  )}
                 </p>
                 <div className="flex gap-2">
                   <button
