@@ -101,6 +101,18 @@ export type RestaurantTable = {
   restaurant_id: string;
   name: string;
   seats: number | null;
+  // Batch 2 Table Management, irisan 2: tanda manual staf.
+  // null/undefined = tidak ada tanda, status ikut hitungan live dari pesanan.
+  // Kolom ini baru ada sesudah migrasi 0016 dijalankan pemilik.
+  status_manual?: string | null;
+};
+
+// Tanda manual yang boleh dipasang staf pada sebuah meja.
+export const MANUAL_TABLE_STATUSES = ["perlu_dibersihkan", "rusak"] as const;
+export type ManualTableStatus = (typeof MANUAL_TABLE_STATUSES)[number];
+export const MANUAL_TABLE_STATUS_LABELS: Record<ManualTableStatus, string> = {
+  perlu_dibersihkan: "Perlu dibersihkan",
+  rusak: "Rusak",
 };
 
 export const ORDER_TYPES = ["dine_in", "takeaway", "delivery"] as const;
