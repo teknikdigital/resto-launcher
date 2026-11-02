@@ -10,6 +10,7 @@ import { formatRupiah, type MenuItem, type VariantGroup, type MenuAddon } from "
 
 type Form = {
   category: string;
+  subcategory: string;
   name: string;
   description: string;
   price: string;
@@ -17,9 +18,9 @@ type Form = {
   sort_order: string;
 };
 
-type Draft = { category: string; name: string; description: string; price: string };
+type Draft = { category: string; subcategory: string; name: string; description: string; price: string };
 
-const EMPTY: Form = { category: "", name: "", description: "", price: "", image_url: "", sort_order: "0" };
+const EMPTY: Form = { category: "", subcategory: "", name: "", description: "", price: "", image_url: "", sort_order: "0" };
 const inputCls = "field";
 
 export default function MenuAdminPage() {
@@ -72,6 +73,7 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
       setDrafts(
         (d.items as Draft[]).map((it) => ({
           category: it.category ?? "",
+          subcategory: it.subcategory ?? "",
           name: it.name ?? "",
           description: it.description ?? "",
           price: String(it.price ?? 0),
@@ -99,7 +101,7 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
         const res = await fetch(`/api/restaurants/${id}/menu`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ category: d.category, name: d.name, description: d.description, price: Number(d.price) || 0 }),
+          body: JSON.stringify({ category: d.category, subcategory: d.subcategory, name: d.name, description: d.description, price: Number(d.price) || 0 }),
         });
         if (res.ok) ok++;
         else failed.push(d);
@@ -174,6 +176,7 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
     setEditingId(m.id);
     setForm({
       category: m.category ?? "",
+      subcategory: m.subcategory ?? "",
       name: m.name,
       description: m.description ?? "",
       price: String(m.price),
@@ -210,6 +213,7 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
                   <tr>
                     <th>Nama</th>
                     <th>Kategori</th>
+                    <th>Sub-menu</th>
                     <th>Harga</th>
                     <th>Deskripsi</th>
                     <th></th>
@@ -220,6 +224,7 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
                     <tr key={i}>
                       <td className="px-2 py-1"><input className={inputCls} value={d.name} onChange={(e) => setDraft(i, "name", e.target.value)} /></td>
                       <td className="px-2 py-1"><input className={inputCls} value={d.category} onChange={(e) => setDraft(i, "category", e.target.value)} /></td>
+                      <td className="px-2 py-1"><input className={inputCls} value={d.subcategory} onChange={(e) => setDraft(i, "subcategory", e.target.value)} /></td>
                       <td className="px-2 py-1"><input type="number" min={0} className={inputCls} value={d.price} onChange={(e) => setDraft(i, "price", e.target.value)} /></td>
                       <td className="px-2 py-1"><input className={inputCls} value={d.description} onChange={(e) => setDraft(i, "description", e.target.value)} /></td>
                       <td className="px-2 py-1">
@@ -248,6 +253,7 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
         <h2 className="text-lg font-semibold sm:col-span-2">{editingId ? "Edit menu" : "Tambah menu"}</h2>
         <input required className={inputCls} placeholder="Nama menu" value={form.name} onChange={(e) => set("name", e.target.value)} />
         <input className={inputCls} placeholder="Kategori (contoh: Makanan)" value={form.category} onChange={(e) => set("category", e.target.value)} />
+        <input className={inputCls} placeholder="Sub-menu (contoh: Ayam, di dalam Makanan — kosongkan bila tidak perlu)" value={form.subcategory} onChange={(e) => set("subcategory", e.target.value)} />
         <input required type="number" min={0} className={inputCls} placeholder="Harga" value={form.price} onChange={(e) => set("price", e.target.value)} />
         <input type="number" className={inputCls} placeholder="Urutan" value={form.sort_order} onChange={(e) => set("sort_order", e.target.value)} />
         <input className={inputCls} placeholder="URL gambar" value={form.image_url} onChange={(e) => set("image_url", e.target.value)} />
@@ -406,7 +412,7 @@ export function MenuManager({ restaurantId: id, backHref, backLabel }: { restaur
             <tbody>
               {items.map((m) => (
                 <tr key={m.id} className={m.is_available ? "" : "opacity-60"}>
-                  <td className="text-zinc-500">{m.category ?? "-"}</td>
+                  <td className="text-zinc-500">{m.category ?? "-"}{m.subcategory ? <span className="text-zinc-400"> / {m.subcategory}</span> : null}</td>
                   <td className="font-medium text-zinc-900">
                     {m.name}
                     {!m.is_available && <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">Habis</span>}
