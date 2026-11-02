@@ -162,7 +162,7 @@ export function parseMenuBody(
   if (!body) return { error: "Body tidak valid" };
   const data: Record<string, unknown> = {};
 
-  for (const f of ["category", "description", "image_url"] as const) {
+  for (const f of ["category", "subcategory", "description", "image_url"] as const) {
     if (body[f] !== undefined) data[f] = str(body[f]);
   }
   if (body.name !== undefined || !partial) {
