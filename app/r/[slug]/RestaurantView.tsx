@@ -12,7 +12,7 @@ import { isQrisPayload, makeDynamicQris, qrisMerchantName } from "@/lib/qris";
 import { AlertIcon, CartIcon, ChairIcon, CloseIcon, LockIcon, MinusIcon, PinIcon, PlusIcon, UtensilsIcon } from "./icons";
 
 type SoldOutItem = { id: string; category: string | null; name: string; price: number; image_url: string | null };
-type Data = { restaurant: Restaurant; active: boolean; menu: MenuItem[]; sold_out?: SoldOutItem[] };
+type Data = { restaurant: Restaurant; active: boolean; menu: MenuItem[]; sold_out?: SoldOutItem[]; favorites?: MenuItem[] };
 
 type CartLine = {
   key: string;
@@ -25,6 +25,72 @@ type CartLine = {
 };
 
 const hasOptions = (m: MenuItem) => (m.variants?.length ?? 0) > 0 || (m.addons?.length ?? 0) > 0;
+
+// Kartu menu grid (foto di atas) — dipakai di daftar kategori, sub-menu, dan baris Favorite.
+type GridCardProps = {
+  m: MenuItem;
+  t: ReturnType<typeof getTheme>;
+  color: string;
+  className?: string;
+  plainQty: number;
+  itemQty: number;
+  onMinus: () => void;
+  onAdd: () => void;
+  onPilih: () => void;
+};
+
+function MenuGridCard({ m, t, color, className, plainQty, itemQty, onMinus, onAdd, onPilih }: GridCardProps) {
+  const optioned = hasOptions(m);
+  return (
+    <li className={`${t.gridCard} flex flex-col ${className ?? ""}`}>
+      <ItemImg src={m.image_url} name={m.name} className="h-36 w-full object-cover" color={color} />
+      <div className="flex min-w-0 flex-1 flex-col p-3">
+        <p className={`break-words ${t.name}`}>{m.name}</p>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+          <p className={t.price} style={t.priceStyle}>
+            {formatRupiah(Number(m.price))}
+          </p>
+          {optioned ? (
+            <button onClick={onPilih} className={t.btn} style={t.btnStyle}>
+              Pilih{itemQty > 0 ? ` (${itemQty})` : ""}
+            </button>
+          ) : plainQty > 0 ? (
+            <div className="flex items-center gap-2">
+              <button onClick={onMinus} aria-label="Kurangi" className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`}>
+                <MinusIcon className="h-4 w-4" />
+              </button>
+              <span className="w-5 text-center font-semibold">{plainQty}</span>
+              <button
+                onClick={onAdd}
+                aria-label="Tambah"
+                className="flex h-8 w-8 items-center justify-center rounded-full transition hover:brightness-110 active:scale-90"
+                style={t.btnStyle}
+              >
+                <PlusIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <button onClick={onAdd} className={t.btn} style={t.btnStyle}>
+              Tambah
+            </button>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+// Bagi item satu kategori jadi: tanpa sub-menu + kelompok per sub-menu (urutan ikut sort_order).
+function splitSub(items: MenuItem[]) {
+  const plain: MenuItem[] = [];
+  const subs = new Map<string, MenuItem[]>();
+  for (const m of items) {
+    const s = (m.subcategory ?? "").trim();
+    if (!s) plain.push(m);
+    else subs.set(s, [...(subs.get(s) ?? []), m]);
+  }
+  return { plain, subs };
+}
 
 // Gambar menu dengan cadangan ubin huruf bila URL mati (tautan foto resto sering kedaluwarsa).
 function ItemImg({ src, name, className, color, gray }: { src: string | null; name: string; className: string; color: string; gray?: boolean }) {
@@ -444,56 +510,121 @@ export default function RestaurantView({ mode }: { mode: "landing" | "menu" }) {
         {isMenu && template === "elegan" && query.trim() && shownFiltered.length === 0 && grouped.length > 0 && (
           <p className={`py-10 text-center text-sm ${t.muted}`}>Menu &quot;{query.trim()}&quot; tidak ditemukan.</p>
         )}
-        {shownFiltered.map(([category, items]) => (
-          <section key={category} className="mb-8">
-            <h2 className={t.catTitle}>{category}</h2>
-            <ul className={isMenu ? "grid grid-cols-2 gap-3" : t.list}>
-              {items.map((m) => {
+        {isMenu && !query.trim() && activeCat === null && (data.favorites?.length ?? 0) > 0 && (
+          <section className="mb-8">
+            <h2 className={t.catTitle}>Favorite</h2>
+            <p className={`mb-3 text-sm ${t.muted}`}>Paling laris dari pesanan pelanggan.</p>
+            <ul className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+              {data.favorites!.map((m) => {
                 const plainQty = lines.find((l) => l.key === m.id)?.qty ?? 0;
                 const itemQty = lines.filter((l) => l.item.id === m.id).reduce((s, l) => s + l.qty, 0);
-                const optioned = hasOptions(m);
                 return (
-                  <li key={m.id} className={isMenu ? `${t.gridCard} flex flex-col` : t.card}>
-                    <ItemImg src={m.image_url} name={m.name} className={isMenu ? "h-36 w-full object-cover" : t.img} color={color} />
-                    <div className={isMenu ? "flex min-w-0 flex-1 flex-col p-3" : "flex min-w-0 flex-1 flex-col"}>
-                      <p className={`break-words ${t.name}`}>{m.name}</p>
-                      {!isMenu && m.description && <p className={t.itemDesc}>{m.description}</p>}
-                      <div className="mt-auto flex items-center justify-between gap-2 pt-2">
-                        <p className={t.price} style={t.priceStyle}>
-                          {formatRupiah(Number(m.price))}
-                        </p>
-                        {optioned ? (
-                          <button onClick={() => setConfigItem(m)} className={t.btn} style={t.btnStyle}>
-                            Pilih{itemQty > 0 ? ` (${itemQty})` : ""}
-                          </button>
-                        ) : plainQty > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => setLineQty(m.id, plainQty - 1)} aria-label="Kurangi" className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`}>
-                              <MinusIcon className="h-4 w-4" />
-                            </button>
-                            <span className="w-5 text-center font-semibold">{plainQty}</span>
-                            <button
-                              onClick={() => addPlain(m)}
-                              aria-label="Tambah"
-                              className="flex h-8 w-8 items-center justify-center rounded-full transition hover:brightness-110 active:scale-90"
-                              style={t.btnStyle}
-                            >
-                              <PlusIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          <button onClick={() => addPlain(m)} className={t.btn} style={t.btnStyle}>
-                            Tambah
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </li>
+                  <MenuGridCard
+                    key={m.id}
+                    m={m}
+                    t={t}
+                    color={color}
+                    className="w-44 shrink-0"
+                    plainQty={plainQty}
+                    itemQty={itemQty}
+                    onMinus={() => setLineQty(m.id, plainQty - 1)}
+                    onAdd={() => addPlain(m)}
+                    onPilih={() => setConfigItem(m)}
+                  />
                 );
               })}
             </ul>
           </section>
-        ))}
+        )}
+        {shownFiltered.map(([category, items]) => {
+          const { plain, subs } = splitSub(items);
+          const cardProps = (m: MenuItem) => {
+            const plainQty = lines.find((l) => l.key === m.id)?.qty ?? 0;
+            const itemQty = lines.filter((l) => l.item.id === m.id).reduce((s, l) => s + l.qty, 0);
+            return {
+              m,
+              t,
+              color,
+              plainQty,
+              itemQty,
+              onMinus: () => setLineQty(m.id, plainQty - 1),
+              onAdd: () => addPlain(m),
+              onPilih: () => setConfigItem(m),
+            };
+          };
+          return (
+            <section key={category} className="mb-8">
+              <h2 className={t.catTitle}>{category}</h2>
+              {isMenu ? (
+                <>
+                  {plain.length > 0 && (
+                    <ul className="grid grid-cols-2 gap-3">
+                      {plain.map((m) => (
+                        <MenuGridCard key={m.id} {...cardProps(m)} />
+                      ))}
+                    </ul>
+                  )}
+                  {[...subs.entries()].map(([sub, subItems]) => (
+                    <div key={sub} className="mt-5">
+                      <h3 className={`mb-3 ${t.name}`}>{sub}</h3>
+                      <ul className="grid grid-cols-2 gap-3">
+                        {subItems.map((m) => (
+                          <MenuGridCard key={m.id} {...cardProps(m)} />
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <ul className={t.list}>
+                  {items.map((m) => {
+                    const plainQty = lines.find((l) => l.key === m.id)?.qty ?? 0;
+                    const itemQty = lines.filter((l) => l.item.id === m.id).reduce((s, l) => s + l.qty, 0);
+                    const optioned = hasOptions(m);
+                    return (
+                      <li key={m.id} className={t.card}>
+                        <ItemImg src={m.image_url} name={m.name} className={t.img} color={color} />
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <p className={`break-words ${t.name}`}>{m.name}</p>
+                          {m.description && <p className={t.itemDesc}>{m.description}</p>}
+                          <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+                            <p className={t.price} style={t.priceStyle}>
+                              {formatRupiah(Number(m.price))}
+                            </p>
+                            {optioned ? (
+                              <button onClick={() => setConfigItem(m)} className={t.btn} style={t.btnStyle}>
+                                Pilih{itemQty > 0 ? ` (${itemQty})` : ""}
+                              </button>
+                            ) : plainQty > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => setLineQty(m.id, plainQty - 1)} aria-label="Kurangi" className={`flex h-8 w-8 items-center justify-center rounded-full ${t.ghostBtn}`}>
+                                  <MinusIcon className="h-4 w-4" />
+                                </button>
+                                <span className="w-5 text-center font-semibold">{plainQty}</span>
+                                <button
+                                  onClick={() => addPlain(m)}
+                                  aria-label="Tambah"
+                                  className="flex h-8 w-8 items-center justify-center rounded-full transition hover:brightness-110 active:scale-90"
+                                  style={t.btnStyle}
+                                >
+                                  <PlusIcon className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button onClick={() => addPlain(m)} className={t.btn} style={t.btnStyle}>
+                                Tambah
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          );
+        })}
         {isMenu && (data.sold_out?.length ?? 0) > 0 && (
           <section className="mb-8">
             <h2 className={t.catTitle}>Sedang Habis</h2>
