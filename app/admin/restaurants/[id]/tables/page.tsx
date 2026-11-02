@@ -6,7 +6,7 @@ import { faChair } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import type { Order, Restaurant, RestaurantTable } from "@/lib/resto-types";
+import { MANUAL_TABLE_STATUS_LABELS, type ManualTableStatus, type Order, type Restaurant, type RestaurantTable } from "@/lib/resto-types";
 
 const inputCls = "field";
 
@@ -31,6 +31,11 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
   // Tanpa migrasi database: status dihitung dari tabel orders yang sudah ada.
   const [activeCounts, setActiveCounts] = useState<Record<string, number> | null>(null);
   const [statusFailed, setStatusFailed] = useState(false);
+  // Batch 2 Table Management, irisan 2: tanda manual + tampilan denah.
+  // Tanda manual mengalahkan badge live; denah = grid kartu warna status
+  // (urut nama meja, belum posisi seret).
+  const [view, setView] = useState<"daftar" | "denah">("daftar");
+  const [manualSavingId, setManualSavingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -108,6 +113,59 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
     await load();
   }
 
+  // Status yang tampil: tanda manual mengalahkan hitungan live dari pesanan.
+  // null = status belum bisa ditentukan (pesanan gagal dimuat & tanpa tanda).
+  function displayStatus(t: RestaurantTable) {
+    if (t.status_manual === "perlu_dibersihkan")
+      return { label: "Perlu dibersihkan", badge: "bg-amber-100 text-amber-800", card: "border-amber-300 bg-amber-50" };
+    if (t.status_manual === "rusak")
+      return { label: "Rusak", badge: "bg-red-100 text-red-800", card: "border-red-300 bg-red-50" };
+    if (!activeCounts) return null;
+    const n = activeCounts[t.id] ?? 0;
+    return n > 0
+      ? { label: `Terisi · ${n} pesanan aktif`, badge: "bg-emerald-100 text-emerald-800", card: "border-emerald-300 bg-emerald-50" }
+      : { label: "Kosong", badge: "bg-zinc-100 text-zinc-600", card: "border-zinc-200 bg-white" };
+  }
+
+  async function setManual(t: RestaurantTable, value: ManualTableStatus | "") {
+    setManualSavingId(t.id);
+    setError("");
+    try {
+      const res = await fetch(`/api/tables/${t.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status_manual: value === "" ? null : value }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.error ?? "Gagal menyimpan tanda");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menyimpan tanda");
+    } finally {
+      setManualSavingId(null);
+    }
+  }
+
+  const manualSelect = (t: RestaurantTable) => (
+    <label className="flex flex-wrap items-center gap-2 text-xs text-zinc-600">
+      Tanda manual
+      <select
+        className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-800"
+        value={t.status_manual ?? ""}
+        disabled={manualSavingId === t.id}
+        onChange={(e) => void setManual(t, e.target.value as ManualTableStatus | "")}
+      >
+        <option value="">Ikut status live</option>
+        {(Object.keys(MANUAL_TABLE_STATUS_LABELS) as ManualTableStatus[]).map((k) => (
+          <option key={k} value={k}>
+            {MANUAL_TABLE_STATUS_LABELS[k]}
+          </option>
+        ))}
+      </select>
+      {manualSavingId === t.id && <span className="text-zinc-500">Menyimpan…</span>}
+    </label>
+  );
+
   const linkPath = (t: RestaurantTable) => `/r/${slug}/menu?table=${encodeURIComponent(t.name)}`;
 
   // Buat gambar QR per meja (untuk dicetak & ditempel di meja).
@@ -184,9 +242,17 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
           ) : (
             <p className="text-sm text-zinc-500">Memuat status meja…</p>
           )}
-          <button onClick={() => void load()} className="btn-secondary btn-sm">
-            Perbarui status
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setView("daftar")} className={view === "daftar" ? "btn-primary btn-sm" : "btn-secondary btn-sm"}>
+              Daftar
+            </button>
+            <button onClick={() => setView("denah")} className={view === "denah" ? "btn-primary btn-sm" : "btn-secondary btn-sm"}>
+              Denah
+            </button>
+            <button onClick={() => void load()} className="btn-secondary btn-sm">
+              Perbarui status
+            </button>
+          </div>
         </div>
       )}
       {loading ? (
@@ -200,21 +266,48 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
           <p className="font-semibold text-zinc-800">Belum ada meja</p>
           <p className="mt-1 text-sm text-zinc-500">Tambahkan meja agar tiap meja punya link menu QR sendiri.</p>
         </div>
+      ) : view === "denah" ? (
+        <div>
+          <p className="mb-3 flex flex-wrap gap-2 text-xs text-zinc-600">
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800">Terisi</span>
+            <span className="rounded-full bg-zinc-100 px-2 py-0.5 font-semibold text-zinc-600">Kosong</span>
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">Perlu dibersihkan</span>
+            <span className="rounded-full bg-red-100 px-2 py-0.5 font-semibold text-red-800">Rusak</span>
+          </p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {tables.map((t) => {
+              const st = displayStatus(t);
+              return (
+                <div key={t.id} className={`rounded-xl border p-4 text-sm shadow-sm ${st?.card ?? "border-zinc-200 bg-white"}`}>
+                  <p className="text-base font-semibold text-zinc-900">Meja {t.name}</p>
+                  <p className="text-xs text-zinc-500">{t.seats ? `${t.seats} kursi` : "Kursi tidak diisi"}</p>
+                  {st ? (
+                    <p className="mt-2">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${st.badge}`}>{st.label}</span>
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs text-zinc-500">{statusFailed ? "Status belum bisa dimuat" : "Memuat status…"}</p>
+                  )}
+                  <div className="mt-3">{manualSelect(t)}</div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-xs text-zinc-500">
+            Denah ini susunan grid menurut nama meja — belum posisi seret. QR dan link tiap meja tetap ada di tampilan Daftar.
+          </p>
+        </div>
       ) : (
         <ul className="space-y-3">
-          {tables.map((t) => (
+          {tables.map((t) => {
+            const st = displayStatus(t);
+            return (
             <li key={t.id} className="rounded-xl border border-zinc-200 bg-white p-4 text-sm shadow-sm transition hover:shadow-md">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-base font-semibold text-zinc-900">
                   Meja {t.name} <span className="text-sm font-normal text-zinc-500">{t.seats ? `· ${t.seats} kursi` : ""}</span>
-                  {activeCounts && (
-                    <span
-                      className={`ml-2 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        (activeCounts[t.id] ?? 0) > 0 ? "bg-emerald-100 text-emerald-800" : "bg-zinc-100 text-zinc-600"
-                      }`}
-                    >
-                      {(activeCounts[t.id] ?? 0) > 0 ? `Terisi · ${activeCounts[t.id]} pesanan aktif` : "Kosong"}
-                    </span>
+                  {st && (
+                    <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-semibold ${st.badge}`}>{st.label}</span>
                   )}
                 </p>
                 <div className="flex gap-2">
@@ -233,6 +326,7 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
                   </button>
                 </div>
               </div>
+              <div className="mt-2">{manualSelect(t)}</div>
               {slug && (
                 <div className="mt-3 flex flex-wrap items-center gap-4">
                   {qrMap[t.id] ? (
@@ -260,7 +354,8 @@ export function TablesManager({ restaurantId: id, backHref, backLabel }: { resta
                 </div>
               )}
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </main>
