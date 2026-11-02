@@ -30,6 +30,7 @@ import {
   type RestaurantWithSub,
 } from "@/lib/resto-types";
 import ThemePreview from "@/components/ThemePreview";
+import ProfilForm from "@/components/ProfilForm";
 
 type Check = { label: string; desc: string; done: boolean; href: string };
 type NavItem = { label: string; desc: string; href: string; icon: IconDefinition; external?: boolean; active?: boolean };
@@ -39,6 +40,7 @@ export default function RestaurantDashboard() {
   const [resto, setResto] = useState<RestaurantWithSub | null>(null);
   const [tableCount, setTableCount] = useState(0);
   const [menuCount, setMenuCount] = useState(0);
+  const [habisCount, setHabisCount] = useState(0);
   const [catCount, setCatCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -90,8 +92,9 @@ export default function RestaurantDashboard() {
       }
       if (mRes.ok) {
         const mD = await mRes.json();
-        const items = (mD.items ?? mD.menu ?? []) as { category?: string | null }[];
+        const items = (mD.items ?? mD.menu ?? []) as { category?: string | null; is_available?: boolean }[];
         setMenuCount(items.length);
+        setHabisCount(items.filter((i) => i.is_available === false).length);
         setCatCount(new Set(items.map((i) => (i.category ?? "").trim() || "Lainnya")).size);
       }
     } catch (e) {
@@ -196,14 +199,15 @@ export default function RestaurantDashboard() {
   ];
   const navKelola: NavItem[] = [
     { label: "Kelola Menu", desc: "Tambah/edit menu & harga", href: `/admin/restaurants/${id}/menu`, icon: faUtensils },
+    { label: "Profil Resto", desc: "Nama, deskripsi, alamat, banner promo", href: "#profil", icon: faPenToSquare },
     { label: "Meja & QR", desc: "Tambah meja, unduh QR", href: `/admin/restaurants/${id}/tables`, icon: faChair },
     { label: "Tema & Pratinjau", desc: "Lihat & ganti tampilan website", href: "#tema", icon: faPalette },
-    { label: "Edit Info Resto", desc: "Nama, alamat, kontak, PIN", href: "/admin/restaurants", icon: faPenToSquare },
+    { label: "Edit Info Resto", desc: "Nama, alamat, kontak, PIN", href: "/admin/restaurants", icon: faClipboardList },
   ];
   const navLihat: NavItem[] = [
     { label: "Website Resto", desc: `/r/${resto.slug}`, href: `/r/${resto.slug}`, icon: faGlobe, external: true },
     { label: "Menu Pelanggan", desc: "Yang dibuka pelanggan via QR", href: `/r/${resto.slug}/menu`, icon: faMobileScreen, external: true },
-    { label: "Portal Pemilik", desc: "Kelola mandiri oleh pemilik", href: `/owner/${resto.slug}`, icon: faClipboardList, external: true },
+    { label: "Portal Pemilik", desc: "Hub pemilik + link untuk pemilik", href: "#portal", icon: faClipboardList },
   ];
 
   const navGroup = (title: string, items: NavItem[]) => (
@@ -332,7 +336,7 @@ export default function RestaurantDashboard() {
         <div className="min-w-0">
           <header className="mb-6">
             <h1 className="font-display text-3xl font-bold text-stone-900">Ringkasan {resto.name}</h1>
-            <p className="mt-1 text-sm text-stone-500">Alamat website, isi resto, langkah awal, dan tema — semua di satu tempat.</p>
+            <p className="mt-1 text-sm text-stone-500">Alamat website, isi resto, langkah awal, tema, profil, dan portal pemilik — semua di satu tempat.</p>
           </header>
 
           {/* Kartu alamat + isi resto */}
@@ -380,6 +384,7 @@ export default function RestaurantDashboard() {
                 {(
                   [
                     ["Menu", menuCount],
+                    ["Menu habis", habisCount],
                     ["Kategori", catCount],
                     ["Meja", tableCount],
                   ] as const
@@ -429,6 +434,56 @@ export default function RestaurantDashboard() {
               </span>
             </div>
             <ThemePreview slug={resto.slug} current={toTemplate(resto.template)} canApply onApply={applyTemplate} allowed={templatesForPackage(pkg)} />
+          </section>
+
+          {/* Profil resto (dulu hanya ada di portal pemilik) */}
+          <section id="profil" className="panel mb-6 scroll-mt-6">
+            <h2 className="mb-1 text-lg font-semibold">Profil Resto</h2>
+            <p className="mb-4 text-sm text-zinc-500">
+              Nama, deskripsi, alamat, jam buka, logo, foto sampul, dan banner promo — formulir yang sama dengan
+              yang pemilik edit di portal.
+            </p>
+            <ProfilForm restaurantId={id} />
+          </section>
+
+          {/* Portal pemilik — hub pemilik kini di dalam dashboard */}
+          <section id="portal" className="panel mb-6 scroll-mt-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold">Portal Pemilik</h2>
+              <button
+                onClick={() => copyText("portal", `${window.location.origin}/owner/${resto.slug}`)}
+                className="rounded-full border border-[#E7DCC8] bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-[#F6ECD2]"
+              >
+                {copied === "portal" ? "Tersalin ✓" : "Salin link portal pemilik"}
+              </button>
+            </div>
+            <p className="mb-4 text-sm text-zinc-500">
+              Semua isi portal pemilik kini ada di dashboard ini. Link portal untuk pemilik tetap jalan seperti
+              biasa — pemilik membukanya dengan PIN owner-nya sendiri.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                { label: "Kelola Menu", desc: "Tambah/edit menu & harga", href: `/admin/restaurants/${id}/menu`, icon: faUtensils },
+                { label: "Meja & QR", desc: "Tambah meja, unduh QR", href: `/admin/restaurants/${id}/tables`, icon: faChair },
+                { label: "Profil Resto", desc: "Nama, deskripsi, alamat, banner promo", href: "#profil", icon: faPenToSquare },
+                { label: "Tema & Pratinjau", desc: "Lihat & ganti tampilan website", href: "#tema", icon: faPalette },
+                { label: "Website Resto", desc: `/r/${resto.slug}`, href: `/r/${resto.slug}`, icon: faGlobe, external: true },
+                { label: "Menu Pelanggan", desc: "Yang dibuka pelanggan via QR", href: `/r/${resto.slug}/menu`, icon: faMobileScreen, external: true },
+              ].map((c) => (
+                <Link
+                  key={c.label}
+                  href={c.href}
+                  {...("external" in c && c.external ? { target: "_blank", rel: "noreferrer" } : {})}
+                  className="flex items-center gap-3 rounded-xl border border-zinc-100 px-4 py-3 transition hover:border-emerald-200 hover:bg-emerald-50/40"
+                >
+                  <FontAwesomeIcon icon={c.icon} className="w-5 shrink-0 text-center text-[15px] text-[#1B5E3B]" />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-zinc-800">{c.label}</span>
+                    <span className="block truncate text-xs text-zinc-500">{c.desc}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
           </section>
 
           {!fullKasir && (
