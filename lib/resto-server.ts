@@ -10,6 +10,8 @@ import {
   type OrderLine,
   type Restaurant,
   type RestaurantTable,
+  type ManualTableStatus,
+  MANUAL_TABLE_STATUSES,
   type RestaurantTemplate,
   type Subscription,
   type Package,
@@ -328,9 +330,9 @@ export async function fetchTables(restaurantId: string, extra = ""): Promise<Res
 export function parseTableBody(
   body: Record<string, unknown> | null,
   partial: boolean,
-): { data: { name?: string; seats?: number | null } } | { error: string } {
+): { data: { name?: string; seats?: number | null; status_manual?: string | null } } | { error: string } {
   if (!body) return { error: "Body tidak valid" };
-  const data: { name?: string; seats?: number | null } = {};
+  const data: { name?: string; seats?: number | null; status_manual?: string | null } = {};
   if (body.name !== undefined || !partial) {
     const name = str(body.name);
     if (!name) return { error: "Nama meja wajib diisi" };
@@ -343,6 +345,17 @@ export function parseTableBody(
       if (!Number.isInteger(n) || n < 1 || n > 999) return { error: "Jumlah kursi tidak valid" };
       data.seats = n;
     }
+  }
+  // Batch 2, irisan 2: tanda manual. Nilai tidak dikenal ditolak; string
+  // kosong = hapus tanda (kembali ikut status live). Bila kolom
+  // status_manual belum ada di database (migrasi 0016 belum jalan),
+  // Supabase mengembalikan error dan UI menampilkan pesannya — daftar
+  // meja sendiri tetap bisa dibuka.
+  if (body.status_manual !== undefined) {
+    if (body.status_manual === null || body.status_manual === "") data.status_manual = null;
+    else if ((MANUAL_TABLE_STATUSES as readonly string[]).includes(String(body.status_manual))) {
+      data.status_manual = String(body.status_manual) as ManualTableStatus;
+    } else return { error: "Status manual tidak valid" };
   }
   return { data };
 }
